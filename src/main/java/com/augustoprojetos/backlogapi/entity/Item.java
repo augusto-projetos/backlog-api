@@ -1,9 +1,7 @@
 package com.augustoprojetos.backlogapi.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Entity // Diz pro Spring: "Isso aqui é uma tabela no banco!"
@@ -11,14 +9,25 @@ import lombok.Data;
 public class Item {
 
     @Id // Diz que esse é a Chave Primária (PK)
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increment (1, 2, 3...)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String titulo;      // Ex: "God of War"
-    private String tipo;        // Ex: "Jogo", "Filme", "Série"
-    private String status;      // Ex: "Zerado", "Assistindo", "Dropado"
-    private Integer nota;       // Ex: 10
-    private String resenha;     // Ex: "História incrível, mas o final..."
-    private String imagemUrl;   // Ex: "https://site.com/foto.jpg"
+    @NotBlank(message = "O título não pode estar vazio") // Não aceita null nem "" nem " "
+    private String titulo;
 
+    @NotBlank(message = "O tipo é obrigatório")
+    private String tipo;
+
+    @NotBlank(message = "O status é obrigatório")
+    private String status;
+
+    @NotNull(message = "A nota é obrigatória")
+    @Min(value = 0, message = "A nota deve ser no mínimo 0")
+    @Max(value = 10, message = "A nota deve ser no máximo 10")
+    private Integer nota;
+
+    private String resenha; // Esse pode ser vazio
+
+    @Size(max = 500, message = "O link da imagem é muito longo")
+    private String imagemUrl;
 }

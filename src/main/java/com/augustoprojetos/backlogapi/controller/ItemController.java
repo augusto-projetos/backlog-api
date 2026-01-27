@@ -2,6 +2,7 @@ package com.augustoprojetos.backlogapi.controller;
 
 import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +17,9 @@ public class ItemController {
 
     // 1. Método para CADASTRAR (POST)
     @PostMapping
-    public Item cadastrar(@RequestBody Item item) {
-        return itemRepository.save(item); // O save já vem pronto do JpaRepository!
+    // O @Valid diz: "Spring, checa se esse item cumpre as regras antes de entrar aqui"
+    public Item cadastrar(@RequestBody @Valid Item item) {
+        return itemRepository.save(item);
     }
 
     // 2. Método para LISTAR TUDO (GET)
@@ -29,9 +31,9 @@ public class ItemController {
     // 3. Método para EDITAR (PUT)
     // URL vai ser: http://localhost:8080/itens/1 (onde 1 é o ID)
     @PutMapping("/{id}")
-    public Item atualizar(@PathVariable Long id, @RequestBody Item itemAtualizado) {
-        itemAtualizado.setId(id); // Força o ID do objeto ser o mesmo da URL
-        return itemRepository.save(itemAtualizado); // O save também serve para atualizar!
+    public Item atualizar(@PathVariable Long id, @RequestBody @Valid Item itemAtualizado) {
+        itemAtualizado.setId(id);
+        return itemRepository.save(itemAtualizado);
     }
 
     // 4. Método para DELETAR (DELETE)
