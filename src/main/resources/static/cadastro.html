@@ -37,6 +37,15 @@
             </div>
 
             <div class="form-group">
+                <label for="imagemUrl">Link da Imagem (URL):</label>
+                <input type="url" id="imagemUrl" placeholder="Cole o link da imagem aqui..." oninput="atualizarPreview()">
+
+                <div style="margin-top: 10px; text-align: center;">
+                    <img id="preview-img" src="" alt="Preview da imagem" style="max-height: 200px; display: none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="nota">Nota (0-10):</label>
                 <input type="number" id="nota" min="0" max="10" required>
             </div>

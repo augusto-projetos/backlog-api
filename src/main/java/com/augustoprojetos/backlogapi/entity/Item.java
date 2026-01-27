@@ -19,5 +19,6 @@ public class Item {
     private String status;      // Ex: "Zerado", "Assistindo", "Dropado"
     private Integer nota;       // Ex: 10
     private String resenha;     // Ex: "História incrível, mas o final..."
+    private String imagemUrl;   // Ex: "https://site.com/foto.jpg"
 
 }
