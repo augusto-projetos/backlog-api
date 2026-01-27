@@ -82,34 +82,57 @@ async function salvarItem(event) {
         let metodo;
         let url;
 
-        // Decide se cria ou atualiza
         if (idEdicao) {
-            // MODO EDIÇÃO (PUT)
             metodo = 'PUT';
             url = `/itens/${idEdicao}`;
         } else {
-            // MODO CRIAÇÃO (POST)
             metodo = 'POST';
             url = '/itens';
         }
 
         const resposta = await fetch(url, {
             method: metodo,
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dados)
         });
 
+        // SE DEU CERTO (200 ou 201)
         if (resposta.ok) {
-            alert('Salvo com sucesso!');
-            window.location.href = '/'; // Volta para a Home
-        } else {
-            alert('Erro ao salvar. Verifique o console.');
+            Swal.fire({
+                title: 'Sucesso!',
+                text: 'Item salvo com sucesso!',
+                icon: 'success',
+                confirmButtonText: 'Ok'
+            }).then(() => {
+                window.location.href = '/';
+            });
+        }
+        // SE DEU ERRO DE VALIDAÇÃO (400 - Bad Request)
+        else if (resposta.status === 400) {
+            const erros = await resposta.json(); // Pega o seu JSON de erros
+
+            // Transforma o JSON {"titulo": "erro", "nota": "erro"} em texto HTML
+            let mensagemErro = '<ul style="text-align: left;">';
+            for (const campo in erros) {
+                mensagemErro += `<li><b>${campo}:</b> ${erros[campo]}</li>`;
+            }
+            mensagemErro += '</ul>';
+
+            Swal.fire({
+                title: 'Erro de Validação!',
+                html: mensagemErro, // Usamos HTML para mostrar a lista
+                icon: 'error',
+                confirmButtonText: 'Corrigir'
+            });
+        }
+        // QUALQUER OUTRO ERRO
+        else {
+            Swal.fire('Erro!', 'Ocorreu um erro inesperado no servidor.', 'error');
         }
 
     } catch (erro) {
-        console.error('Erro na requisição:', erro);
+        console.error('Erro:', erro);
+        Swal.fire('Erro!', 'Falha na comunicação com o sistema.', 'error');
     }
 }
 
@@ -193,21 +216,36 @@ function atualizarPreview() {
 }
 
 async function deletarItem(id) {
-    const confirmar = confirm("Tem certeza que deseja excluir esse item? Não tem volta!");
+    // Pergunta estilizada
+    const resultado = await Swal.fire({
+        title: 'Tem certeza?',
+        text: "Você não poderá reverter isso!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c', // Vermelho botão delete
+        cancelButtonColor: '#7f8c8d',
+        confirmButtonText: 'Sim, deletar!',
+        cancelButtonText: 'Cancelar'
+    });
 
-    if (confirmar) {
+    // Só deleta se o usuário clicou em "Sim"
+    if (resultado.isConfirmed) {
         try {
-            const resposta = await fetch(`/itens/${id}`, {
-                method: 'DELETE'
-            });
+            const resposta = await fetch(`/itens/${id}`, { method: 'DELETE' });
 
             if (resposta.ok) {
+                // Mostra sucesso rápido e recarrega
+                Swal.fire(
+                    'Deletado!',
+                    'O item foi removido.',
+                    'success'
+                );
                 carregarItens();
             } else {
-                alert("Erro ao excluir. O servidor não deixou.");
+                Swal.fire('Erro!', 'Não foi possível deletar.', 'error');
             }
         } catch (erro) {
-            console.error("Erro na exclusão:", erro);
+            console.error("Erro:", erro);
         }
     }
 }
