@@ -35,8 +35,13 @@ async function carregarItens() {
                         <small>Status: ${item.status}</small>
                     </div>
 
-                    <div class="nota">
-                        Nota: ${item.nota}/10
+                    <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                        <div class="nota" style="margin-bottom: 10px;">
+                            Nota: ${item.nota}/10
+                        </div>
+                        <button onclick="deletarItem(${item.id})" class="btn-delete">
+                            🗑️
+                        </button>
                     </div>
                 </div>
             `;
@@ -102,5 +107,28 @@ function atualizarPreview() {
     } else {
         img.style.display = 'none';  // Esconde se estiver vazio
         img.src = '';
+    }
+}
+
+async function deletarItem(id) {
+    // 1. Pergunta de segurança (UX básica)
+    const confirmar = confirm("Tem certeza que deseja excluir esse item? Não tem volta!");
+
+    if (confirmar) {
+        try {
+            // 2. Chama o DELETE do Java
+            const resposta = await fetch(`/itens/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (resposta.ok) {
+                // 3. Se deu certo, recarrega a lista para o item sumir
+                carregarItens();
+            } else {
+                alert("Erro ao excluir. O servidor não deixou.");
+            }
+        } catch (erro) {
+            console.error("Erro na exclusão:", erro);
+        }
     }
 }

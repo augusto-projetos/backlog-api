@@ -39,6 +39,7 @@ h1 {
     color: #e67e22;
 }
 
+/* Botões */
 .btn-salvar {
     background-color: #27ae60;
     color: white;
@@ -57,4 +58,18 @@ h1 {
     margin-left: 10px;
     text-decoration: none;
     color: #7f8c8d;
+}
+
+.btn-delete {
+    background-color: #e74c3c; /* Vermelho sangue */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b; /* Vermelho mais escuro */
 }
