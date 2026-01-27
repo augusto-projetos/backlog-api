@@ -125,22 +125,22 @@ async function carregarItens() {
 
             const card = `
                 <div class="card">
-                    <div style="margin-right: 15px;">
-                        <img src="${imagem}" style="width: 100px; height: 140px; object-fit: cover; border-radius: 4px;">
+                    <div class="card-img-wrapper">
+                        <img src="${imagem}">
                     </div>
 
-                    <div class="info" style="flex: 1;">
+                    <div class="card-info">
                         <h3>${item.titulo} <span class="badge">${item.tipo}</span></h3>
                         <p>${item.resenha}</p>
                         <small>Status: ${item.status}</small>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                        <div class="nota" style="margin-bottom: 10px;">
+                    <div class="card-actions">
+                        <div class="nota">
                             Nota: ${item.nota}/10
                         </div>
 
-                        <div style="display: flex; gap: 5px;">
+                        <div class="btn-group">
                             <a href="/cadastro.html?id=${item.id}" class="btn-edit">
                                 ✏️
                             </a>

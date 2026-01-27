@@ -1,20 +1,64 @@
- .form-group {
-     margin-bottom: 15px;
- }
+.card {
+    margin: 50px auto;
+    max-width: 600px;
+    display: block;
+}
 
- .form-group label {
-     display: block;
-     margin-bottom: 5px;
-     font-weight: bold;
-     color: #2c3e50;
- }
+/* Estilos dos Inputs */
+.form-group {
+    margin-bottom: 15px;
+}
 
- .form-group input,
- .form-group select,
- .form-group textarea {
-     width: 100%; /* Ocupa todo o espaço do card */
-     padding: 8px;
-     border: 1px solid #ccc;
-     border-radius: 4px;
-     box-sizing: border-box; /* Garante que o padding não estoure a largura */
- }
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* --- Responsividade --- */
+@media (max-width: 600px) {
+    .card {
+        margin: 20px auto; /* No celular removemos a margem grande de cima */
+        width: auto;    /* Garante uso total da tela no mobile */
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
+    }
+
+    .btn-salvar {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .btn-cancelar {
+        display: block;
+        text-align: center;
+        width: 100%;
+        margin-left: 0;
+        padding: 10px 0;
+    }
+}
