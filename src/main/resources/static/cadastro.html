@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <title>Novo Item - Backlog</title>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/cadastro.css">
+    </head>
+    <body>
+
+        <h1>📝 Adicionar Novo Item</h1>
+
+        <div class="card" style="display: block;"> <form id="form-cadastro">
+
+            <div class="form-group">
+                <label for="titulo">Título:</label>
+                <input type="text" id="titulo" required placeholder="Ex: God of War">
+            </div>
+
+            <div class="form-group">
+                <label for="tipo">Tipo:</label>
+                <select id="tipo">
+                    <option value="Jogo">Jogo</option>
+                    <option value="Filme">Filme</option>
+                    <option value="Série">Série</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select id="status">
+                    <option value="Zerado">Zerado / Assistido</option>
+                    <option value="Jogando">Jogando / Assistindo</option>
+                    <option value="Dropado">Desisti (Dropado)</option>
+                    <option value="Backlog">Na fila (Backlog)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nota">Nota (0-10):</label>
+                <input type="number" id="nota" min="0" max="10" required>
+            </div>
+
+            <div class="form-group">
+                <label for="resenha">Resenha rápida:</label>
+                <textarea id="resenha" rows="3" placeholder="O que achou?"></textarea>
+            </div>
+
+            <button type="submit" class="btn-salvar">Salvar Item</button>
+            <a href="/" class="btn-cancelar">Cancelar</a>
+        </form>
+        </div>
+
+        <script src="js/script.js"></script>
+    </body>
+</html>
