@@ -159,28 +159,35 @@ async function carregarItens() {
     }
 }
 
-// Função auxiliar para verificar se é uma URL válida e segura
-function ehUrlValida(string) {
+// Função Sanitizadora: Tenta criar uma URL limpa. Se falhar, devolve null.
+function sanitizarUrl(string) {
     try {
-        const url = new URL(string);
-        // Só aceita http: ou https: (evita javascript:alert(...) e outros ataques)
-        return url.protocol === "http:" || url.protocol === "https:";
+        const urlObj = new URL(string);
+        // Só aceita http e https
+        if (urlObj.protocol === "http:" || urlObj.protocol === "https:") {
+            return urlObj.href; // Retorna a URL reconstruída e segura
+        }
     } catch (_) {
-        return false; // Se der erro ao criar o objeto URL, não é válida
+        // Se der erro, ignora
     }
+    return null; // Retorna nulo se não for válida
 }
 
 function atualizarPreview() {
-    const url = document.getElementById('imagemUrl').value;
+    const urlInput = document.getElementById('imagemUrl').value;
     const img = document.getElementById('preview-img');
 
+    // Tenta limpar a URL
+    const urlSegura = sanitizarUrl(urlInput);
+
     if (img) {
-        if (url && ehUrlValida(url)) {
-            img.src = url;
+        if (urlSegura) {
+            // Usamos a variável 'urlSegura', não o input original
+            img.src = urlSegura;
             img.style.display = 'block';
         } else {
             img.style.display = 'none';
-            img.src = ''; // Limpa o src para não ficar lixo
+            img.src = '';
         }
     }
 }
