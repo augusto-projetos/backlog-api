@@ -40,4 +40,11 @@ public class ItemController {
     public void deletar(@PathVariable Long id) {
         itemRepository.deleteById(id);
     }
+
+    // 5. Método para BUSCAR UM SÓ (GET com ID)
+    // Serve para preencher o formulário de edição
+    @GetMapping("/{id}")
+    public Item buscarPorId(@PathVariable Long id) {
+        return itemRepository.findById(id).orElse(null);
+    }
 }

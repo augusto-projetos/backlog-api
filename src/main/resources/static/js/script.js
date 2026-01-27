@@ -1,16 +1,117 @@
-// Verifica se estamos na página inicial (tem a lista?)
+// --- Lógica de Inicialização ---
+
 const listaItens = document.getElementById('lista-itens');
+const formCadastro = document.getElementById('form-cadastro');
+
+// Variável global para saber se estamos editando
+let idEdicao = null;
+
+// 1. Lógica da Home (Lista)
 if (listaItens) {
     carregarItens();
 }
 
-// Verifica se estamos na página de cadastro (tem o formulário?)
-const formCadastro = document.getElementById('form-cadastro');
+// 2. Lógica do Cadastro/Edição (Formulário)
 if (formCadastro) {
-    formCadastro.addEventListener('submit', cadastrarItem);
+    // Verifica se tem ID na URL (Ex: cadastro.html?id=5)
+    const parametros = new URLSearchParams(window.location.search);
+    const idUrl = parametros.get('id');
+
+    if (idUrl) {
+        idEdicao = idUrl; // Guarda o ID para usar no salvar
+        document.querySelector('h1').innerText = "✏️ Editar Item"; // Muda o título visualmente
+        carregarDadosParaEdicao(idUrl); // Chama a função que busca os dados e preenche
+    }
+
+    // Ouve o clique no botão salvar
+    formCadastro.addEventListener('submit', salvarItem);
 }
 
 // --- Funções ---
+
+// Busca o item no Java e preenche os inputs
+async function carregarDadosParaEdicao(id) {
+    try {
+        const resposta = await fetch(`/itens/${id}`);
+        if (resposta.ok) {
+            const item = await resposta.json();
+
+            // Preenche os campos do formulário com o que veio do banco
+            document.getElementById('titulo').value = item.titulo;
+            document.getElementById('tipo').value = item.tipo;
+            document.getElementById('status').value = item.status;
+            document.getElementById('nota').value = item.nota;
+            document.getElementById('resenha').value = item.resenha;
+
+            // Tratamento especial para imagem (caso venha nulo)
+            const campoImagem = document.getElementById('imagemUrl');
+            if (campoImagem) {
+                campoImagem.value = item.imagemUrl || "";
+                atualizarPreview(); // Já mostra a foto carregada
+            }
+        }
+    } catch (erro) {
+        console.error("Erro ao carregar dados para edição:", erro);
+        alert("Erro ao buscar dados do item.");
+    }
+}
+
+// Serve tanto para Criar quanto para Editar
+async function salvarItem(event) {
+    event.preventDefault();
+
+    // Pega os valores
+    const titulo = document.getElementById('titulo').value;
+    const tipo = document.getElementById('tipo').value;
+    const status = document.getElementById('status').value;
+    const nota = document.getElementById('nota').value;
+    const resenha = document.getElementById('resenha').value;
+    const campoImagem = document.getElementById('imagemUrl');
+    const imagemUrl = campoImagem ? campoImagem.value : "";
+
+    const dados = {
+        titulo: titulo,
+        tipo: tipo,
+        status: status,
+        nota: parseInt(nota),
+        resenha: resenha,
+        imagemUrl: imagemUrl
+    };
+
+    try {
+        let metodo;
+        let url;
+
+        // Decide se cria ou atualiza
+        if (idEdicao) {
+            // MODO EDIÇÃO (PUT)
+            metodo = 'PUT';
+            url = `/itens/${idEdicao}`;
+        } else {
+            // MODO CRIAÇÃO (POST)
+            metodo = 'POST';
+            url = '/itens';
+        }
+
+        const resposta = await fetch(url, {
+            method: metodo,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dados)
+        });
+
+        if (resposta.ok) {
+            alert('Salvo com sucesso!');
+            window.location.href = '/'; // Volta para a Home
+        } else {
+            alert('Erro ao salvar. Verifique o console.');
+        }
+
+    } catch (erro) {
+        console.error('Erro na requisição:', erro);
+    }
+}
 
 async function carregarItens() {
     try {
@@ -20,7 +121,6 @@ async function carregarItens() {
         listaItens.innerHTML = '';
 
         itens.forEach(item => {
-            // Define uma imagem padrão caso o item não tenha link
             const imagem = item.imagemUrl ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Imagem';
 
             const card = `
@@ -39,9 +139,16 @@ async function carregarItens() {
                         <div class="nota" style="margin-bottom: 10px;">
                             Nota: ${item.nota}/10
                         </div>
-                        <button onclick="deletarItem(${item.id})" class="btn-delete">
-                            🗑️
-                        </button>
+
+                        <div style="display: flex; gap: 5px;">
+                            <a href="/cadastro.html?id=${item.id}" class="btn-edit">
+                                ✏️
+                            </a>
+
+                            <button onclick="deletarItem(${item.id})" class="btn-delete">
+                                🗑️
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -52,77 +159,31 @@ async function carregarItens() {
     }
 }
 
-async function cadastrarItem(event) {
-    // 1. Evita que a página recarregue sozinha (comportamento padrão do form)
-    event.preventDefault();
-
-    // 2. Pega os valores dos inputs
-    const titulo = document.getElementById('titulo').value;
-    const tipo = document.getElementById('tipo').value;
-    const status = document.getElementById('status').value;
-    const nota = document.getElementById('nota').value;
-    const resenha = document.getElementById('resenha').value;
-    const campoImagem = document.getElementById('imagemUrl');
-    const imagemUrl = campoImagem ? campoImagem.value : "";
-
-    // 3. Monta o JSON
-    const dados = {
-        titulo: titulo,
-        tipo: tipo,
-        status: status,
-        nota: parseInt(nota), // Converte texto para número
-        resenha: resenha,
-        imagemUrl: imagemUrl
-    };
-
-    try {
-        // 4. Envia pro Java via POST
-        const resposta = await fetch('/itens', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(dados)
-        });
-
-        if (resposta.ok) {
-            alert('Item cadastrado com sucesso!');
-            window.location.href = '/'; // Volta para a página inicial
-        } else {
-            alert('Erro ao cadastrar. Verifique o console.');
-        }
-
-    } catch (erro) {
-        console.error('Erro na requisição:', erro);
-    }
-}
-
 function atualizarPreview() {
     const url = document.getElementById('imagemUrl').value;
     const img = document.getElementById('preview-img');
 
-    if (url) {
-        img.src = url;
-        img.style.display = 'block'; // Mostra a imagem
-    } else {
-        img.style.display = 'none';  // Esconde se estiver vazio
-        img.src = '';
+    if (img) {
+        if (url) {
+            img.src = url;
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
+            img.src = '';
+        }
     }
 }
 
 async function deletarItem(id) {
-    // 1. Pergunta de segurança (UX básica)
     const confirmar = confirm("Tem certeza que deseja excluir esse item? Não tem volta!");
 
     if (confirmar) {
         try {
-            // 2. Chama o DELETE do Java
             const resposta = await fetch(`/itens/${id}`, {
                 method: 'DELETE'
             });
 
             if (resposta.ok) {
-                // 3. Se deu certo, recarrega a lista para o item sumir
                 carregarItens();
             } else {
                 alert("Erro ao excluir. O servidor não deixou.");

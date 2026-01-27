@@ -73,3 +73,19 @@ h1 {
 .btn-delete:hover {
     background-color: #c0392b; /* Vermelho mais escuro */
 }
+
+.btn-edit {
+    background-color: #f39c12; /* Laranja */
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none; /* Tira o sublinhado do link */
+    font-size: 0.9em; /* Ajuste visual para alinhar com o botão delete */
+    display: inline-block;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-edit:hover {
+    background-color: #d35400; /* Laranja escuro */
+}
