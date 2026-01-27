@@ -159,17 +159,28 @@ async function carregarItens() {
     }
 }
 
+// Função auxiliar para verificar se é uma URL válida e segura
+function ehUrlValida(string) {
+    try {
+        const url = new URL(string);
+        // Só aceita http: ou https: (evita javascript:alert(...) e outros ataques)
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch (_) {
+        return false; // Se der erro ao criar o objeto URL, não é válida
+    }
+}
+
 function atualizarPreview() {
     const url = document.getElementById('imagemUrl').value;
     const img = document.getElementById('preview-img');
 
     if (img) {
-        if (url) {
+        if (url && ehUrlValida(url)) {
             img.src = url;
             img.style.display = 'block';
         } else {
             img.style.display = 'none';
-            img.src = '';
+            img.src = ''; // Limpa o src para não ficar lixo
         }
     }
 }
