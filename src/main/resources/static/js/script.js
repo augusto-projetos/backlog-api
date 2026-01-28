@@ -104,7 +104,7 @@ async function salvarItem(event) {
                 icon: 'success',
                 confirmButtonText: 'Ok'
             }).then(() => {
-                window.location.href = '/';
+                window.location.href = '/home';
             });
         }
         // SE DEU ERRO DE VALIDAÇÃO (400 - Bad Request)
@@ -164,7 +164,7 @@ async function carregarItens() {
                         </div>
 
                         <div class="btn-group">
-                            <a href="/cadastro.html?id=${item.id}" class="btn-edit">
+                            <a href="/cadastro?id=${item.id}" class="btn-edit">
                                 ✏️
                             </a>
 
