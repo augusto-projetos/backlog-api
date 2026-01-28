@@ -24,24 +24,20 @@ public class AuthenticationController {
     // 2. Recebe os dados do formulário e salva no banco
     @PostMapping("/auth/register")
     public String register(RegisterDTO data) {
-        // Verifica se já existe esse login
-        if (userRepository.findByLogin(data.login()) != null) {
-            return "redirect:/register?error"; // Volta com erro se já existir
+        // Verifica se o EMAIL já existe
+        if (userRepository.findByEmail(data.email()) != null) {
+            return "redirect:/register?error"; // Erro se o email já for usado
         }
 
-        // CRIPTOGRAFA A SENHA
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
-        // Cria o usuário novo
         User newUser = new User();
         newUser.setLogin(data.login());
         newUser.setPassword(encryptedPassword);
         newUser.setEmail(data.email());
 
-        // Salva no banco
         userRepository.save(newUser);
 
-        // Manda pro login para ele entrar
         return "redirect:/login?success";
     }
 

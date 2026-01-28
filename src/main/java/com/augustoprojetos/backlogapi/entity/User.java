@@ -25,15 +25,14 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Column(unique = true)
+    @NotBlank(message = "O login é obrigatório")
     private String login;
 
-    @NotBlank
+    @NotBlank(message = "A senha é obrigatória")
     private String password;
 
     @NotBlank
-    @Email
+    @Email(message = "O formato do email é inválido")
     @Column(unique = true)
     private String email;
 
