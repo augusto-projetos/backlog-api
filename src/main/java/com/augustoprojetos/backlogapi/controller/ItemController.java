@@ -1,51 +1,82 @@
 package com.augustoprojetos.backlogapi.controller;
 
+import org.springframework.ui.Model;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController // Diz: "Sou um controlador REST"
-@RequestMapping("/itens") // Diz: "Minha URL base é http://localhost:8080/itens"
+@Controller
 public class ItemController {
 
-    @Autowired // Diz: "Spring, injeta o repositório aqui pra mim (não preciso dar new)"
+    @Autowired
     private ItemRepository itemRepository;
 
-    // 1. Método para CADASTRAR (POST)
-    @PostMapping
-    // O @Valid diz: "Spring, checa se esse item cumpre as regras antes de entrar aqui"
-    public Item cadastrar(@RequestBody @Valid Item item) {
+    // --- ROTAS DE PÁGINAS (VIEW) ---
+
+    @GetMapping("/")
+    public String index() { return "index"; }
+
+    @GetMapping("/home")
+    public String home(Model model, @AuthenticationPrincipal User userLogado) {
+        // Se por algum milagre o usuário for nulo (não deveria), evitamos o erro
+        if (userLogado != null) {
+            // Mandamos o nome (login) para a tela com o apelido "nomeUsuario"
+            model.addAttribute("nomeUsuario", userLogado.getLogin());
+        } else {
+            model.addAttribute("nomeUsuario", "Visitante");
+        }
+
+        return "home";
+    }
+
+    @GetMapping("/cadastro")
+    public String paginaCadastro() { return "cadastro"; }
+
+    // --- ROTAS DA API (JSON) COM SEGURANÇA ---
+
+    // 1. CADASTRAR (Agora associa ao usuário logado!)
+    @PostMapping("/itens")
+    @ResponseBody
+    public Item cadastrar(@RequestBody @Valid Item item, @AuthenticationPrincipal User userLogado) {
+        // Pega o usuário da sessão e carimba no item
+        item.setUser(userLogado);
         return itemRepository.save(item);
     }
 
-    // 2. Método para LISTAR TUDO (GET)
-    @GetMapping
-    public List<Item> listar() {
-        return itemRepository.findAll(); // O findAll também já vem pronto!
+    // 2. LISTAR (Só traz os itens do usuário logado!)
+    @GetMapping("/itens")
+    @ResponseBody
+    public List<Item> listar(@AuthenticationPrincipal User userLogado) {
+        // Em vez de findAll(), usamos o nosso filtro novo
+        return itemRepository.findByUser(userLogado);
     }
 
-    // 3. Método para EDITAR (PUT)
-    // URL vai ser: http://localhost:8080/itens/1 (onde 1 é o ID)
-    @PutMapping("/{id}")
-    public Item atualizar(@PathVariable Long id, @RequestBody @Valid Item itemAtualizado) {
+    // 3. EDITAR (Mantém o dono original ou atualiza se precisar)
+    @PutMapping("/itens/{id}")
+    @ResponseBody
+    public Item atualizar(@PathVariable Long id, @RequestBody @Valid Item itemAtualizado, @AuthenticationPrincipal User userLogado) {
         itemAtualizado.setId(id);
+        itemAtualizado.setUser(userLogado); // Garante que continua sendo dele
         return itemRepository.save(itemAtualizado);
     }
 
-    // 4. Método para DELETAR (DELETE)
-    // URL vai ser: http://localhost:8080/itens/1
-    @DeleteMapping("/{id}")
+    // 4. DELETAR (Sem mudanças, mas idealmente checaria se o item é dele)
+    @DeleteMapping("/itens/{id}")
+    @ResponseBody
     public void deletar(@PathVariable Long id) {
         itemRepository.deleteById(id);
     }
 
-    // 5. Método para BUSCAR UM SÓ (GET com ID)
-    // Serve para preencher o formulário de edição
-    @GetMapping("/{id}")
+    // 5. BUSCAR UM (Sem mudanças)
+    @GetMapping("/itens/{id}")
+    @ResponseBody
     public Item buscarPorId(@PathVariable Long id) {
         return itemRepository.findById(id).orElse(null);
     }

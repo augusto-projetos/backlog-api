@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <title>Meu Backlog</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+    </head>
+
+    <body>
+
+        <header class="app-header">
+
+            <div class="header-info">
+                <h2>Meus Backlog 🎮</h2>
+                <p class="user-greeting">
+                    Olá, <span class="user-name" th:text="${nomeUsuario}">Carregando...</span>!
+                </p>
+            </div>
+
+            <div class="header-actions">
+                <a th:href="@{/cadastro}" class="btn-novo">
+                    + Novo Item
+                </a>
+
+                <form th:action="@{/logout}" method="post" class="form-logout">
+                    <button type="submit" class="btn-sair">
+                        Sair 🚪
+                    </button>
+                </form>
+            </div>
+
+        </header>
+
+        <div id="lista-itens">
+            <p style="text-align: center; width: 100%; color: #aaa;">Carregando sua coleção...</p>
+        </div>
+
+        <script th:src="@{/js/script.js}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </body>
+</html>

@@ -1,57 +1,129 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f2f5;
+    padding: 20px;
+    margin: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+/* Ajuste do Card para virar um bloco de formulário */
 .card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     margin: 50px auto;
     max-width: 600px;
-    display: block;
+    display: block; /* Garante que não é flexbox igual na home */
 }
 
 /* Estilos dos Inputs */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: bold;
-    color: #2c3e50;
+    color: #34495e;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
     box-sizing: border-box;
     font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #3498db;
+    border-color: #e94560; /* Rosa do tema */
     outline: none;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
 }
 
-/* --- Responsividade --- */
+/* --- BOTÕES --- */
+.btn-salvar {
+    background-color: #27ae60; /* Verde */
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-salvar:hover {
+    background-color: #219150;
+}
+
+.btn-cancelar {
+    margin-left: 15px;
+    text-decoration: none;
+    color: #7f8c8d;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.btn-cancelar:hover {
+    color: #e74c3c; /* Fica vermelho ao passar o mouse */
+}
+
+/* --- Responsividade (Mobile) --- */
 @media (max-width: 600px) {
+    body {
+        padding: 20px; /* Mais espaço nas bordas da tela */
+    }
+
     .card {
-        margin: 20px auto; /* No celular removemos a margem grande de cima */
-        width: auto;    /* Garante uso total da tela no mobile */
+        margin: 10px auto 40px auto; /* Margem extra no fundo pra rolar a tela */
+        padding: 20px 20px; /* Padding interno equilibrado */
+        width: 90%;
+        box-shadow: none; /* Remove sombra pesada no mobile pra ficar mais leve */
+        border: 1px solid #e0e0e0; /* Troca sombra por borda sutil */
+    }
+
+    h1 {
+        font-size: 1.6rem;
+        margin-bottom: 25px;
+    }
+
+    /* Aumenta espaço entre os campos para não ficar apertado */
+    .form-group {
+        margin-bottom: 25px;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
-        font-size: 16px;
+        font-size: 16px; /* Tamanho perfeito para leitura mobile */
+        padding: 14px; /* Área de toque maior */
     }
 
+    /* Botões grandes e fáceis de clicar */
     .btn-salvar {
         width: 100%;
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        display: block;
+        padding: 15px; /* Botão mais gordo */
     }
 
     .btn-cancelar {
@@ -59,6 +131,9 @@
         text-align: center;
         width: 100%;
         margin-left: 0;
-        padding: 10px 0;
+        padding: 15px 0;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background-color: white;
     }
 }

@@ -2,6 +2,7 @@ package com.augustoprojetos.backlogapi.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import com.augustoprojetos.backlogapi.entity.User;
 import lombok.Data;
 
 @Entity // Diz pro Spring: "Isso aqui é uma tabela no banco!"
@@ -30,4 +31,8 @@ public class Item {
 
     @Size(max = 500, message = "O link da imagem é muito longo")
     private String imagemUrl;
+
+    @ManyToOne // Diz: "Muitos itens podem pertencer a UM usuário"
+    @JoinColumn(name = "user_id") // Cria a coluna 'user_id' no banco
+    private User user;
 }
