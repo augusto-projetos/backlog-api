@@ -1,35 +1,53 @@
-# 🎮 Backlog API - Games & Movies
+# 🎮 Meu Backlog Pessoal - API & Frontend
 
-API RESTful desenvolvida para gerenciar um catálogo pessoal de jogos, filmes e séries. O objetivo é permitir o cadastro (`Create`), listagem (`Read`), atualização (`Update`) e remoção (`Delete`) de itens, incluindo sistema de notas e resenhas.
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue)
+![Docker](https://img.shields.io/badge/Docker-Available-blue)
+![Render](https://img.shields.io/badge/Deploy-Render-black)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-Este projeto faz parte da minha trilha de aprendizado em **Engenharia de Software**, focando em arquitetura Backend com Java e Spring Boot.
+> Uma aplicação Fullstack para gerenciar listas de jogos e filmes (Backlog), com foco em organização, validação de dados e interface responsiva.
 
-## 🚀 Tecnologias Utilizadas
+## 🔗 Demo Online
+Acesse o projeto rodando em tempo real na nuvem:
+👉 **[https://avaliacao-backlog.onrender.com](https://avaliacao-backlog.onrender.com)**
+*(Nota: Como utilizamos o plano gratuito do Render, a primeira requisição pode levar até 3 minutos para "acordar" o servidor. As próximas são instantâneas.)*
 
-* **Java 17+** (Linguagem Core)
-* **Spring Boot 3** (Framework Principal)
-* **Spring Data JPA** (Persistência de Dados)
-* **MySQL** (Banco de Dados Relacional)
-* **Lombok** (Produtividade e redução de código)
-* **Maven** (Gerenciamento de Dependências)
+---
 
-## ⚙️ Funcionalidades (Endpoints)
+## 🚀 Funcionalidades
 
-A API roda localmente na porta `8080`.
+- **CRUD Completo:** Criação, Leitura, Atualização e Exclusão de itens.
+- **Validação de Dados:** Backend blindado com Bean Validation (`@NotBlank`, `@Min`, `@Max`) para impedir dados inconsistentes.
+- **Interface Responsiva:** Layout otimizado para Mobile (Grid Layout) e Desktop.
+- **Segurança:** Proteção contra XSS (Sanitização de URLs de imagem) e CodeQL Scans.
+- **Feedback Visual:** Integração com **SweetAlert2** para notificações modernas (sucesso/erro).
+- **Deploy Dockerizado:** Configuração de `Dockerfile` multi-stage para build e deploy otimizados.
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `GET` | `/itens` | Lista todos os itens cadastrados |
-| `POST` | `/itens` | Cadastra um novo jogo ou filme |
-| `PUT` | `/itens/{id}` | Atualiza os dados de um item existente |
-| `DELETE` | `/itens/{id}` | Remove um item do catálogo |
+---
 
-### Exemplo de JSON (Payload)
-```json
-{
-  "titulo": "The Last of Us",
-  "tipo": "Jogo",
-  "status": "Zerado",
-  "nota": 10,
-  "resenha": "Uma experiência narrativa única."
-}
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+- **Java 17** & **Spring Boot 3**
+- **Maven** (Gerenciamento de dependências)
+- **Spring Data JPA** (Persistência de dados)
+- **Bean Validation** (Regras de negócio)
+- **H2 Database** (Testes) / **PostgreSQL** (Produção)
+
+### Frontend
+- **HTML5 & CSS3** (Grid & Flexbox)
+- **JavaScript (ES6+)** (Fetch API para comunicação com Backend)
+- **SweetAlert2** (Biblioteca de alertas)
+
+### DevOps & Infraestrutura
+- **Docker** (Containerização)
+- **Render.com** (Hospedagem Nuvem)
+- **UptimeRobot** (Monitoramento de disponibilidade)
+- **GitHub Actions** (Verificação de segurança com CodeQL)
+
+---
+
+👨‍💻 Autor <br>
+Desenvolvido por Luiz Augusto.
