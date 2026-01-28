@@ -24,7 +24,7 @@ public class Item {
     @NotNull(message = "A nota é obrigatória")
     @Min(value = 0, message = "A nota deve ser no mínimo 0")
     @Max(value = 10, message = "A nota deve ser no máximo 10")
-    private Integer nota;
+    private Double nota;
 
     private String resenha; // Esse pode ser vazio
 
