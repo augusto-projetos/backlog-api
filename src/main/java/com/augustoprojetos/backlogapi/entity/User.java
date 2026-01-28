@@ -74,4 +74,9 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true; // O usuário está sempre ativo
     }
+
+    // Método explícito para o Thymeleaf ler o nome
+    public String getLogin() {
+        return this.login;
+    }
 }

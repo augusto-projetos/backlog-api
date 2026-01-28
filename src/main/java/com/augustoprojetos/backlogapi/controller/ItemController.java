@@ -1,11 +1,12 @@
 package com.augustoprojetos.backlogapi.controller;
 
-import com.augustoprojetos.backlogapi.entity.Item;
+import org.springframework.ui.Model;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.augustoprojetos.backlogapi.entity.User;
+import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,17 @@ public class ItemController {
     public String index() { return "index"; }
 
     @GetMapping("/home")
-    public String home() { return "home"; }
+    public String home(Model model, @AuthenticationPrincipal User userLogado) {
+        // Se por algum milagre o usuário for nulo (não deveria), evitamos o erro
+        if (userLogado != null) {
+            // Mandamos o nome (login) para a tela com o apelido "nomeUsuario"
+            model.addAttribute("nomeUsuario", userLogado.getLogin());
+        } else {
+            model.addAttribute("nomeUsuario", "Visitante");
+        }
+
+        return "home";
+    }
 
     @GetMapping("/cadastro")
     public String paginaCadastro() { return "cadastro"; }

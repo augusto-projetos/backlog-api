@@ -28,6 +28,13 @@ public class SecurityConfigurations {
                         .defaultSuccessUrl("/home", true) // Se logar com sucesso, vai pra lista
                         .permitAll()
                 )
+                // LOGOUT
+                .logout(logout -> logout
+                        .logoutUrl("/logout") // O form do HTML chama aqui
+                        .logoutSuccessUrl("/") // Depois de sair, vai pra capa
+                        .invalidateHttpSession(true) // Destrói a sessão
+                        .deleteCookies("JSESSIONID") // Apaga o rastro
+                )
                 .build();
     }
 

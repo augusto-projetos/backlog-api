@@ -1,45 +1,85 @@
 body {
-    font-family: sans-serif;
+    font-family: 'Poppins', sans-serif;
     background-color: #f0f2f5;
     padding: 20px;
+    margin: 0;
 }
 
-h1 {
-    text-align: center;
-    color: #333;
-}
-
-.card {
-    background: white;
-    padding: 15px;
-    flex: 1 1 400px;
-    min-width: 300px;
-    max-width: 600px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+/* --- HEADER --- */
+.app-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 30px;
+    background-color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
-.info h3 {
-    margin: 0 0 5px 0;
+.header-info h2 {
+    margin: 0;
+    color: #e94560; /* Rosa do tema */
+    font-size: 1.5rem;
+}
+
+.user-greeting {
+    color: #7f8c8d;
+    margin: 5px 0 0 0;
+    font-size: 0.9rem;
+}
+
+.user-name {
     color: #2c3e50;
-}
-
-.badge {
-    background: #3498db;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
-}
-
-.nota {
     font-weight: bold;
-    color: #e67e22;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Botões do Header */
+.btn-novo {
+    background-color: #e94560;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3);
+    transition: transform 0.2s;
+}
+
+.btn-novo:hover {
+    background-color: #c1354b;
+    transform: translateY(-2px);
+}
+
+.form-logout {
+    margin: 0;
+}
+
+.btn-sair {
+    background: transparent;
+    border: 2px solid #e94560;
+    color: #e94560;
+    padding: 8px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.btn-sair:hover {
+    background-color: #e94560;
+    color: white;
+}
+
+/* --- LISTA DE CARDS --- */
 #lista-itens {
     display: flex;
     flex-wrap: wrap;
@@ -47,162 +87,169 @@ h1 {
     justify-content: center;
 }
 
-/* Botões */
-.btn-salvar {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
+.card {
+    background: white;
+    padding: 15px;
+    flex: 1 1 350px; /* Base de 350px, cresce e encolhe */
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s;
 }
 
-.btn-salvar:hover {
-    background-color: #219150;
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.btn-cancelar {
-    margin-left: 10px;
-    text-decoration: none;
-    color: #7f8c8d;
-}
-
-.btn-delete {
-    background-color: #e74c3c; /* Vermelho sangue */
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.btn-delete:hover {
-    background-color: #c0392b; /* Vermelho mais escuro */
-}
-
-.btn-edit {
-    background-color: #f39c12; /* Laranja */
-    color: white;
-    padding: 8px 12px;
-    border-radius: 5px;
-    text-decoration: none; /* Tira o sublinhado do link */
-    font-size: 0.9em; /* Ajuste visual para alinhar com o botão delete */
-    display: inline-block;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.btn-edit:hover {
-    background-color: #d35400; /* Laranja escuro */
-}
-
-/* Partes do JS */
 .card-img-wrapper {
     margin-right: 15px;
-    flex-shrink: 0; /* Impede a imagem de ser esmagada */
+    flex-shrink: 0;
 }
 
 .card-img-wrapper img {
     width: 100px;
     height: 140px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .card-info {
-    flex: 1; /* Ocupa o espaço restante */
+    flex: 1;
 }
 
+.info h3 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.badge {
+    background: #3498db;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7em;
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+.nota {
+    font-weight: bold;
+    color: #e67e22;
+    font-size: 1.1em;
+}
+
+/* Ações do Card (Direita) */
 .card-actions {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-}
-
-.card-actions .nota {
-    margin-bottom: 10px;
+    gap: 10px;
 }
 
 .btn-group {
     display: flex;
-    gap: 5px;
+    gap: 8px;
 }
 
-/* --- Responsividade (Mobile) --- */
+.btn-edit {
+    background-color: #f39c12;
+    color: white;
+    padding: 8px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.btn-delete {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-edit:hover { background-color: #d35400; }
+.btn-delete:hover { background-color: #c0392b; }
+
+
+/* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 600px) {
 
+    body {
+        padding: 10px;
+    }
+
+    /* Adaptação do Header no Celular */
+    .app-header {
+        flex-direction: column; /* Um embaixo do outro */
+        text-align: center;
+        gap: 15px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: center; /* Centraliza os botões */
+    }
+
+    /* Adaptação dos Cards (Grid 2 colunas) */
     #lista-itens {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Duas colunas de tamanho igual */
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
-        width: 100%;
-        justify-content: stretch;
     }
 
     .card {
-        min-width: 0;
-        width: auto;
         flex-direction: column;
-        align-items: center;
         padding: 10px;
-        margin: 0;
+        text-align: center;
+        max-width: none; /* Remove limite */
     }
 
     .card-img-wrapper {
+        margin: 0 0 10px 0;
         width: 100%;
-        margin-right: 0;
-        margin-bottom: 10px;
-        text-align: center;
     }
 
     .card-img-wrapper img {
         width: 100%;
         height: auto;
-        aspect-ratio: 2/3; /* Mantém o formato de poster */
-        max-width: 100%;
+        aspect-ratio: 2/3; /* Formato Poster */
+        max-width: 120px; /* Limita para não ficar gigante */
+    }
+
+    .card-info {
+        width: 100%;
     }
 
     .info h3 {
-        font-size: 1em; /* Título um pouco menor */
-        text-align: center;
-        overflow: hidden;
+        font-size: 0.95rem;
         white-space: nowrap;
-        text-overflow: ellipsis;
-        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis; /* ... se o nome for longo */
     }
 
+    /* Esconde a resenha no celular pra economizar espaço */
     .info p {
         display: none;
     }
 
-    .info small {
-        display: block;
-        text-align: center;
-        font-size: 0.7em;
-    }
-
     .card-actions {
         width: 100%;
-        flex-direction: column; /* Empilha nota e botões */
+        flex-direction: row; /* Botões lado a lado no rodapé do card */
+        justify-content: space-between;
         align-items: center;
-        gap: 5px;
         margin-top: 10px;
-        border-top: none; /* Remove a linha pra ficar mais clean */
-        padding-top: 0;
     }
 
-    .card-actions .nota {
+    .nota {
         font-size: 0.9em;
-        margin-bottom: 5px;
-    }
-
-    .btn-group {
-        justify-content: center;
-    }
-
-    .btn-edit, .btn-delete {
-        padding: 6px 10px;
     }
 }
