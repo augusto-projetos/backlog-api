@@ -7,47 +7,82 @@
 ![Render](https://img.shields.io/badge/Deploy-Render-black)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-> Uma aplicação Fullstack para gerenciar listas de jogos e filmes (Backlog), com foco em organização, validação de dados e interface responsiva.
-
-## 🔗 Demo Online
-Acesse o projeto rodando em tempo real na nuvem:
-👉 **[https://avaliacao-backlog.onrender.com](https://avaliacao-backlog.onrender.com)**
-*(Nota: Como utilizamos o plano gratuito do Render, a primeira requisição pode levar até 3 minutos para "acordar" o servidor. As próximas são instantâneas.)*
+> **Sua coleção, suas regras.** Organize os jogos que você zerou, os filmes que assistiu e as séries que maratonou em um único lugar seguro e moderno.
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Sobre o Projeto
 
-- **CRUD Completo:** Criação, Leitura, Atualização e Exclusão de itens.
-- **Validação de Dados:** Backend blindado com Bean Validation (`@NotBlank`, `@Min`, `@Max`) para impedir dados inconsistentes.
-- **Interface Responsiva:** Layout otimizado para Mobile (Grid Layout) e Desktop.
-- **Segurança:** Proteção contra XSS (Sanitização de URLs de imagem) e CodeQL Scans.
-- **Feedback Visual:** Integração com **SweetAlert2** para notificações modernas (sucesso/erro).
-- **Deploy Dockerizado:** Configuração de `Dockerfile` multi-stage para build e deploy otimizados.
+O **Meus Backlog** nasceu da necessidade de organizar o consumo de mídia pessoal. Na **Versão 2.0**, o projeto passou por uma reestruturação completa (Refactoring), migrando de arquivos estáticos para uma arquitetura robusta com Renderização no Servidor (SSR) e Segurança Avançada.
+
+### ✨ O que há de novo na V2.0?
+
+* 🔐 **Sistema de Login Completo:** Autenticação segura via E-mail e Senha.
+* 🛡️ **Multi-Tenancy (Privacidade):** Cada usuário tem seu próprio universo. O que você cadastra, só você vê.
+* 📱 **Design 100% Responsivo:** Interface moderna com tema Neon/Dark que se adapta perfeitamente a celulares e desktops.
+* 🎨 **UI/UX Aprimorada:** Uso de Glassmorphism, feedbacks visuais com SweetAlert2 e ícones dinâmicos.
+* 🔑 **Segurança de Dados:** Senhas criptografadas no banco de dados (BCrypt).
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-### Backend
-- **Java 17** & **Spring Boot 3**
-- **Maven** (Gerenciamento de dependências)
-- **Spring Data JPA** (Persistência de dados)
-- **Bean Validation** (Regras de negócio)
-- **H2 Database** (Testes) / **PostgreSQL** (Produção)
-
-### Frontend
-- **HTML5 & CSS3** (Grid & Flexbox)
-- **JavaScript (ES6+)** (Fetch API para comunicação com Backend)
-- **SweetAlert2** (Biblioteca de alertas)
-
-### DevOps & Infraestrutura
-- **Docker** (Containerização)
-- **Render.com** (Hospedagem Nuvem)
-- **UptimeRobot** (Monitoramento de disponibilidade)
-- **GitHub Actions** (Verificação de segurança com CodeQL)
+* **Back-end:** Java 17, Spring Boot 3.
+* **Segurança:** Spring Security 6 (Configuração de Rotas, BCrypt, UserDetailsService).
+* **Front-end:** Thymeleaf (Engine de Templates), HTML5, CSS3 (Flexbox/Grid), JavaScript (Fetch API).
+* **Banco de Dados:** MySQL (Produção) / H2 (Desenvolvimento).
+* **Bibliotecas Extras:** Lombok, SweetAlert2 (Alertas bonitos).
 
 ---
 
-👨‍💻 Autor <br>
-Desenvolvido por Luiz Augusto.
+## ⚙️ Como Rodar Localmente
+
+### Pré-requisitos
+* Java JDK 17 ou superior.
+* Maven instalado.
+* MySQL instalado (ou usar o H2 em memória).
+
+### Passo a Passo
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone [https://github.com/seu-usuario/meus-backlog.git](https://github.com/seu-usuario/meus-backlog.git)
+    ```
+2.  **Configure o Banco de Dados:**
+    No arquivo `src/main/resources/application.properties`, ajuste as credenciais:
+    ```properties
+    spring.datasource.url=jdbc:mysql://localhost:3306/backlog_db
+    spring.datasource.username=seu_usuario
+    spring.datasource.password=sua_senha
+    
+    # Dica: Na primeira execução, use 'update' ou 'create-drop' se precisar limpar
+    spring.jpa.hibernate.ddl-auto=update
+    ```
+3.  **Execute o Projeto:**
+    ```bash
+    mvn spring-boot:run
+    ```
+4.  **Acesse:**
+    Abra o navegador em `http://localhost:8080`.
+
+---
+
+## 📂 Estrutura do Projeto
+
+O código segue o padrão **MVC (Model-View-Controller)**:
+
+* `controller`: Gerencia as requisições (Web e API).
+* `service`: Regras de negócio (ex: Autenticação).
+* `repository`: Comunicação direta com o banco de dados.
+* `entity`: Modelos das tabelas (User, Item).
+* `dto`: Objetos de transferência de dados (Login, Registro).
+* `security`: Configurações de proteção e filtros.
+
+---
+
+## 🤝 Autor
+
+Desenvolvido por **Luiz Augusto**. <br>
+*Técnico em Informática*
+
+---
