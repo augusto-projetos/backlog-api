@@ -49,4 +49,16 @@ public class ItemController {
     public Item buscarPorId(@PathVariable Long id) {
         return itemRepository.findById(id).orElse(null);
     }
+
+    // Rota da Capa (Landing Page)
+    @GetMapping("/")
+    public String index() {
+        return "index"; // Retorna o index.html (capa)
+    }
+
+    // Rota da Lista Privada
+    @GetMapping("/home")
+    public String home() {
+        return "home"; // Retorna o home.html (lista)
+    }
 }

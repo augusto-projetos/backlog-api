@@ -1,0 +1,39 @@
+package com.augustoprojetos.backlogapi.infra.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfigurations {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable()) // Desabilita proteção CSRF (simplifica o dev)
+                .authorizeHttpRequests(auth -> auth
+                        // LIBERA O ACESSO PÚBLICO PARA:
+                        .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                        // QUALQUER OUTRA COISA PRECISA DE SENHA:
+                        .anyRequest().authenticated()
+                )
+                // CONFIGURA O FORMULÁRIO DE LOGIN
+                .formLogin(form -> form
+                        // .loginPage("/login") // Vamos descomentar isso depois que criarmos a tela de login
+                        .defaultSuccessUrl("/home", true) // Se logar com sucesso, vai pra lista
+                        .permitAll()
+                )
+                .build();
+    }
+
+    // ENSINA O SPRING A CRIPTOGRAFAR SENHAS
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
