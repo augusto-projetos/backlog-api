@@ -13,7 +13,7 @@ if (listaItens) {
 
 // 2. Lógica do Cadastro/Edição (Formulário)
 if (formCadastro) {
-    // Verifica se tem ID na URL (Ex: cadastro.html?id=5)
+    // Verifica se tem ID na URL (Ex: cadastro?id=5)
     const parametros = new URLSearchParams(window.location.search);
     const idUrl = parametros.get('id');
 
@@ -28,6 +28,27 @@ if (formCadastro) {
 }
 
 // --- Funções ---
+
+// Função auxiliar para pegar o token CSRF das metatags
+function getCsrfHeaders() {
+    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+
+    // Segurança: Se não achar as metatags (ex: página estática), retorna só o JSON
+    if (!tokenMeta || !headerMeta) {
+        console.warn("CSRF Tokens não encontrados. Verifique o <head> do HTML.");
+        return { 'Content-Type': 'application/json' };
+    }
+
+    const token = tokenMeta.getAttribute('content');
+    const header = headerMeta.getAttribute('content');
+
+    // Retorna o cabeçalho pronto: { "X-CSRF-TOKEN": "valor-do-token", ... }
+    return {
+        'Content-Type': 'application/json',
+        [header]: token
+    };
+}
 
 // Busca o item no Java e preenche os inputs
 async function carregarDadosParaEdicao(id) {
@@ -92,7 +113,7 @@ async function salvarItem(event) {
 
         const resposta = await fetch(url, {
             method: metodo,
-            headers: { 'Content-Type': 'application/json' },
+            headers: getCsrfHeaders(),
             body: JSON.stringify(dados)
         });
 
@@ -120,7 +141,7 @@ async function salvarItem(event) {
 
             Swal.fire({
                 title: 'Erro de Validação!',
-                html: mensagemErro, // Usamos HTML para mostrar a lista
+                html: mensagemErro,
                 icon: 'error',
                 confirmButtonText: 'Corrigir'
             });
@@ -231,10 +252,12 @@ async function deletarItem(id) {
     // Só deleta se o usuário clicou em "Sim"
     if (resultado.isConfirmed) {
         try {
-            const resposta = await fetch(`/itens/${id}`, { method: 'DELETE' });
+            const resposta = await fetch(`/itens/${id}`, {
+                method: 'DELETE',
+                headers: getCsrfHeaders()
+            });
 
             if (resposta.ok) {
-                // Mostra sucesso rápido e recarrega
                 Swal.fire(
                     'Deletado!',
                     'O item foi removido.',

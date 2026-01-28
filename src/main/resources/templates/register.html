@@ -17,7 +17,7 @@
                 ⚠️ Ops! Esse usuário ou email já existe.
             </div>
 
-            <form action="/auth/register" method="post">
+            <form th:action="@{/auth/register}" method="post">
             <input type="text" name="login" placeholder="Usuário" required>
             <input type="text" name="email" placeholder="Seu E-mail de cadastro" required>
             <input type="password" name="password" placeholder="Senha Secreta" required>

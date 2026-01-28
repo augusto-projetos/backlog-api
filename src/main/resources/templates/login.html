@@ -20,7 +20,7 @@
               Conta criada! Pode entrar.
             </div>
 
-            <form action="/login" method="post">
+            <form th:action="@{/login}" method="post">
               <input type="text" name="username" placeholder="Email" required>
               <input type="password" name="password" placeholder="Senha" required>
 
