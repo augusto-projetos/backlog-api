@@ -6,8 +6,8 @@
         <title>Novo Item - Backlog</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <link rel="stylesheet" href="css/style.css">
-        <link rel="stylesheet" href="css/cadastro.css">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link rel="stylesheet" th:href="@{/css/cadastro.css}">
     </head>
     <body>
 
@@ -63,6 +63,6 @@
         </form>
         </div>
 
-        <script src="js/script.js"></script>
+        <script th:src="@{/js/script.js}"></script>
     </body>
 </html>

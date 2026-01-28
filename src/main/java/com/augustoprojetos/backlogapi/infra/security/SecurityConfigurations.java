@@ -18,13 +18,13 @@ public class SecurityConfigurations {
                 .csrf(csrf -> csrf.disable()) // Desabilita proteção CSRF (simplifica o dev)
                 .authorizeHttpRequests(auth -> auth
                         // LIBERA O ACESSO PÚBLICO PARA:
-                        .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/images/**").permitAll()
                         // QUALQUER OUTRA COISA PRECISA DE SENHA:
                         .anyRequest().authenticated()
                 )
                 // CONFIGURA O FORMULÁRIO DE LOGIN
                 .formLogin(form -> form
-                        // .loginPage("/login") // Vamos descomentar isso depois que criarmos a tela de login
+                        .loginPage("/login")
                         .defaultSuccessUrl("/home", true) // Se logar com sucesso, vai pra lista
                         .permitAll()
                 )

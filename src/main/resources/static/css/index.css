@@ -1,0 +1,130 @@
+:root {
+    --primary-color: #ff2e63; /* Rosa Neon vibrante */
+    --secondary-color: #08d9d6; /* Azul Ciano Neon */
+    --bg-dark: #1a1a2e;
+    --bg-light: #16213e;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-dark);
+    background-image:
+        radial-gradient(circle at center, rgba(8, 217, 214, 0.1) 0%, rgba(0,0,0,0) 70%),
+        linear-gradient(135deg, var(--bg-dark) 0%, #0f0f1a 100%);
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    overflow: hidden; /* Evita barras de rolagem se a animação passar um pouco */
+}
+
+/* Adiciona uma textura de grid futurista no fundo */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: -1;
+}
+
+/* Efeito de Cartão de Vidro (Glassmorphism) */
+.container {
+    max-width: 700px;
+    padding: 50px 40px;
+    background: rgba(255, 255, 255, 0.05); /* Super transparente */
+    backdrop-filter: blur(15px); /* O desfoque mágico */
+    -webkit-backdrop-filter: blur(15px); /* Para Safari */
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Borda sutil */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Sombra profunda */
+    position: relative;
+}
+
+/* Título Neon */
+h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    margin: 10px 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #ffffff;
+    text-shadow:
+        0 0 10px rgba(255, 46, 99, 0.8),
+        0 0 20px rgba(255, 46, 99, 0.5),
+        0 0 40px rgba(255, 46, 99, 0.3);
+}
+
+p {
+    font-size: 1.3rem;
+    color: #d1d1d1;
+    margin-bottom: 40px;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.btn-group {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 18px 45px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Botão Principal com Gradiente */
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-color), #ff6b6b);
+    color: white;
+    border: none;
+    box-shadow: 0 5px 25px rgba(255, 46, 99, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 35px rgba(255, 46, 99, 0.6);
+}
+
+/* Botão Secundário com Borda Brilhante */
+.btn-outline {
+    background-color: transparent;
+    border: 3px solid var(--secondary-color);
+    color: var(--secondary-color);
+    box-shadow: inset 0 0 10px rgba(8, 217, 214, 0.2);
+}
+
+.btn-outline:hover {
+    background-color: rgba(8, 217, 214, 0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(8, 217, 214, 0.6);
+}
+
+/* Ícone flutuante */
+.icon {
+    font-size: 6rem;
+    animation: float 3s ease-in-out infinite;
+    display: inline-block;
+    filter: drop-shadow(0 0 20px rgba(8, 217, 214, 0.5));
+}
+
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
