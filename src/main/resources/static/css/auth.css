@@ -1,0 +1,118 @@
+/* Reset básico para garantir medidas certas */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #1a1a2e; /* Fundo escuro */
+    background-image: radial-gradient(circle at center, rgba(233, 69, 96, 0.1) 0%, rgba(0,0,0,0) 70%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* Garante altura total */
+    margin: 0;
+    padding: 20px; /* Importante para telas muito pequenas não cortarem conteúdo */
+}
+
+.card {
+    background: #16213e;
+    padding: 40px; /* Espaçamento interno padrão */
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    width: 100%;       /* Tenta ocupar tudo... */
+    max-width: 400px;  /* ...mas para no 400px (tamanho bom pra desktop) */
+    margin: auto;      /* Centraliza */
+}
+
+h2 {
+    margin-bottom: 25px;
+    color: #e94560;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.8rem;
+}
+
+/* Campos de Texto */
+input {
+    width: 100%;
+    padding: 15px; /* Aumentei um pouco para facilitar o toque no celular */
+    margin: 10px 0;
+    background: #0f3460;
+    border: 2px solid transparent; /* Prepara para a borda ao clicar */
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    transition: 0.3s;
+    outline: none;
+}
+
+/* Efeito ao clicar no input */
+input:focus {
+    border-color: #e94560;
+    background: #1a1a2e;
+}
+
+/* Botão Principal */
+button {
+    width: 100%;
+    padding: 15px;
+    background: #e94560;
+    border: none;
+    border-radius: 50px; /* Botão mais redondinho estilo app moderno */
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: transform 0.2s, background 0.2s;
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+}
+
+button:hover {
+    background: #c1354b;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Links (Já tem conta? / Voltar) */
+a {
+    color: #a0a0a0;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: block; /* Pula linha automaticamente */
+    margin-top: 15px;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* Mensagens de Erro e Sucesso */
+.error {
+    background: rgba(255, 107, 107, 0.1);
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+/* --- AJUSTES PARA CELULAR (Mobile Only) --- */
+@media (max-width: 480px) {
+    .card {
+        padding: 30px 20px; /* Reduz o padding lateral para ganhar espaço */
+        width: 95%; /* Ocupa quase toda a largura da tela */
+    }
+
+    h2 {
+        font-size: 1.5rem; /* Diminui um pouco o título */
+    }
+}
