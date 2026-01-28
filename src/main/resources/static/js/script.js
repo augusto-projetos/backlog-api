@@ -73,7 +73,7 @@ async function salvarItem(event) {
         titulo: titulo,
         tipo: tipo,
         status: status,
-        nota: parseInt(nota),
+        nota: parseFloat(nota),
         resenha: resenha,
         imagemUrl: imagemUrl
     };
