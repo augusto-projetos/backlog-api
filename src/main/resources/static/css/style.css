@@ -179,6 +179,60 @@ body {
 .btn-edit:hover { background-color: #d35400; }
 .btn-delete:hover { background-color: #c0392b; }
 
+/* --- BARRA DE PESQUISA --- */
+.search-wrapper {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+#search-bar {
+    width: 100%;
+    max-width: 500px;
+    padding: 12px 20px;
+    border: 2px solid #ddd;
+    border-radius: 50px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+#search-bar:focus {
+    border-color: #e94560;
+    box-shadow: 0 4px 10px rgba(233, 69, 96, 0.2);
+}
+
+/* --- BOTÃO VOLTAR AO TOPO --- */
+#btn-topo {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #e94560;
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* Redondo */
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+#btn-topo.visivel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#btn-topo:hover {
+    background-color: #c0392b;
+    transform: translateY(-5px); /* Pulo leve ao passar o mouse */
+}
 
 /* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 600px) {
@@ -251,5 +305,16 @@ body {
 
     .nota {
         font-size: 0.9em;
+    }
+
+    #search-bar {
+        width: 85%;
+    }
+
+    #btn-topo {
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
     }
 }
