@@ -23,8 +23,35 @@ if (formCadastro) {
         carregarDadosParaEdicao(idUrl); // Chama a função que busca os dados e preenche
     }
 
+    atualizarStatusDinamico();
+
     // Ouve o clique no botão salvar
     formCadastro.addEventListener('submit', salvarItem);
+}
+
+// Troca o texto do Status baseado no Tipo
+function atualizarStatusDinamico() {
+    const tipo = document.getElementById('tipo').value;
+    const optConcluido = document.getElementById('opt-concluido');
+    const optAndamento = document.getElementById('opt-andamento');
+
+    if (!optConcluido || !optAndamento) return;
+
+    if (tipo === 'Jogo') {
+        // Modo Gamer 🎮
+        optConcluido.innerText = "Zerado";
+        optConcluido.value = "Zerado";
+
+        optAndamento.innerText = "Jogando";
+        optAndamento.value = "Jogando";
+    } else {
+        // Modo Cinéfilo 🍿 (Filme ou Série)
+        optConcluido.innerText = "Assistido";
+        optConcluido.value = "Assistido";
+
+        optAndamento.innerText = "Assistindo";
+        optAndamento.value = "Assistindo";
+    }
 }
 
 // --- Funções ---
@@ -60,6 +87,7 @@ async function carregarDadosParaEdicao(id) {
             // Preenche os campos do formulário com o que veio do banco
             document.getElementById('titulo').value = item.titulo;
             document.getElementById('tipo').value = item.tipo;
+            atualizarStatusDinamico(); // Chamamos a função para trocar os nomes (Zerado <-> Assistido)
             document.getElementById('status').value = item.status;
             document.getElementById('nota').value = item.nota;
             document.getElementById('resenha').value = item.resenha;
@@ -164,6 +192,40 @@ async function carregarItens() {
 
         listaItens.innerHTML = '';
 
+        // --- LISTA VAZIA ---
+        if (itens.length === 0) {
+            // Forçamos o container a virar FLEXBOX centralizado.
+            // Isso sobrescreve o "display: grid" do CSS temporariamente.
+            listaItens.style.display = 'flex';
+            listaItens.style.flexDirection = 'column';
+            listaItens.style.alignItems = 'center';
+            listaItens.style.justifyContent = 'center';
+            listaItens.style.width = '100%'; // Garante largura total
+
+            listaItens.innerHTML = `
+                <div style="text-align: center; color: #7f8c8d; padding: 20px;">
+                    <p style="font-size: 4rem; margin: 0;">📭</p>
+                    <h3>Sua coleção está vazia!</h3>
+                    <p>Que tal adicionar aquele jogo ou filme favorito agora?</p>
+                    <a href="/cadastro" class="btn-novo" style="display: inline-block; margin-top: 15px; background-color: #e94560; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none;">
+                        Começar Agora
+                    </a>
+                </div>
+            `;
+            return; // Para a função aqui
+        }
+
+        // --- TEM ITENS (Volta ao Normal) ---
+        // Importante: Limpamos os estilos inline para o CSS (style.css) assumir o controle de novo
+        listaItens.style.display = '';
+        listaItens.style.flexDirection = '';
+        listaItens.style.alignItems = '';
+        listaItens.style.justifyContent = '';
+        listaItens.style.width = '';
+
+        // Ordena alfabeticamente
+        itens.sort((a, b) => a.titulo.localeCompare(b.titulo));
+
         itens.forEach(item => {
             const imagem = item.imagemUrl ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Imagem';
 
@@ -200,6 +262,7 @@ async function carregarItens() {
         });
     } catch (erro) {
         console.error('Erro ao buscar itens:', erro);
+        listaItens.innerHTML = '<p style="text-align:center; color:red">Erro ao carregar itens.</p>';
     }
 }
 
