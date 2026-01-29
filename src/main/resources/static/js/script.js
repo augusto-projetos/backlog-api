@@ -23,8 +23,35 @@ if (formCadastro) {
         carregarDadosParaEdicao(idUrl); // Chama a função que busca os dados e preenche
     }
 
+    atualizarStatusDinamico();
+
     // Ouve o clique no botão salvar
     formCadastro.addEventListener('submit', salvarItem);
+}
+
+// Troca o texto do Status baseado no Tipo
+function atualizarStatusDinamico() {
+    const tipo = document.getElementById('tipo').value;
+    const optConcluido = document.getElementById('opt-concluido');
+    const optAndamento = document.getElementById('opt-andamento');
+
+    if (!optConcluido || !optAndamento) return;
+
+    if (tipo === 'Jogo') {
+        // Modo Gamer 🎮
+        optConcluido.innerText = "Zerado";
+        optConcluido.value = "Zerado";
+
+        optAndamento.innerText = "Jogando";
+        optAndamento.value = "Jogando";
+    } else {
+        // Modo Cinéfilo 🍿 (Filme ou Série)
+        optConcluido.innerText = "Assistido";
+        optConcluido.value = "Assistido";
+
+        optAndamento.innerText = "Assistindo";
+        optAndamento.value = "Assistindo";
+    }
 }
 
 // --- Funções ---
@@ -60,6 +87,7 @@ async function carregarDadosParaEdicao(id) {
             // Preenche os campos do formulário com o que veio do banco
             document.getElementById('titulo').value = item.titulo;
             document.getElementById('tipo').value = item.tipo;
+            atualizarStatusDinamico(); // Chamamos a função para trocar os nomes (Zerado <-> Assistido)
             document.getElementById('status').value = item.status;
             document.getElementById('nota').value = item.nota;
             document.getElementById('resenha').value = item.resenha;
