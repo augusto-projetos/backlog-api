@@ -39,11 +39,23 @@
 
         </header>
 
+        <div class="search-wrapper">
+            <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção...">
+        </div>
+
+        <div id="msg-nao-encontrado" style="display: none; text-align: center; color: #7f8c8d; margin-top: 20px;">
+            <p style="font-size: 2rem; margin: 0;">😕</p>
+            <p>Nenhum item encontrado com esse nome.</p>
+        </div>
+
         <div id="lista-itens">
             <p style="text-align: center; width: 100%; color: #aaa;">Carregando sua coleção...</p>
         </div>
 
+        <button id="btn-topo" title="Voltar ao topo">⬆</button>
+
         <script th:src="@{/js/script.js}"></script>
+        <script th:src="@{/js/search-scroll.js}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </body>
 </html>
