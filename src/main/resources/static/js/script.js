@@ -237,7 +237,15 @@ async function carregarItens() {
 
                     <div class="card-info">
                         <h3>${item.titulo} <span class="badge">${item.tipo}</span></h3>
-                        <p>${item.resenha}</p>
+
+                        <div class="resenha-wrapper">
+                            <p class="resenha-texto" id="resenha-${item.id}">${item.resenha || "Sem resenha."}</p>
+
+                            <button class="btn-ver-mais" id="btn-ver-${item.id}" onclick="alternarResenha(${item.id})">
+                                ... Ver mais
+                            </button>
+                        </div>
+
                         <small>Status: ${item.status}</small>
                     </div>
 
@@ -260,6 +268,9 @@ async function carregarItens() {
             `;
             listaItens.innerHTML += card;
         });
+
+        verificarTamanhoResenhas();
+
     } catch (erro) {
         console.error('Erro ao buscar itens:', erro);
         listaItens.innerHTML = '<p style="text-align:center; color:red">Erro ao carregar itens.</p>';
@@ -334,4 +345,36 @@ async function deletarItem(id) {
             console.error("Erro:", erro);
         }
     }
+}
+
+// --- FUNÇÕES PARA A RESENHA ---
+
+function alternarResenha(id) {
+    const texto = document.getElementById(`resenha-${id}`);
+    const botao = document.getElementById(`btn-ver-${id}`);
+
+    // Adiciona/Remove a classe 'expandido' que tira o limite de linhas
+    texto.classList.toggle('expandido');
+
+    // Muda o texto do botão
+    if (texto.classList.contains('expandido')) {
+        botao.innerText = "Ver menos";
+    } else {
+        botao.innerText = "... Ver mais";
+    }
+}
+
+function verificarTamanhoResenhas() {
+    // Pega todas as resenhas
+    const resenhas = document.querySelectorAll('.resenha-texto');
+
+    resenhas.forEach(resenha => {
+        if (resenha.scrollHeight > resenha.clientHeight) {
+            // Acha o botão "..." que está logo depois do texto e mostra ele
+            const botao = resenha.nextElementSibling;
+            if (botao) {
+                botao.style.display = 'inline-block';
+            }
+        }
+    });
 }

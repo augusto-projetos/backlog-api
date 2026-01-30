@@ -281,6 +281,41 @@ body {
     transform: translateY(-5px); /* Pulo leve ao passar o mouse */
 }
 
+/* --- ESTILOS DA RESENHA (VER MAIS) --- */
+.resenha-texto {
+    /* Técnica para limitar linhas */
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* MÁXIMO DE 3 LINHAS */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adiciona os "..." */
+    margin: 8px 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.resenha-texto.expandido {
+    -webkit-line-clamp: unset; /* Remove o limite de linhas */
+    overflow: visible;
+}
+
+.btn-ver-mais {
+    background: none;
+    border: none;
+    color: #e94560; /* Rosa do tema */
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 5px;
+    display: none; /* Escondido por padrão (o JS decide quando mostrar) */
+}
+
+.btn-ver-mais:hover {
+    text-decoration: underline;
+}
+
 /* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 600px) {
 
