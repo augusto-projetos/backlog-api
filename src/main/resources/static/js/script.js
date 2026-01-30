@@ -378,3 +378,89 @@ function verificarTamanhoResenhas() {
         }
     });
 }
+
+// --- PERFIL USUÁRIO ---
+
+// 1. Trocar Senha
+document.getElementById('form-senha').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const senhaAntiga = document.getElementById('senhaAntiga').value;
+    const novaSenha = document.getElementById('novaSenha').value;
+
+    try {
+        const response = await fetch('/perfil/senha', {
+            method: 'PUT',
+            headers: getCsrfHeaders(), // Usa sua função mágica do script.js
+            body: JSON.stringify({ senhaAntiga, novaSenha })
+        });
+
+        if (response.ok) {
+            Swal.fire('Sucesso!', 'Senha atualizada com sucesso.', 'success');
+            document.getElementById('form-senha').reset();
+        } else {
+            const erro = await response.json(); // Pega a mensagem do Java
+            Swal.fire('Erro!', erro.message || 'Erro ao trocar senha.', 'error');
+        }
+    } catch (err) {
+        Swal.fire('Erro!', 'Falha na comunicação.', 'error');
+    }
+});
+
+// 2. Excluir Conta
+async function confirmarExclusao() {
+    const result = await Swal.fire({
+        title: 'TEM CERTEZA?',
+        text: "Sua conta e todos os seus itens serão apagados para sempre!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, excluir tudo!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch('/perfil', {
+                method: 'DELETE',
+                headers: getCsrfHeaders()
+            });
+
+            if (response.ok) {
+                await Swal.fire('Conta Excluída!', 'Sentiremos sua falta. 😢', 'success');
+                window.location.href = '/logout'; // Desloga e manda pro login
+            } else {
+                Swal.fire('Erro!', 'Não foi possível excluir a conta.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Erro!', 'Falha ao processar.', 'error');
+        }
+    }
+}
+
+// 3. Atualizar Apelido
+document.getElementById('form-apelido').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const novoApelido = document.getElementById('nome-usuario').value;
+
+    try {
+        const response = await fetch('/perfil/apelido', {
+            method: 'PUT',
+            headers: getCsrfHeaders(),
+            body: JSON.stringify({ novoApelido })
+        });
+
+        if (response.ok) {
+            Swal.fire({
+                title: 'Sucesso!',
+                text: 'Apelido atualizado! A página será recarregada.',
+                icon: 'success'
+            }).then(() => location.reload()); // Recarrega para atualizar o header
+        } else {
+            Swal.fire('Erro!', 'Não foi possível atualizar o apelido.', 'error');
+        }
+    } catch (err) {
+        Swal.fire('Erro!', 'Falha na comunicação.', 'error');
+    }
+});
