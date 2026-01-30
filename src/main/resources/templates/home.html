@@ -39,8 +39,21 @@
 
         </header>
 
-        <div class="search-wrapper">
-            <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção...">
+        <div class="controls-wrapper">
+
+            <div class="filter-container">
+                <select id="filter-status">
+                    <option value="todos">🌪️ Todos</option>
+                    <option value="andamento">▶️ Jogando / Assistindo</option>
+                    <option value="concluido">✅ Zerado / Assistido</option>
+                    <option value="backlog">📅 Backlog</option>
+                    <option value="dropado">❌ Dropado</option>
+                </select>
+            </div>
+
+            <div class="search-container">
+                <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção...">
+            </div>
         </div>
 
         <div id="msg-nao-encontrado" style="display: none; text-align: center; color: #7f8c8d; margin-top: 20px;">
