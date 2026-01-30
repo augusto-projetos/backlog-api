@@ -381,31 +381,86 @@ function verificarTamanhoResenhas() {
 
 // --- PERFIL USUÁRIO ---
 
-// 1. Trocar Senha
-document.getElementById('form-senha').addEventListener('submit', async (e) => {
-    e.preventDefault();
+// --- LÓGICA DE SENHA FORTE (Universal) ---
+document.addEventListener('DOMContentLoaded', () => {
 
-    const senhaAntiga = document.getElementById('senhaAntiga').value;
-    const novaSenha = document.getElementById('novaSenha').value;
+    // Tenta achar o campo pela classe (funciona no Register e no Perfil)
+    const inputSenha = document.querySelector('.senha-verifica');
+    const boxRequisitos = document.getElementById('box-requisitos');
 
-    try {
-        const response = await fetch('/perfil/senha', {
-            method: 'PUT',
-            headers: getCsrfHeaders(), // Usa sua função mágica do script.js
-            body: JSON.stringify({ senhaAntiga, novaSenha })
+    if (inputSenha && boxRequisitos) {
+
+        const reqTamanho = document.getElementById('req-tamanho');
+        const reqMaiuscula = document.getElementById('req-maiuscula');
+        const reqMinuscula = document.getElementById('req-minuscula');
+        const reqNumero = document.getElementById('req-numero');
+        const reqEspecial = document.getElementById('req-especial');
+
+        // Mostrar/Esconder
+        inputSenha.addEventListener('focus', () => boxRequisitos.classList.add('mostrar-requisitos'));
+        inputSenha.addEventListener('blur', () => {
+            setTimeout(() => boxRequisitos.classList.remove('mostrar-requisitos'), 200);
         });
 
-        if (response.ok) {
-            Swal.fire('Sucesso!', 'Senha atualizada com sucesso.', 'success');
-            document.getElementById('form-senha').reset();
-        } else {
-            const erro = await response.json(); // Pega a mensagem do Java
-            Swal.fire('Erro!', erro.message || 'Erro ao trocar senha.', 'error');
+        // Validação em Tempo Real
+        inputSenha.addEventListener('input', () => {
+            const valor = inputSenha.value;
+
+            validarItem(reqTamanho, valor.length >= 8);
+            validarItem(reqMaiuscula, /[A-Z]/.test(valor));
+            validarItem(reqMinuscula, /[a-z]/.test(valor));
+            validarItem(reqNumero, /[0-9]/.test(valor));
+            validarItem(reqEspecial, /[!@#$%^&*(),.?":{}|<>]/.test(valor));
+        });
+
+        function validarItem(elemento, valido) {
+            if (!elemento) return; // Segurança extra
+            const icone = elemento.querySelector('i');
+            if (valido) {
+                elemento.classList.add('valido');
+                elemento.classList.remove('invalido');
+                icone.className = 'fa-solid fa-circle-check';
+            } else {
+                elemento.classList.remove('valido');
+                elemento.classList.add('invalido');
+                icone.className = 'fa-solid fa-circle-xmark';
+            }
         }
-    } catch (err) {
-        Swal.fire('Erro!', 'Falha na comunicação.', 'error');
     }
 });
+
+// --- PERFIL: ENVIO DO FORMULÁRIO ---
+const formSenhaPerfil = document.getElementById('form-senha');
+if (formSenhaPerfil) {
+    formSenhaPerfil.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const senhaAntiga = document.getElementById('senhaAntiga').value;
+        const novaSenha = document.querySelector('.senha-verifica').value; // Pega pela classe
+
+        try {
+            const response = await fetch('/perfil/senha', {
+                method: 'PUT',
+                headers: getCsrfHeaders(),
+                body: JSON.stringify({ senhaAntiga, novaSenha })
+            });
+
+            if (response.ok) {
+                Swal.fire('Sucesso!', 'Senha atualizada!', 'success');
+                formSenhaPerfil.reset();
+                // Reseta ícones visualmente
+                document.querySelectorAll('.requisito-item').forEach(el => {
+                    el.classList.remove('valido');
+                    el.querySelector('i').className = 'fa-solid fa-circle-xmark';
+                });
+            } else {
+                const erro = await response.json();
+                Swal.fire('Erro!', erro.message, 'error');
+            }
+        } catch (err) {
+            Swal.fire('Erro!', 'Falha de conexão.', 'error');
+        }
+    });
+}
 
 // 2. Excluir Conta
 async function confirmarExclusao() {

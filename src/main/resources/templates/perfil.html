@@ -42,12 +42,23 @@
             <form id="form-senha">
                 <div class="form-group">
                     <label for="senhaAntiga">Senha Atual:</label>
-                    <input type="password" id="senhaAntiga" required placeholder="Digite sua senha atual">
+                    <input type="password" id="senhaAntiga" required>
                 </div>
 
                 <div class="form-group">
                     <label for="novaSenha">Nova Senha:</label>
-                    <input type="password" id="novaSenha" required placeholder="Mínimo 6 caracteres">
+
+                    <div class="container-senha">
+                        <input type="password" id="novaSenha" class="senha-verifica" required>
+
+                        <div class="requisitos-senha" id="box-requisitos">
+                            <div class="requisito-item" id="req-tamanho"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</div>
+                            <div class="requisito-item" id="req-maiuscula"><i class="fa-solid fa-circle-xmark"></i> Letra Maiúscula</div>
+                            <div class="requisito-item" id="req-minuscula"><i class="fa-solid fa-circle-xmark"></i> Letra Minúscula</div>
+                            <div class="requisito-item" id="req-numero"><i class="fa-solid fa-circle-xmark"></i> Número</div>
+                            <div class="requisito-item" id="req-especial"><i class="fa-solid fa-circle-xmark"></i> Caractere Especial</div>
+                        </div>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-atualizar">Atualizar Senha</button>

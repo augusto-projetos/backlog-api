@@ -9,27 +9,45 @@
         <link rel="stylesheet" th:href="@{/css/auth.css}">
     </head>
     <body>
-
         <div class="card">
             <h2>Crie sua conta 🎮</h2>
 
-            <div th:if="${param.error}" style="color: #ff6b6b; margin-bottom: 15px; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 5px;">
-                ⚠️ Ops! Esse usuário ou email já existe.
+            <div th:if="${param.error != null and param.error[0] == 'email'}"
+                 style="color: #ff6b6b; margin-bottom: 15px; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 5px;">
+                ⚠️ Ops! Esse e-mail já está sendo usado.
+            </div>
+
+            <div th:if="${param.error != null and param.error[0] == 'senha'}"
+                 style="color: #ff6b6b; margin-bottom: 15px; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 5px;">
+                ⚠️ A senha é muito fraca! Siga os requisitos abaixo.
             </div>
 
             <form th:action="@{/auth/register}" method="post">
-            <input type="text" name="login" placeholder="Usuário" required>
-            <input type="text" name="email" placeholder="Seu E-mail de cadastro" required>
-            <input type="password" name="password" placeholder="Senha Secreta" required>
+                <input type="text" name="login" placeholder="Usuário" required>
+                <input type="text" name="email" placeholder="Seu E-mail de cadastro" required>
 
-            <button type="submit">Cadastrar</button>
-          </form>
+                <div class="container-senha" style="position: relative;">
 
-          <br>
-          <a href="/login">Já tem conta? Entrar</a>
-          <br><br>
-          <a href="/">Voltar para Início</a>
+                    <input type="password" name="password" id="novaSenha" class="senha-verifica" placeholder="Senha Secreta" required>
+
+                    <div class="requisitos-senha" id="box-requisitos">
+                        <div class="requisito-item" id="req-tamanho"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</div>
+                        <div class="requisito-item" id="req-maiuscula"><i class="fa-solid fa-circle-xmark"></i> Letra Maiúscula</div>
+                        <div class="requisito-item" id="req-minuscula"><i class="fa-solid fa-circle-xmark"></i> Letra Minúscula</div>
+                        <div class="requisito-item" id="req-numero"><i class="fa-solid fa-circle-xmark"></i> Número</div>
+                        <div class="requisito-item" id="req-especial"><i class="fa-solid fa-circle-xmark"></i> Caractere Especial</div>
+                    </div>
+                </div>
+
+                <button type="submit">Cadastrar</button>
+            </form>
+
+            <br>
+            <a href="/login">Já tem conta? Entrar</a>
+            <br><br>
+            <a href="/">Voltar para Início</a>
         </div>
 
+        <script th:src="@{/js/script.js}"></script>
     </body>
 </html>

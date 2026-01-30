@@ -20,19 +20,32 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // --- CADASTRAR COM SEGURANÇA ---
+    public void cadastrarUsuario(User user) {
+        // 1. Valida antes de tudo
+        assert user.getPassword() != null;
+        validarRequisitosSenha(user.getPassword());
+
+        // 2. Criptografa
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // 3. Salva
+        userRepository.save(user);
+    }
+
     // Trocar Senha
     public void trocarSenha(User user, String senhaAntiga, String novaSenha) {
-        // Verifica se a senha antiga está certa
         if (!passwordEncoder.matches(senhaAntiga, user.getPassword())) {
             throw new IllegalArgumentException("Senha atual incorreta.");
         }
 
-        // Verifica se a nova senha é IGUAL à antiga
         if (passwordEncoder.matches(novaSenha, user.getPassword())) {
             throw new IllegalArgumentException("A nova senha não pode ser igual à atual.");
         }
 
-        // Se passar, salva
+        // Valida a nova senha
+        validarRequisitosSenha(novaSenha);
+
         user.setPassword(passwordEncoder.encode(novaSenha));
         userRepository.save(user);
     }
@@ -50,5 +63,19 @@ public class UserService {
         itemRepository.deleteByUser(user);
         // Depois apaga o usuário
         userRepository.delete(user);
+    }
+
+    // --- REGEX DA SENHA FORTE ---
+    private void validarRequisitosSenha(String senha) {
+        // Regras: 8 chars, Maiúscula, Minúscula, Número, Especial
+        boolean tamanhoOk = senha.length() >= 8;
+        boolean temMaiuscula = senha.matches(".*[A-Z].*");
+        boolean temMinuscula = senha.matches(".*[a-z].*");
+        boolean temNumero    = senha.matches(".*[0-9].*");
+        boolean temEspecial  = senha.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
+
+        if (!tamanhoOk || !temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
+            throw new IllegalArgumentException("A senha deve ter 8 caracteres, maiúscula, minúscula, número e símbolo.");
+        }
     }
 }

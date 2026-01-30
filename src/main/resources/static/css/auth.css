@@ -105,6 +105,48 @@ a:hover {
     border: 1px solid rgba(255, 107, 107, 0.3);
 }
 
+/* --- CHECKLIST DE SENHA --- */
+.container-senha {
+    position: relative; /* OBRIGATÓRIO: Mantém a caixa presa ao input */
+    width: 100%;
+}
+
+.requisitos-senha {
+    position: absolute;
+    top: 105%; /* Fica logo abaixo do input */
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Garante que flutue acima de tudo */
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: none; /* Começa invisível */
+}
+
+/* Classe ativada pelo JS */
+.mostrar-requisitos {
+    display: block !important;
+}
+
+.requisito-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+    color: #666;
+    font-family: sans-serif;
+}
+
+.valido { color: #27ae60; font-weight: bold; }
+.invalido { color: #d32f2f; }
+
+/* Ícones manuais (funciona sem FontAwesome) */
+.fa-circle-xmark::before { content: "✖"; display: inline-block; width: 15px; }
+.fa-circle-check::before { content: "✔"; display: inline-block; width: 15px; }
+
 /* --- AJUSTES PARA CELULAR (Mobile Only) --- */
 @media (max-width: 480px) {
     .card {
