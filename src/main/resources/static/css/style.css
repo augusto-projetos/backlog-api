@@ -202,6 +202,53 @@ body {
     box-shadow: 0 4px 10px rgba(233, 69, 96, 0.2);
 }
 
+/* --- CONTROLES DE BUSCA E FILTRO --- */
+.controls-wrapper {
+    max-width: 500px;
+    margin: 0 auto 30px auto; /* Centraliza o bloco todo */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container do Filtro (Alinha na direita) */
+.filter-container {
+    display: flex;
+    justify-content: flex-end; /* Joga pra direita */
+    margin-bottom: -15px; /* Puxa um pouco pra baixo pra ficar "sobreposto" visualmente */
+    z-index: 10; /* Garante que fique acima da barra */
+    padding-right: 15px;
+}
+
+/* O Select em si */
+#filter-status {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 20px; /* Borda redonda */
+    padding: 5px 15px;
+    font-size: 0.85rem;
+    color: #2c3e50;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    appearance: none; /* Remove a seta padrão feia do navegador */
+
+    /* Adiciona uma setinha customizada (opcional, mas fica chique) */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23E94560%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right .7em top 50%;
+    background-size: .65em auto;
+    padding-right: 2.5em; /* Espaço pra seta */
+}
+
+#filter-status:hover {
+    border-color: #e94560;
+}
+
+.search-container input {
+    width: 100%;
+}
+
 /* --- BOTÃO VOLTAR AO TOPO --- */
 #btn-topo {
     position: fixed;
@@ -232,6 +279,41 @@ body {
 #btn-topo:hover {
     background-color: #c0392b;
     transform: translateY(-5px); /* Pulo leve ao passar o mouse */
+}
+
+/* --- ESTILOS DA RESENHA (VER MAIS) --- */
+.resenha-texto {
+    /* Técnica para limitar linhas */
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* MÁXIMO DE 3 LINHAS */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adiciona os "..." */
+    margin: 8px 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.resenha-texto.expandido {
+    -webkit-line-clamp: unset; /* Remove o limite de linhas */
+    overflow: visible;
+}
+
+.btn-ver-mais {
+    background: none;
+    border: none;
+    color: #e94560; /* Rosa do tema */
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 5px;
+    display: none; /* Escondido por padrão (o JS decide quando mostrar) */
+}
+
+.btn-ver-mais:hover {
+    text-decoration: underline;
 }
 
 /* --- RESPONSIVIDADE (MOBILE) --- */
