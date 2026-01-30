@@ -1,0 +1,225 @@
+/* --- LAYOUT GERAL --- */
+/* Força a fonte correta em tudo dentro do perfil */
+.perfil-container,
+.perfil-container input,
+.perfil-container button,
+.perfil-container label {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Espaçamento do container */
+.perfil-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* --- CABEÇALHO --- */
+.perfil-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.perfil-title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espaço entre o ícone e o texto */
+}
+
+.btn-voltar {
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 50px; /* Redondinho */
+    color: #7f8c8d;
+    background-color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-voltar:hover {
+    background-color: #f0f2f5;
+    color: #2c3e50;
+    border-color: #ccc;
+}
+
+/* --- FORMULÁRIOS --- */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Labels bonitos e em cima do input */
+.form-group label {
+    display: block; /* Força ficar na linha de cima */
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Inputs largos e confortáveis */
+.form-group input {
+    width: 100%; /* Ocupa tudo */
+    padding: 12px 15px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #333;
+    background-color: #fafafa;
+    transition: border-color 0.3s;
+    box-sizing: border-box; /* Garante que o padding não estoure a largura */
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #e94560; /* Rosa do tema no foco */
+    background-color: white;
+}
+
+/* Inputs de leitura (Nome/Email) */
+.input-leitura {
+    background-color: #e9ecef !important;
+    color: #6c757d;
+    border-color: #dee2e6;
+    cursor: default;
+}
+
+/* Divisor Sutil */
+.divisor {
+    margin: 30px 0;
+    border: 0;
+    border-top: 1px dashed #ddd; /* Tracejado fica mais leve */
+}
+
+/* Títulos das Seções */
+.secao-titulo {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- BOTÕES --- */
+.btn-atualizar {
+    width: 100%;
+    padding: 14px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+}
+
+.btn-atualizar:active {
+    transform: scale(0.98);
+}
+
+/* --- ZONA DE PERIGO --- */
+.zona-perigo {
+    background-color: #fff5f5; /* Fundo avermelhado bem leve */
+    border: 1px solid #ffebeb;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.zona-perigo-titulo {
+    color: #c0392b;
+    margin-top: 0;
+    font-size: 1.1rem;
+}
+
+.zona-perigo-texto {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 20px;
+}
+
+.btn-excluir-conta {
+    width: 100%;
+    padding: 12px;
+    background-color: transparent;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.btn-excluir-conta:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* --- CHECKLIST DE SENHA --- */
+.container-senha {
+    position: relative; /* OBRIGATÓRIO: Mantém a caixa presa ao input */
+    width: 100%;
+}
+
+.requisitos-senha {
+    position: absolute;
+    top: 105%; /* Fica logo abaixo do input */
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Garante que flutue acima de tudo */
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: none; /* Começa invisível */
+}
+
+/* Classe ativada pelo JS */
+.mostrar-requisitos {
+    display: block !important;
+}
+
+.requisito-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+    color: #666;
+    font-family: sans-serif;
+}
+
+.valido { color: #27ae60; font-weight: bold; }
+.invalido { color: #d32f2f; }
+
+/* Ícones manuais (funciona sem FontAwesome) */
+.fa-circle-xmark::before { content: "✖"; display: inline-block; width: 15px; }
+.fa-circle-check::before { content: "✔"; display: inline-block; width: 15px; }
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 600px) {
+    .perfil-container {
+        margin: 15px;
+        padding: 20px;
+    }
+
+    .perfil-title {
+        font-size: 1.3rem;
+    }
+}

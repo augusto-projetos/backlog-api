@@ -40,6 +40,21 @@ body {
     gap: 15px;
 }
 
+/* Link do Perfil no Header */
+.link-perfil {
+    text-decoration: none; /* Remove o sublinhado */
+    color: inherit;
+    cursor: pointer;
+    transition: color 0.2s;
+    border-radius: 4px;
+    padding: 2px 5px;
+}
+
+.link-perfil:hover {
+    color: #e94560;
+    background-color: rgba(233, 69, 96, 0.1);
+}
+
 /* Botões do Header */
 .btn-novo {
     background-color: #e94560;

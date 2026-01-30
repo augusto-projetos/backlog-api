@@ -21,7 +21,11 @@
             <div class="header-info">
                 <h2>Meus Backlog 🎮</h2>
                 <p class="user-greeting">
-                    Olá, <span class="user-name" th:text="${nomeUsuario}">Carregando...</span>!
+                    Olá,
+                    <a th:href="@{/perfil}" class="link-perfil" title="Configurações do Perfil">
+                        <span class="user-name" th:text="${nomeUsuario}">Carregando...</span>!
+                        <span style="font-size: 1.1em; vertical-align: middle; margin-left: 5px;">⚙️</span>
+                    </a>
                 </p>
             </div>
 

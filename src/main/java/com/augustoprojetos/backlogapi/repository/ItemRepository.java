@@ -10,4 +10,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     // Busca apenas os itens deste usuário específico
     List<Item> findByUser(User user);
 
+    void deleteByUser(User user);
 }

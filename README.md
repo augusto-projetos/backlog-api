@@ -13,34 +13,44 @@
 
 ## 🚀 Sobre o Projeto
 
-O **Meus Backlog** nasceu da necessidade de organizar o consumo de mídia pessoal. Na **Versão 2.0**, o projeto passou por uma reestruturação completa (Refactoring), migrando de arquivos estáticos para uma arquitetura robusta com Renderização no Servidor (SSR) e Segurança Avançada.
+O **Meus Backlog** evoluiu de uma lista simples para uma aplicação **Fullstack Segura**. A versão atual (V2.0) foca na experiência do usuário e na proteção de dados, implementando um ciclo de vida completo de autenticação e gerenciamento de perfil.
 
-### ✨ O que há de novo na V2.0?
+### ✨ Destaques da Versão 2.0
 
-* 🔐 **Sistema de Login Completo:** Autenticação segura via E-mail e Senha.
-* 🛡️ **Multi-Tenancy (Privacidade):** Cada usuário tem seu próprio universo. O que você cadastra, só você vê.
-* 📱 **Design 100% Responsivo:** Interface moderna com tema Neon/Dark que se adapta perfeitamente a celulares e desktops.
-* 🎨 **UI/UX Aprimorada:** Uso de Glassmorphism, feedbacks visuais com SweetAlert2 e ícones dinâmicos.
-* 🔑 **Segurança de Dados:** Senhas criptografadas no banco de dados (BCrypt).
+* 🔐 **Autenticação Blindada:** Login e Cadastro com senhas criptografadas (BCrypt).
+* 🛡️ **Segurança Avançada:** Proteção contra ataques CSRF e validação rigorosa de senha forte (Regex).
+* 👤 **Gestão de Perfil Completa:**
+    * Alteração de Apelido.
+    * **Troca de Senha Segura:** Exige senha atual e validação de força.
+    * **Zona de Perigo:** Exclusão definitiva de conta (com limpeza em cascata de dados).
+* 🔍 **Busca & Filtros:** Pesquisa instantânea e filtragem dinâmica (Zerado, Jogando, Backlog).
+* 📱 **UX Responsiva:** Design adaptável para Mobile/Desktop com feedbacks visuais elegantes (SweetAlert2).
+* 👁️ **Privacidade (Multi-Tenancy):** Cada usuário tem acesso isolado apenas aos seus próprios itens.
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-* **Back-end:** Java 17, Spring Boot 3.
-* **Segurança:** Spring Security 6 (Configuração de Rotas, BCrypt, UserDetailsService).
-* **Front-end:** Thymeleaf (Engine de Templates), HTML5, CSS3 (Flexbox/Grid), JavaScript (Fetch API).
-* **Banco de Dados:** MySQL (Produção) / H2 (Desenvolvimento).
-* **Bibliotecas Extras:** Lombok, SweetAlert2 (Alertas bonitos).
+### Backend (Java Ecosystem)
+* **Java 17 & Spring Boot 3:** O coração da aplicação.
+* **Spring Security 6:** Gerenciamento de sessões, autenticação e proteção de rotas.
+* **Spring Data JPA:** Abstração para persistência de dados.
+* **Validation API:** Regras de negócio para integridade dos dados.
+
+### Frontend
+* **Thymeleaf:** Renderização de páginas no servidor (SSR).
+* **HTML5 & CSS3:** Layout responsivo com Flexbox/Grid e variáveis CSS.
+* **JavaScript (ES6+):** Lógica de interface, Fetch API para requisições assíncronas e manipulação do DOM.
+* **SweetAlert2:** Substituição moderna para os alertas padrões do navegador.
 
 ---
 
 ## ⚙️ Como Rodar Localmente
 
 ### Pré-requisitos
-* Java JDK 17 ou superior.
-* Maven instalado.
-* MySQL instalado (ou usar o H2 em memória).
+* Java JDK 17+.
+* Maven.
+* MySQL Server (ou H2 para testes rápidos).
 
 ### Passo a Passo
 
@@ -48,41 +58,38 @@ O **Meus Backlog** nasceu da necessidade de organizar o consumo de mídia pessoa
     ```bash
     git clone [https://github.com/seu-usuario/meus-backlog.git](https://github.com/seu-usuario/meus-backlog.git)
     ```
+
 2.  **Configure o Banco de Dados:**
-    No arquivo `src/main/resources/application.properties`, ajuste as credenciais:
+    Edite o arquivo `src/main/resources/application.properties`:
     ```properties
     spring.datasource.url=jdbc:mysql://localhost:3306/backlog_db
     spring.datasource.username=seu_usuario
     spring.datasource.password=sua_senha
-    
-    # Dica: Na primeira execução, use 'update' ou 'create-drop' se precisar limpar
     spring.jpa.hibernate.ddl-auto=update
     ```
-3.  **Execute o Projeto:**
+
+3.  **Execute a Aplicação:**
     ```bash
     mvn spring-boot:run
     ```
+
 4.  **Acesse:**
-    Abra o navegador em `http://localhost:8080`.
+    Abra `http://localhost:8080` no seu navegador.
 
 ---
 
-## 📂 Estrutura do Projeto
+## 🛣️ Roadmap (Futuro)
 
-O código segue o padrão **MVC (Model-View-Controller)**:
-
-* `controller`: Gerencia as requisições (Web e API).
-* `service`: Regras de negócio (ex: Autenticação).
-* `repository`: Comunicação direta com o banco de dados.
-* `entity`: Modelos das tabelas (User, Item).
-* `dto`: Objetos de transferência de dados (Login, Registro).
-* `security`: Configurações de proteção e filtros.
+- [x] V1.0: CRUD Básico de Itens.
+- [x] V2.0: Sistema de Login, Segurança e Perfil.
+- [ ] **V3.0:** Integração com APIs Externas (IGDB/TMDB) para buscar capas automaticamente.
+- [ ] **V3.1:** Modo Social (Compartilhar lista com amigos).
 
 ---
 
 ## 🤝 Autor
 
-Desenvolvido por **Luiz Augusto**. <br>
-*Técnico em Informática*
+Desenvolvido com 🤍 e ☕ por **Luiz Augusto**.  
+*Estudante de Engenharia de Software & Técnico em Informática*
 
 ---

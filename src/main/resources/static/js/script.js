@@ -378,3 +378,144 @@ function verificarTamanhoResenhas() {
         }
     });
 }
+
+// --- PERFIL USUÁRIO ---
+
+// --- LÓGICA DE SENHA FORTE (Universal) ---
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Tenta achar o campo pela classe (funciona no Register e no Perfil)
+    const inputSenha = document.querySelector('.senha-verifica');
+    const boxRequisitos = document.getElementById('box-requisitos');
+
+    if (inputSenha && boxRequisitos) {
+
+        const reqTamanho = document.getElementById('req-tamanho');
+        const reqMaiuscula = document.getElementById('req-maiuscula');
+        const reqMinuscula = document.getElementById('req-minuscula');
+        const reqNumero = document.getElementById('req-numero');
+        const reqEspecial = document.getElementById('req-especial');
+
+        // Mostrar/Esconder
+        inputSenha.addEventListener('focus', () => boxRequisitos.classList.add('mostrar-requisitos'));
+        inputSenha.addEventListener('blur', () => {
+            setTimeout(() => boxRequisitos.classList.remove('mostrar-requisitos'), 200);
+        });
+
+        // Validação em Tempo Real
+        inputSenha.addEventListener('input', () => {
+            const valor = inputSenha.value;
+
+            validarItem(reqTamanho, valor.length >= 8);
+            validarItem(reqMaiuscula, /[A-Z]/.test(valor));
+            validarItem(reqMinuscula, /[a-z]/.test(valor));
+            validarItem(reqNumero, /[0-9]/.test(valor));
+            validarItem(reqEspecial, /[!@#$%^&*(),.?":{}|<>]/.test(valor));
+        });
+
+        function validarItem(elemento, valido) {
+            if (!elemento) return; // Segurança extra
+            const icone = elemento.querySelector('i');
+            if (valido) {
+                elemento.classList.add('valido');
+                elemento.classList.remove('invalido');
+                icone.className = 'fa-solid fa-circle-check';
+            } else {
+                elemento.classList.remove('valido');
+                elemento.classList.add('invalido');
+                icone.className = 'fa-solid fa-circle-xmark';
+            }
+        }
+    }
+});
+
+// --- PERFIL: ENVIO DO FORMULÁRIO ---
+const formSenhaPerfil = document.getElementById('form-senha');
+if (formSenhaPerfil) {
+    formSenhaPerfil.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const senhaAntiga = document.getElementById('senhaAntiga').value;
+        const novaSenha = document.querySelector('.senha-verifica').value; // Pega pela classe
+
+        try {
+            const response = await fetch('/perfil/senha', {
+                method: 'PUT',
+                headers: getCsrfHeaders(),
+                body: JSON.stringify({ senhaAntiga, novaSenha })
+            });
+
+            if (response.ok) {
+                Swal.fire('Sucesso!', 'Senha atualizada!', 'success');
+                formSenhaPerfil.reset();
+                // Reseta ícones visualmente
+                document.querySelectorAll('.requisito-item').forEach(el => {
+                    el.classList.remove('valido');
+                    el.querySelector('i').className = 'fa-solid fa-circle-xmark';
+                });
+            } else {
+                const erro = await response.json();
+                Swal.fire('Erro!', erro.message, 'error');
+            }
+        } catch (err) {
+            Swal.fire('Erro!', 'Falha de conexão.', 'error');
+        }
+    });
+}
+
+// 2. Excluir Conta
+async function confirmarExclusao() {
+    const result = await Swal.fire({
+        title: 'TEM CERTEZA?',
+        text: "Sua conta e todos os seus itens serão apagados para sempre!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, excluir tudo!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch('/perfil', {
+                method: 'DELETE',
+                headers: getCsrfHeaders()
+            });
+
+            if (response.ok) {
+                await Swal.fire('Conta Excluída!', 'Sentiremos sua falta. 😢', 'success');
+                window.location.href = '/register?deleted'; // Desloga e manda pro register
+            } else {
+                Swal.fire('Erro!', 'Não foi possível excluir a conta.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Erro!', 'Falha ao processar.', 'error');
+        }
+    }
+}
+
+// 3. Atualizar Apelido
+document.getElementById('form-apelido').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const novoApelido = document.getElementById('nome-usuario').value;
+
+    try {
+        const response = await fetch('/perfil/apelido', {
+            method: 'PUT',
+            headers: getCsrfHeaders(),
+            body: JSON.stringify({ novoApelido })
+        });
+
+        if (response.ok) {
+            Swal.fire({
+                title: 'Sucesso!',
+                text: 'Apelido atualizado! A página será recarregada.',
+                icon: 'success'
+            }).then(() => location.reload()); // Recarrega para atualizar o header
+        } else {
+            Swal.fire('Erro!', 'Não foi possível atualizar o apelido.', 'error');
+        }
+    } catch (err) {
+        Swal.fire('Erro!', 'Falha na comunicação.', 'error');
+    }
+});
