@@ -65,17 +65,36 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    // --- REGEX DA SENHA FORTE ---
+    // Metodo Auxiliar de Validação
     private void validarRequisitosSenha(String senha) {
-        // Regras: 8 chars, Maiúscula, Minúscula, Número, Especial
-        boolean tamanhoOk = senha.length() >= 8;
-        boolean temMaiuscula = senha.matches(".*[A-Z].*");
-        boolean temMinuscula = senha.matches(".*[a-z].*");
-        boolean temNumero    = senha.matches(".*[0-9].*");
-        boolean temEspecial  = senha.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
+        if (senha == null || senha.length() < 8) {
+            throw new IllegalArgumentException("A senha deve ter no mínimo 8 caracteres.");
+        }
 
-        if (!tamanhoOk || !temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
-            throw new IllegalArgumentException("A senha deve ter 8 caracteres, maiúscula, minúscula, número e símbolo.");
+        boolean temMaiuscula = false;
+        boolean temMinuscula = false;
+        boolean temNumero = false;
+        boolean temEspecial = false;
+
+        // Lista de caracteres especiais permitidos (igual ao seu regex antigo)
+        String especiais = "!@#$%^&*(),.?\":{}|<>";
+
+        // Loop simples: verifica caractere por caractere
+        for (char c : senha.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                temMaiuscula = true;
+            } else if (Character.isLowerCase(c)) {
+                temMinuscula = true;
+            } else if (Character.isDigit(c)) {
+                temNumero = true;
+            } else if (especiais.indexOf(c) >= 0) {
+                // Se o caractere atual existe na nossa lista de especiais
+                temEspecial = true;
+            }
+        }
+
+        if (!temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
+            throw new IllegalArgumentException("A nova senha não atende aos requisitos de segurança.");
         }
     }
 }
