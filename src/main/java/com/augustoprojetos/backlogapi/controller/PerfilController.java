@@ -8,6 +8,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 import java.util.Map;
 
@@ -54,8 +59,17 @@ public class PerfilController {
 
     // API para Deletar Conta
     @DeleteMapping
-    public ResponseEntity<?> deletarConta(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> deletarConta(@AuthenticationPrincipal User user, HttpServletRequest request, HttpServletResponse response) {
+
+        // 1. Apaga o usuário do banco (O "adeus" definitivo)
         userService.deletarConta(user);
+
+        // 2. Mata a sessão agora mesmo (O "chute" pra fora)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+
         return ResponseEntity.ok().build();
     }
 }

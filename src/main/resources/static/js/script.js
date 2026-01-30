@@ -484,7 +484,7 @@ async function confirmarExclusao() {
 
             if (response.ok) {
                 await Swal.fire('Conta Excluída!', 'Sentiremos sua falta. 😢', 'success');
-                window.location.href = '/logout'; // Desloga e manda pro login
+                window.location.href = '/register?deleted'; // Desloga e manda pro register
             } else {
                 Swal.fire('Erro!', 'Não foi possível excluir a conta.', 'error');
             }

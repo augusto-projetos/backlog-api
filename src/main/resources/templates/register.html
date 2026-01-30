@@ -12,14 +12,16 @@
         <div class="card">
             <h2>Crie sua conta 🎮</h2>
 
-            <div th:if="${param.error != null and param.error[0] == 'email'}"
-                 style="color: #ff6b6b; margin-bottom: 15px; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 5px;">
+            <div th:if="${param.error != null and param.error[0] == 'email'}" class="alert">
                 ⚠️ Ops! Esse e-mail já está sendo usado.
             </div>
 
-            <div th:if="${param.error != null and param.error[0] == 'senha'}"
-                 style="color: #ff6b6b; margin-bottom: 15px; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 5px;">
+            <div th:if="${param.error != null and param.error[0] == 'senha'}" class="alert">
                 ⚠️ A senha é muito fraca! Siga os requisitos abaixo.
+            </div>
+
+            <div th:if="${param.deleted}" class="error">
+                ❌ Conta deletada!
             </div>
 
             <form th:action="@{/auth/register}" method="post">

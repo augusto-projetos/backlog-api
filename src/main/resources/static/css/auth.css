@@ -94,7 +94,7 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Mensagens de Erro e Sucesso */
+/* Mensagens de Erro e Alerta */
 .error {
     background: rgba(255, 107, 107, 0.1);
     color: #ff6b6b;
@@ -103,6 +103,14 @@ a:hover {
     border-radius: 5px;
     margin-bottom: 15px;
     border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.alert {
+    color: #ff6b6b;
+    margin-bottom: 15px;
+    background: rgba(255,0,0,0.1);
+    padding: 10px;
+    border-radius: 5px;
 }
 
 /* --- CHECKLIST DE SENHA --- */
