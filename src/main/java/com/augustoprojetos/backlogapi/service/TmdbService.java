@@ -8,7 +8,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,28 +25,31 @@ public class TmdbService {
     public List<SearchResult> buscarFilmes(String query) {
         RestTemplate restTemplate = new RestTemplate();
 
-        // Monta a URL: https://api.themoviedb.org/3/search/multi?api_key=XXX&query=Batman
-        String url = UriComponentsBuilder.fromUriString(apiUrl + "/search/multi")
+        String urlTemplate = UriComponentsBuilder.fromUriString(apiUrl)
+                .path("/search/multi")
                 .queryParam("api_key", apiKey)
-                .queryParam("query", query)
+                .queryParam("query", "{q}") // Placeholder de segurança
                 .queryParam("language", "pt-BR")
                 .queryParam("include_adult", "false")
+                .encode()
                 .toUriString();
 
-        // Faz a chamada!
+        // Mapa para guardar o valor seguro
+        Map<String, String> params = new HashMap<>();
+        params.put("q", query);
+
         try {
-            TmdbResponse response = restTemplate.getForObject(url, TmdbResponse.class);
+            TmdbResponse response = restTemplate.getForObject(urlTemplate, TmdbResponse.class, params);
 
             if (response != null && response.results() != null) {
-                // Filtra e transforma para um formato simples pro nosso Front
                 return response.results().stream()
-                        .filter(m -> m.poster_path() != null) // Ignora filmes sem capa
+                        .filter(m -> m.poster_path() != null)
                         .map(m -> new SearchResult(
                                 m.getTituloReal(),
-                                "https://image.tmdb.org/t/p/w200" + m.poster_path(), // Monta a URL da imagem
+                                "https://image.tmdb.org/t/p/w200" + m.poster_path(),
                                 m.getDataReal()
                         ))
-                        .limit(10) // Só os top 10
+                        .limit(10)
                         .collect(Collectors.toList());
             }
         } catch (Exception e) {
