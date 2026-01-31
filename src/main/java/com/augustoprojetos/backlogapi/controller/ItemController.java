@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.controller;
 
+import com.augustoprojetos.backlogapi.service.TmdbService;
 import org.springframework.ui.Model;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.augustoprojetos.backlogapi.entity.User;
@@ -17,6 +18,9 @@ public class ItemController {
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private TmdbService tmdbService;
 
     // --- ROTAS DE PÁGINAS (VIEW) ---
 
@@ -79,5 +83,11 @@ public class ItemController {
     @ResponseBody
     public Item buscarPorId(@PathVariable Long id) {
         return itemRepository.findById(id).orElse(null);
+    }
+
+    @GetMapping("/api/buscar-capa")
+    @ResponseBody // Indica que retorna JSON, não HTML
+    public List<TmdbService.SearchResult> buscarCapa(@RequestParam String query) {
+        return tmdbService.buscarFilmes(query);
     }
 }
