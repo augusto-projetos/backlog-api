@@ -495,27 +495,154 @@ async function confirmarExclusao() {
 }
 
 // 3. Atualizar Apelido
-document.getElementById('form-apelido').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const novoApelido = document.getElementById('nome-usuario').value;
+const formApelido = document.getElementById('form-apelido'); // Tenta pegar o elemento
+if (formApelido) { // Só entra se ele existir na página
+    formApelido.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const novoApelido = document.getElementById('nome-usuario').value;
 
-    try {
-        const response = await fetch('/perfil/apelido', {
-            method: 'PUT',
-            headers: getCsrfHeaders(),
-            body: JSON.stringify({ novoApelido })
-        });
+        try {
+            const response = await fetch('/perfil/apelido', {
+                method: 'PUT',
+                headers: getCsrfHeaders(),
+                body: JSON.stringify({ novoApelido })
+            });
 
-        if (response.ok) {
-            Swal.fire({
-                title: 'Sucesso!',
-                text: 'Apelido atualizado! A página será recarregada.',
-                icon: 'success'
-            }).then(() => location.reload()); // Recarrega para atualizar o header
-        } else {
-            Swal.fire('Erro!', 'Não foi possível atualizar o apelido.', 'error');
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Apelido atualizado! A página será recarregada.',
+                    icon: 'success'
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Erro!', 'Não foi possível atualizar o apelido.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Erro!', 'Falha na comunicação.', 'error');
         }
-    } catch (err) {
-        Swal.fire('Erro!', 'Falha na comunicação.', 'error');
+    });
+}
+
+// --- LÓGICA DA BUSCA DE CAPAS (V3.0) ---
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. Pegamos os elementos com segurança
+    const btnBusca = document.getElementById('btn-busca-capa');
+    const modal = document.getElementById('modalCapas');
+    const btnFechar = document.querySelector('.close-modal');
+    const inputBusca = document.getElementById('buscaCapaInput');
+
+    // Se não tiver modal na página (ex: login ou home), para aqui e não dá erro
+    // É POR ISSO QUE NÃO APARECIA ERRO NO CONSOLE: Ele parava aqui silenciosamente.
+    if (!modal || !btnBusca) {
+        console.log("Busca de capas não ativa nesta página.");
+        return;
+    }
+
+    console.log("Sistema de Busca de Capas ATIVO! 🚀"); // Debug para confirmar que carregou
+
+    // 2. Evento de Abrir (substitui o onclick="abrirModalCapa()")
+    btnBusca.addEventListener('click', () => {
+        modal.style.display = 'flex';
+
+        // Pega o título digitado pra facilitar
+        const tituloInput = document.getElementById('titulo');
+        if (tituloInput && tituloInput.value && inputBusca) {
+            inputBusca.value = tituloInput.value;
+            // Opcional: já buscar automático se quiser
+            // buscarCapaApi();
+        }
+        if(inputBusca) inputBusca.focus();
+    });
+
+    // 3. Evento de Fechar (Botão X)
+    if (btnFechar) {
+        btnFechar.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    // 4. Fechar clicando fora da janela (Overlay)
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // 5. Botão "Buscar" de dentro do modal
+    // Precisamos achar o botão que chama a função buscarCapaApi
+    // Vamos adicionar um ID nele no HTML pra facilitar, ou pegar pelo onclick
+    const btnBuscarInterno = document.querySelector('#modalCapas button[onclick="buscarCapaApi()"]');
+    if (btnBuscarInterno) {
+        btnBuscarInterno.onclick = null; // Remove o onclick antigo do HTML para não duplicar
+        btnBuscarInterno.addEventListener('click', buscarCapaApi);
+    }
+
+    // 6. Enter no input busca
+    if (inputBusca) {
+        inputBusca.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') buscarCapaApi();
+        });
     }
 });
+
+// Essa função precisa ser global ou estar acessível
+async function buscarCapaApi() {
+    const inputBusca = document.getElementById('buscaCapaInput');
+    const divResultados = document.getElementById('resultadosCapas');
+
+    if (!inputBusca || !divResultados) return;
+
+    const query = inputBusca.value;
+    if (!query) return;
+
+    divResultados.innerHTML = '<p style="color:white; text-align:center;">⏳ Buscando na TMDB...</p>';
+
+    try {
+        const response = await fetch(`/api/buscar-capa?query=${encodeURIComponent(query)}`);
+
+        if (!response.ok) throw new Error('Erro na API');
+
+        const lista = await response.json();
+        divResultados.innerHTML = '';
+
+        if (lista.length === 0) {
+            divResultados.innerHTML = '<p style="color:#ccc; text-align:center;">Nenhum resultado encontrado.</p>';
+            return;
+        }
+
+        lista.forEach(filme => {
+            const div = document.createElement('div');
+            div.className = 'capa-item';
+            div.onclick = () => selecionarCapa(filme.imagem);
+
+            div.innerHTML = `
+                <img src="${filme.imagem}" alt="${filme.titulo}" style="width:100%; border-radius:4px;">
+                <p style="color:#ccc; font-size:0.8rem; margin-top:5px; text-align:center;">
+                    ${filme.ano ? filme.ano.split('-')[0] : '?'} <br>
+                    <b>${filme.titulo}</b>
+                </p>
+            `;
+            divResultados.appendChild(div);
+        });
+
+    } catch (erro) {
+        console.error(erro);
+        divResultados.innerHTML = '<p style="color:#ff6b6b; text-align:center;">Erro ao buscar capas.</p>';
+    }
+}
+
+function selecionarCapa(url) {
+    const inputImg = document.getElementById('imagemUrl');
+    const modal = document.getElementById('modalCapas');
+
+    if (inputImg) {
+        inputImg.value = url;
+        // Se tiver a função de preview, chama ela
+        if (typeof atualizarPreview === 'function') {
+            atualizarPreview();
+        }
+    }
+    if (modal) modal.style.display = 'none';
+}
