@@ -191,6 +191,13 @@ h1 {
 
 /* --- CAMPOS DENTRO DO MODAL --- */
 
+.search-box-modal {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
 /* O Input de Digitar o nome */
 #buscaCapaInput {
     flex: 1; /* Ocupa o espaço disponível */
@@ -276,11 +283,34 @@ h1 {
         background-color: white;
     }
 
+    /* Faz o input ficar em cima e o botão embaixo */
+    .search-box-modal {
+        flex-direction: column; /* Empilha verticalmente */
+        gap: 10px;
+    }
+
+    /* O Input ocupa a largura total disponível */
+    #buscaCapaInput {
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box; /* Garante que a borda não estoura a tela */
+    }
+
+    /* O Botão também ocupa a largura total */
+    #modalCapas button:not(.close-modal) {
+        width: 100% !important; /* O !important garante que ele obedeça */
+        margin: 0;
+        display: block;
+        padding: 12px 0; /* Mais fácil de clicar com o dedo */
+    }
+
+    /* Trava a largura do modal para não vazar */
     .modal-content {
-        width: 85%; /* Dá um respiro nas laterais (5% de cada lado) */
-        max-height: 85vh; /* Não deixa encostar no topo/fundo */
-        margin: auto; /* Centraliza */
-        padding: 15px; /* Menos padding interno pra caber mais coisa */
+        width: 85%;
+        max-height: 85vh;
+        margin: auto;
+        padding: 15px;
+        overflow-x: hidden;
     }
 
     /* Ajuste da grade de capas para caber 3 por linha no celular */
