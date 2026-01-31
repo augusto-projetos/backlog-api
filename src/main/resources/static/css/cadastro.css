@@ -86,6 +86,145 @@ h1 {
     color: #e74c3c; /* Fica vermelho ao passar o mouse */
 }
 
+/* --- MODAL DE BUSCA DE CAPAS --- */
+.modal-overlay {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Fundo escuro transparente */
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #1a1a2e;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh; /* Altura máxima pra não estourar a tela */
+    overflow-y: auto; /* Barra de rolagem se tiver muitos filmes */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border: 1px solid #e94560;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: white;
+}
+
+.close-modal {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* A Grade de Filmes */
+.grid-capas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.capa-item {
+    cursor: pointer;
+    transition: transform 0.2s;
+    text-align: center;
+}
+
+.capa-item:hover {
+    transform: scale(1.05);
+    border: 2px solid #e94560;
+}
+
+.capa-item img {
+    width: 100%;
+    border-radius: 5px;
+}
+
+.capa-item p {
+    color: #ccc;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.busca-capa-group {
+    display: flex !important; /* Força ficar lado a lado */
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Força o input a ocupar o espaço e remove margens que atrapalham */
+.busca-capa-group input {
+    flex: 1; /* Cresce para ocupar o espaço */
+    margin: 0 !important; /* Remove a margem padrão do tema */
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* O Botão de Lupa */
+.btn-busca-capa {
+    width: 60px !important; /* Largura fixa */
+    height: 56px; /* Mesma altura do input aprox. */
+    margin: 0 !important;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background: #e94560;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    padding: 0;
+}
+
+/* --- CAMPOS DENTRO DO MODAL --- */
+
+/* O Input de Digitar o nome */
+#buscaCapaInput {
+    flex: 1; /* Ocupa o espaço disponível */
+    padding: 12px 15px;
+    border: 2px solid #e94560; /* Borda Rosa */
+    background-color: #0f3460; /* Fundo Azul Escuro */
+    color: white;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+}
+
+#buscaCapaInput::placeholder {
+    color: #a0a0a0;
+}
+
+/* O Botão "Buscar" do Modal */
+#modalCapas button:not(.close-modal) {
+    background-color: #e94560; /* Rosa */
+    color: white;
+    border: none;
+    padding: 0 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    transition: background 0.3s;
+}
+
+#modalCapas button:not(.close-modal):hover {
+    background-color: #c1354b;
+}
+
 /* --- Responsividade (Mobile) --- */
 @media (max-width: 600px) {
     body {
@@ -135,5 +274,22 @@ h1 {
         border: 1px solid #ddd;
         border-radius: 6px;
         background-color: white;
+    }
+
+    .modal-content {
+        width: 85%; /* Dá um respiro nas laterais (5% de cada lado) */
+        max-height: 85vh; /* Não deixa encostar no topo/fundo */
+        margin: auto; /* Centraliza */
+        padding: 15px; /* Menos padding interno pra caber mais coisa */
+    }
+
+    /* Ajuste da grade de capas para caber 3 por linha no celular */
+    .grid-capas {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 8px;
+    }
+
+    .capa-item p {
+        font-size: 0.7rem; /* Texto menorzinho */
     }
 }

@@ -42,7 +42,15 @@
 
             <div class="form-group">
                 <label for="imagemUrl">Link da Imagem (URL):</label>
-                <input type="url" id="imagemUrl" placeholder="Cole o link da imagem aqui..." oninput="atualizarPreview()">
+
+                <div class="busca-capa-group">
+                    <input type="text" id="imagemUrl" name="imagemUrl" placeholder="Cole o link ou busque 👉" onchange="atualizarPreview()">
+
+                    <button type="button" id="btn-busca-capa" class="btn-busca-capa" title="Buscar capa na internet">
+                        🔍
+                    </button>
+                </div>
+
                 <img id="preview-img" src="" alt="Prévia" style="display:none; margin-top:10px; max-width: 100px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
             </div>
 
@@ -61,6 +69,24 @@
                 <a href="/home" class="btn-cancelar">Cancelar</a>
             </div>
         </form>
+        </div>
+
+        <div id="modalCapas" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🎬 Escolha a Capa</h3>
+                    <button class="close-modal">✖</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" id="buscaCapaInput" placeholder="Digite o nome do filme/série...">
+                    <button type="button" onclick="buscarCapaApi()" style="width: auto;">Buscar</button>
+                </div>
+
+                <div id="resultadosCapas" class="grid-capas">
+                    <p style="color: #666; grid-column: 1/-1; text-align: center;">Os resultados aparecerão aqui...</p>
+                </div>
+            </div>
         </div>
 
         <script th:src="@{/js/script.js}"></script>
