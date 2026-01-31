@@ -591,16 +591,31 @@ document.addEventListener('DOMContentLoaded', () => {
 async function buscarCapaApi() {
     const inputBusca = document.getElementById('buscaCapaInput');
     const divResultados = document.getElementById('resultadosCapas');
+    const tipoSelect = document.getElementById('tipo');
+    const tipo = tipoSelect ? tipoSelect.value : '';
 
     if (!inputBusca || !divResultados) return;
+
+    // --- BLOQUEIO PARA JOGOS ---
+        if (tipo === 'Jogo') {
+            divResultados.innerHTML = `
+                <div style="text-align:center; padding: 20px; grid-column: 1 / -1;">
+                    <p style="font-size: 3rem; margin: 0;">🎮</p>
+                    <p style="color: #ff6b6b; font-weight: bold; margin-top: 10px;">A busca automática é exclusiva para Filmes e Séries.</p>
+                    <p style="color: #ccc; font-size: 0.9rem;">Para jogos, copie o link da imagem no Google e cole no campo anterior.</p>
+                </div>
+            `;
+            return; // Para a função aqui. Não chama o Java.
+        }
+        // ------------------------------------
 
     const query = inputBusca.value;
     if (!query) return;
 
-    divResultados.innerHTML = '<p style="color:white; text-align:center;">⏳ Buscando na TMDB...</p>';
+    divResultados.innerHTML = '<p style="color:white; text-align:center; grid-column: 1 / -1;">⏳ Buscando na TMDB...</p>';
 
     try {
-        const response = await fetch(`/api/buscar-capa?query=${encodeURIComponent(query)}`);
+        const response = await fetch(`/api/buscar-capa?query=${encodeURIComponent(query)}&tipo=${tipo}`);
 
         if (!response.ok) throw new Error('Erro na API');
 
@@ -608,7 +623,7 @@ async function buscarCapaApi() {
         divResultados.innerHTML = '';
 
         if (lista.length === 0) {
-            divResultados.innerHTML = '<p style="color:#ccc; text-align:center;">Nenhum resultado encontrado.</p>';
+            divResultados.innerHTML = '<p style="color:#ccc; text-align:center; grid-column: 1 / -1;">Nenhum resultado encontrado.</p>';
             return;
         }
 
@@ -629,7 +644,7 @@ async function buscarCapaApi() {
 
     } catch (erro) {
         console.error(erro);
-        divResultados.innerHTML = '<p style="color:#ff6b6b; text-align:center;">Erro ao buscar capas.</p>';
+        divResultados.innerHTML = '<p style="color:#ff6b6b; text-align:center; grid-column: 1 / -1;">Erro ao buscar capas.</p>';
     }
 }
 

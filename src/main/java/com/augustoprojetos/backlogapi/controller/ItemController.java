@@ -87,7 +87,11 @@ public class ItemController {
 
     @GetMapping("/api/buscar-capa")
     @ResponseBody // Indica que retorna JSON, não HTML
-    public List<TmdbService.SearchResult> buscarCapa(@RequestParam String query) {
+    public List<TmdbService.SearchResult> buscarCapa(@RequestParam String query, @RequestParam(required = false) String tipo) {
+        // Se for Jogo, retorna lista vazia imediatamente (segurança extra)
+        if (tipo != null && "Jogo".equalsIgnoreCase(tipo)) {
+            return java.util.Collections.emptyList();
+        }
         return tmdbService.buscarFilmes(query);
     }
 }
