@@ -176,17 +176,33 @@ h1 {
 
 /* O Botão de Lupa */
 .btn-busca-capa {
-    width: 60px !important; /* Largura fixa */
-    height: 56px; /* Mesma altura do input aprox. */
+    width: 50px !important;
+    height: 48px;
+    border-radius: 8px !important;
     margin: 0 !important;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    background: #e94560;
+    background: linear-gradient(135deg, #e94560, #c1354b);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.2rem;
     padding: 0;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Efeito ao passar o mouse */
+.btn-busca-capa:hover {
+    transform: translateY(-3px); /* Flutua levemente */
+    box-shadow: 0 6px 15px rgba(233, 69, 96, 0.5); /* Aumenta o brilho */
+}
+
+/* Efeito ao clicar */
+.btn-busca-capa:active {
+    transform: translateY(1px); /* Afunda */
+    box-shadow: 0 2px 5px rgba(233, 69, 96, 0.3);
 }
 
 /* --- CAMPOS DENTRO DO MODAL --- */
