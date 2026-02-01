@@ -47,7 +47,13 @@
         <div class="controls-wrapper">
 
             <div class="filter-container">
-                <select id="filter-status">
+                <select id="filter-order" title="Ordenar lista">
+                    <option value="padrao">🔃 Padrão (A-Z)</option>
+                    <option value="maior">⭐ Maior Nota</option>
+                    <option value="menor">👎 Menor Nota</option>
+                </select>
+
+                <select id="filter-status" title="Filtrar por status">
                     <option value="todos">🌪️ Todos</option>
                     <option value="andamento">▶️ Jogando / Assistindo</option>
                     <option value="concluido">✅ Zerado / Assistido</option>

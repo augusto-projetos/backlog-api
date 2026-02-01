@@ -3,87 +3,99 @@ document.addEventListener('DOMContentLoaded', () => {
     // Elementos
     const searchBar = document.getElementById('search-bar');
     const filterSelect = document.getElementById('filter-status');
+    const orderSelect = document.getElementById('filter-order'); // Novo elemento
     const msgNaoEncontrado = document.getElementById('msg-nao-encontrado');
+    const listaItens = document.getElementById('lista-itens');
+
+    // --- FUNÇÃO DE ORDENAÇÃO ---
+    function ordenarItens() {
+        const ordem = orderSelect ? orderSelect.value : 'padrao';
+        const cards = Array.from(document.querySelectorAll('.card'));
+
+        cards.sort((a, b) => {
+            if (ordem === 'padrao') {
+                // Ordena por Título (A-Z)
+                const tituloA = a.querySelector('h3').textContent.trim();
+                const tituloB = b.querySelector('h3').textContent.trim();
+                return tituloA.localeCompare(tituloB);
+            } else {
+                // Pega o texto da nota (Ex: "Nota: 9.5/10")
+                const textoNotaA = a.querySelector('.nota').textContent;
+                const textoNotaB = b.querySelector('.nota').textContent;
+
+                // Extrai apenas o número
+                const getNota = (str) => {
+                    const match = str.match(/(\d+(\.\d+)?)/);
+                    return match ? parseFloat(match[0]) : 0;
+                };
+
+                const notaA = getNota(textoNotaA);
+                const notaB = getNota(textoNotaB);
+
+                // Maior -> Menor ou Menor -> Maior
+                return ordem === 'maior' ? notaB - notaA : notaA - notaB;
+            }
+        });
+
+        // Reinsere os cards na ordem certa
+        cards.forEach(card => listaItens.appendChild(card));
+
+        // Reaplica os filtros para garantir que itens ocultos continuem ocultos
+        aplicarFiltros();
+    }
 
     // --- FUNÇÃO MESTRA DE FILTRAGEM ---
     function aplicarFiltros() {
         const termo = searchBar.value.toLowerCase();
         const statusSelecionado = filterSelect.value;
-
-        // Pega todos os cards da tela
         const cards = document.querySelectorAll('.card');
         let visiveis = 0;
 
         cards.forEach(card => {
-            // 1. Pega os dados do Card
             const titulo = card.querySelector('h3').textContent.toLowerCase();
-            // Pega o texto do status (ex: "Status: Zerado") e limpa ele
             const statusTexto = card.querySelector('small').textContent.toLowerCase();
 
-            // 2. Verifica a PESQUISA (Nome)
             const matchPesquisa = titulo.includes(termo);
-
-            // 3. Verifica o SELECT (Status)
-            let matchFiltro = true; // Assume que passou, a não ser que falhe abaixo
+            let matchFiltro = true;
 
             if (statusSelecionado !== 'todos') {
                 if (statusSelecionado === 'concluido') {
-                    // Aceita tanto "Zerado" quanto "Assistido"
                     matchFiltro = statusTexto.includes('zerado') || statusTexto.includes('assistido');
-                }
-                else if (statusSelecionado === 'andamento') {
-                    // Aceita tanto "Jogando" quanto "Assistindo"
+                } else if (statusSelecionado === 'andamento') {
                     matchFiltro = statusTexto.includes('jogando') || statusTexto.includes('assistindo');
-                }
-                else {
-                    // Para Backlog e Dropado, busca direto a palavra
+                } else {
                     matchFiltro = statusTexto.includes(statusSelecionado);
                 }
             }
 
-            // 4. Decisão Final: Tem que passar nos DOIS testes
             if (matchPesquisa && matchFiltro) {
-                card.style.display = ''; // Mostra (deixa o CSS decidir se é flex ou block)
+                card.style.display = '';
                 visiveis++;
             } else {
-                card.style.display = 'none'; // Esconde
+                card.style.display = 'none';
             }
         });
 
-        // Controle da mensagem de "Nada encontrado"
         if (msgNaoEncontrado) {
-            // Só mostra a mensagem se a lista NÃO estava vazia originalmente (tem cards) mas o filtro escondeu tudo
-            if (visiveis === 0 && cards.length > 0) {
-                msgNaoEncontrado.style.display = 'block';
-            } else {
-                msgNaoEncontrado.style.display = 'none';
-            }
+            msgNaoEncontrado.style.display = (visiveis === 0 && cards.length > 0) ? 'block' : 'none';
         }
     }
 
     // --- EVENTOS ---
+    if (searchBar) searchBar.addEventListener('input', aplicarFiltros);
+    if (filterSelect) filterSelect.addEventListener('change', aplicarFiltros);
 
-    // 1. Quando digitar na busca
-    if (searchBar) {
-        searchBar.addEventListener('input', aplicarFiltros);
+    // Novo evento de ordenação
+    if (orderSelect) {
+        orderSelect.addEventListener('change', ordenarItens);
     }
 
-    // 2. Quando mudar o select
-    if (filterSelect) {
-        filterSelect.addEventListener('change', aplicarFiltros);
-    }
-
-    // --- LÓGICA DO BOTÃO VOLTAR AO TOPO  ---
+    // --- BOTÃO VOLTAR AO TOPO ---
     const btnTopo = document.getElementById('btn-topo');
     if (btnTopo) {
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                btnTopo.classList.add('visivel');
-            } else {
-                btnTopo.classList.remove('visivel');
-            }
+            btnTopo.classList.toggle('visivel', window.scrollY > 300);
         });
-
         btnTopo.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
