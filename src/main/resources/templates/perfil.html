@@ -8,6 +8,7 @@
         <meta name="_csrf" th:content="${_csrf.token}"/>
         <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <link rel="stylesheet" th:href="@{/css/perfil.css}">
     </head>
     <body>
@@ -51,7 +52,13 @@
                     <label for="novaSenha">Nova Senha:</label>
 
                     <div class="container-senha">
-                        <input type="password" id="novaSenha" class="senha-verifica" required>
+                        <div class="password-wrapper">
+                            <input type="password" id="novaSenha" class="senha-verifica" required>
+
+                            <button type="button" class="toggle-password" onclick="togglePassword(this)" tabindex="-1">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
 
                         <div class="requisitos-senha" id="box-requisitos">
                             <div class="requisito-item" id="req-tamanho"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</div>

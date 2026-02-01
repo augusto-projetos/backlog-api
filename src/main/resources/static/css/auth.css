@@ -155,6 +155,54 @@ a:hover {
 .fa-circle-xmark::before { content: "✖"; display: inline-block; width: 15px; }
 .fa-circle-check::before { content: "✔"; display: inline-block; width: 15px; }
 
+/* --- OLHO MÁGICO DE SENHA --- */
+
+/* O Container que segura o input e o botão */
+.password-wrapper {
+    position: relative; /* Importante: é a âncora do botão absoluto */
+    width: 100%;
+    display: block; /* Garante que ocupe a linha toda */
+}
+
+/* O Input de senha */
+.password-wrapper input {
+    width: 100%;
+    /* Deixa espaço na direita para o ícone não cobrir o texto */
+    padding-right: 45px !important;
+    box-sizing: border-box; /* Garante que padding não estoure a largura */
+}
+
+/* O Botão do Olho (Flutuante) */
+.password-wrapper .toggle-password {
+    position: absolute; /* Sai do fluxo normal */
+    right: 10px;        /* Cola na direita */
+    top: 50%;           /* Centraliza verticalmente */
+    transform: translateY(-50%) !important; /* Ajuste fino do centro */
+
+    /* Zera os estilos de botão padrão do form */
+    width: auto !important; /* Não deixa ocupar 100% igual ao botão de login */
+    padding: 5px !important;
+    margin: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+
+    /* Estilo do ícone */
+    color: #a0a0a0;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover do ícone */
+.password-wrapper .toggle-password:hover {
+    color: #e94560; /* Rosa */
+    background: transparent !important;
+    transform: translateY(-50%) scale(1.1) !important; /* Cresce um pouquinho */
+}
+
 /* --- AJUSTES PARA CELULAR (Mobile Only) --- */
 @media (max-width: 480px) {
     .card {

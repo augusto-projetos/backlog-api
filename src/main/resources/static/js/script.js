@@ -661,3 +661,20 @@ function selecionarCapa(url) {
     }
     if (modal) modal.style.display = 'none';
 }
+
+// --- MOSTRAR/OCULTAR SENHA ---
+function togglePassword(botao) {
+    // Acha o input que está logo antes do botão
+    const input = botao.previousElementSibling;
+    const icone = botao.querySelector('i');
+
+    if (input.type === "password") {
+        input.type = "text";
+        icone.classList.remove('fa-eye');
+        icone.classList.add('fa-eye-slash'); // Olho cortado
+    } else {
+        input.type = "password";
+        icone.classList.remove('fa-eye-slash');
+        icone.classList.add('fa-eye'); // Olho normal
+    }
+}

@@ -6,6 +6,7 @@
         <title>Criar Conta - Meus Backlog</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
         <link rel="stylesheet" th:href="@{/css/auth.css}">
     </head>
@@ -31,7 +32,13 @@
 
                 <div class="container-senha" style="position: relative;">
 
-                    <input type="password" name="password" id="novaSenha" class="senha-verifica" placeholder="Senha Secreta" required>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="novaSenha" class="senha-verifica" placeholder="Senha Secreta" required>
+
+                        <button type="button" class="toggle-password" onclick="togglePassword(this)" tabindex="-1">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
 
                     <div class="requisitos-senha" id="box-requisitos">
                         <div class="requisito-item" id="req-tamanho"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</div>

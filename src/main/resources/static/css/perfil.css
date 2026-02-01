@@ -212,6 +212,40 @@
 .fa-circle-xmark::before { content: "✖"; display: inline-block; width: 15px; }
 .fa-circle-check::before { content: "✔"; display: inline-block; width: 15px; }
 
+/* --- OLHO MÁGICO DE SENHA --- */
+
+/* O Container que segura o input e o ícone */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* O Input dentro do wrapper ocupa tudo */
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px !important; /* Espaço para o ícone não ficar em cima do texto */
+}
+
+/* O Ícone do Olho */
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #7f8c8d;
+    font-size: 1rem;
+    background: none;
+    border: none;
+    padding: 5px;
+    z-index: 10;
+    transition: color 0.3s;
+}
+
+.toggle-password:hover {
+    color: #e94560; /* Rosa do tema */
+}
+
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 600px) {
     .perfil-container {
