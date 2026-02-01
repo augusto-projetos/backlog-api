@@ -225,20 +225,21 @@ body {
     flex-direction: column;
 }
 
-/* Container do Filtro (Alinha na direita) */
+/* Container dos Filtros (Alinha na direita) */
 .filter-container {
     display: flex;
     justify-content: flex-end; /* Joga pra direita */
-    margin-bottom: -15px; /* Puxa um pouco pra baixo pra ficar "sobreposto" visualmente */
-    z-index: 10; /* Garante que fique acima da barra */
+    margin-bottom: -15px; /* Puxa pra baixo pra sobrepor visualmente */
+    z-index: 10;
     padding-right: 15px;
+    gap: 8px; /* Espaço entre os dois filtros */
 }
 
-/* O Select em si */
-#filter-status {
+/* Estilo para AMBOS os selects */
+#filter-status, #filter-order {
     background-color: white;
     border: 1px solid #ddd;
-    border-radius: 20px; /* Borda redonda */
+    border-radius: 20px;
     padding: 5px 15px;
     font-size: 0.85rem;
     color: #2c3e50;
@@ -246,17 +247,17 @@ body {
     outline: none;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: all 0.3s;
-    appearance: none; /* Remove a seta padrão feia do navegador */
+    appearance: none; /* Remove seta padrão */
 
-    /* Adiciona uma setinha customizada (opcional, mas fica chique) */
+    /* Setinha Rosa Customizada */
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23E94560%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat;
     background-position: right .7em top 50%;
     background-size: .65em auto;
-    padding-right: 2.5em; /* Espaço pra seta */
+    padding-right: 2.5em;
 }
 
-#filter-status:hover {
+#filter-status:hover, #filter-order:hover {
     border-color: #e94560;
 }
 
@@ -413,5 +414,16 @@ body {
         right: 20px;
         width: 45px;
         height: 45px;
+    }
+
+    .filter-container {
+        justify-content: center; /* Centraliza no mobile */
+        padding-right: 0;
+        margin-bottom: 10px; /* Tira o sobreposto e dá espaço */
+    }
+
+    #filter-status, #filter-order {
+        font-size: 0.8rem;
+        padding: 5px 25px 5px 10px; /* Ajusta padding pra caber */
     }
 }
