@@ -19,7 +19,7 @@ public class SecurityConfigurations {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         // LIBERA O ACESSO PÚBLICO PARA:
-                        .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/images/**", "/share/**").permitAll()
                         // QUALQUER OUTRA COISA PRECISA DE SENHA:
                         .anyRequest().authenticated()
                 )
