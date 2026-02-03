@@ -41,6 +41,7 @@ public class ShareController {
 
         // 2. Busca os itens do DONO do token (não de quem está acessando)
         List<Item> itens = itemRepository.findByUser(donoDaLista);
+        itens.sort((i1, i2) -> i1.getTitulo().compareToIgnoreCase(i2.getTitulo()));
 
         // 3. Manda os dados para a nova página
         model.addAttribute("apelido", donoDaLista.getLogin());
