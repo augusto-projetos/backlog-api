@@ -7,7 +7,7 @@ const formCadastro = document.getElementById('form-cadastro');
 let idEdicao = null;
 
 // 1. Lógica da Home (Lista)
-if (listaItens) {
+if (listaItens && !window.location.pathname.includes('/share')) {
     carregarItens();
 }
 
@@ -677,4 +677,122 @@ function togglePassword(botao) {
         icone.classList.remove('fa-eye-slash');
         icone.classList.add('fa-eye'); // Olho normal
     }
+}
+
+// --- LÓGICA DE COMPARTILHAMENTO (LINKS) ---
+
+const listaLinks = document.getElementById('lista-links');
+
+async function carregarMeusLinks() {
+    if (!listaLinks) return; // Só roda na página de links
+
+    try {
+        const res = await fetch('/api/share/meus-links');
+        const links = await res.json();
+
+        listaLinks.innerHTML = '';
+
+        if (links.length === 0) {
+            listaLinks.innerHTML = '<p style="text-align:center; color:#7f8c8d;">Você não tem links ativos.</p>';
+            return;
+        }
+
+        // Ordena para mostrar os mais novos primeiro (inverte a lista)
+        links.reverse().forEach(link => {
+
+            // Calcula data legível
+            const dataExp = new Date(link.expiresAt).toLocaleString('pt-BR');
+            // Monta a URL completa (Pega o domínio atual + /share/ + token)
+            const urlCompleta = `${window.location.origin}/share/${link.token}`;
+
+            const html = `
+                <div class="link-card">
+                    <div class="link-info">
+                        <h4>Ativo até: ${dataExp}</h4>
+                        <div class="link-url">${urlCompleta}</div>
+                        <p style="margin-top:5px;">👁️ ${link.visualizacoes} visualizações</p>
+                    </div>
+                    <div class="link-actions">
+                        <button onclick="copiarTexto('${urlCompleta}')" class="btn-copy" title="Copiar">
+                            <i class="fa-solid fa-copy"></i> Copiar
+                        </button>
+                        <button onclick="revogarLink(${link.id})" class="btn-revoke" title="Apagar">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            listaLinks.innerHTML += html;
+        });
+
+    } catch (erro) {
+        console.error(erro);
+        listaLinks.innerHTML = '<p style="color:red">Erro ao carregar links.</p>';
+    }
+}
+
+async function gerarLink() {
+    const horas = document.getElementById('validade').value;
+
+    try {
+        const res = await fetch('/api/share/gerar', {
+            method: 'POST',
+            headers: getCsrfHeaders(),
+            body: JSON.stringify({ horas: parseInt(horas) })
+        });
+
+        if (res.ok) {
+            Swal.fire({
+                title: 'Link Gerado!',
+                text: 'Seu link está pronto para ser enviado.',
+                icon: 'success',
+                timer: 1500
+            });
+            carregarMeusLinks(); // Recarrega a lista
+        } else {
+            Swal.fire('Erro', 'Não foi possível gerar o link.', 'error');
+        }
+    } catch (erro) {
+        console.error(erro);
+    }
+}
+
+async function revogarLink(id) {
+    const result = await Swal.fire({
+        title: 'Apagar Link?',
+        text: "Quem tiver esse link não poderá mais acessar sua lista.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Sim, apagar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await fetch(`/api/share/${id}`, {
+                method: 'DELETE',
+                headers: getCsrfHeaders()
+            });
+            carregarMeusLinks();
+            Swal.fire('Apagado!', 'O link foi invalidado.', 'success');
+        } catch (erro) {
+            Swal.fire('Erro', 'Falha ao apagar.', 'error');
+        }
+    }
+}
+
+function copiarTexto(texto) {
+    navigator.clipboard.writeText(texto).then(() => {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: 'success',
+            title: 'Link copiado!'
+        });
+    });
 }

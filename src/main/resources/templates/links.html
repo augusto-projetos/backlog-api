@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gerenciar Links - Meus Backlog</title>
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link rel="stylesheet" th:href="@{/css/links.css}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    </head>
+    <body>
+
+        <header class="app-header">
+            <div class="header-info">
+                <h2>Compartilhar Coleção 🔗</h2>
+                <p>Gerencie os links de acesso público.</p>
+            </div>
+            <div class="header-actions">
+                <a href="/home" class="btn-novo" style="background-color: #7f8c8d;">⬅ Voltar</a>
+            </div>
+        </header>
+
+        <div class="gerar-box">
+            <h3>Criar Novo Link</h3>
+            <p style="margin-bottom: 20px; color: #a0a0a0;">O link permite que qualquer pessoa veja a sua lista (sem editar).</p>
+
+            <div style="display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <label for="validade">Validade:</label>
+                <select id="validade">
+                    <option value="24" selected>24 Horas</option>
+                    <option value="72">3 Dias</option>
+                    <option value="168">7 Dias</option>
+                </select>
+                <button onclick="gerarLink()" class="btn-gerar">✨ Gerar Link Mágico</button>
+            </div>
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 20px;">Seus Links Ativos</h3>
+        <div id="lista-links">
+            <p style="text-align: center; color: #aaa;">Carregando...</p>
+        </div>
+
+        <script th:src="@{/js/script.js}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', carregarMeusLinks);
+        </script>
+    </body>
+</html>

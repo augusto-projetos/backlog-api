@@ -13,40 +13,38 @@
 
 ## 🚀 Sobre o Projeto
 
-O **Meus Backlog** evoluiu de uma lista simples para uma aplicação **Fullstack Segura**. A versão atual (V3.0) foca na automação e experiência do usuário, integrando serviços externos para enriquecer o cadastro de itens.
+O **Meus Backlog** é uma aplicação **Fullstack Segura** que simula um ambiente de produção real. A versão atual (V3.1) transforma o projeto numa plataforma social e monitorada profissionalmente.
 
-### ✨ Destaques da Versão 3.0 (Atual)
-* 🎬 **Busca Automática de Capas:** Integração com a **API da TMDB** para buscar pôsteres oficiais de Filmes e Séries diretamente na tela de cadastro.
-* 🎮 **Interface Inteligente:** O sistema detecta o tipo de item (Jogo ou Filme) e adapta a interface, oferecendo busca automática ou inserção manual conforme a necessidade.
-* ☁️ **Configuração Profissional:** Proteção de chaves de API utilizando Variáveis de Ambiente.
+### ✨ Destaques da Versão 3.1 (Atual)
+* 🌐 **Modo Social (Compartilhamento):** Gere links públicos temporários (24h, 3 dias ou 7 dias) para mostrar a sua coleção aos amigos sem que eles precisem logar. Inclui painel de gerenciamento para revogar acessos.
+* 📊 **Observabilidade Profissional:** Integração com **Sentry** para monitoramento de erros em tempo real e **Umami** para analytics focado em privacidade.
+* 📉 **Filtros Avançados:** Nova ordenação por "Maior Nota" e "Menor Nota", além da busca textual e por status.
+* 📱 **UX Mobile Aprimorada:** Interface 100% responsiva, com botões adaptáveis e melhorias na usabilidade em telas pequenas.
 
-### 🌟 Destaques das Versões Anteriores
-* 🔐 **Autenticação Blindada:** Login e Cadastro com senhas criptografadas (BCrypt).
-* 🛡️ **Segurança Avançada:** Proteção contra ataques CSRF e validação rigorosa de senha forte.
-* 👤 **Gestão de Perfil Completa:**
-    * Alteração de Apelido e Senha.
-    * **Zona de Perigo:** Exclusão definitiva de conta (com limpeza em cascata de dados).
-* 🔍 **Busca & Filtros:** Pesquisa instantânea e filtragem dinâmica.
-* 👁️ **Privacidade (Multi-Tenancy):** Cada usuário tem acesso isolado apenas aos seus próprios itens.
+### 🌟 Funcionalidades Consolidadas
+* 🎬 **Busca Automática de Capas:** Integração com a **API da TMDB** para buscar pôsteres oficiais.
+* 🔐 **Segurança de Ponta:** Login blindado (BCrypt), proteção CSRF e rotas autenticadas.
+* 👤 **Gestão de Perfil:** Alteração de dados sensíveis e "Zona de Perigo" (Exclusão de conta).
+* 👁️ **Privacidade (Multi-Tenancy):** Dados isolados por usuário.
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
 ### Backend (Java Ecosystem)
-* **Java 17 & Spring Boot 3:** O coração da aplicação.
-* **Spring Security 6:** Gerenciamento de sessões e autenticação.
-* **Spring Data JPA:** Abstração para persistência de dados.
-* **OpenFeign / RestTemplate:** Para consumo de APIs externas.
+* **Java 17 & Spring Boot 3:** Core da aplicação.
+* **Spring Security 6:** Autenticação e Autorização (incluindo rotas públicas via Token UUID).
+* **Sentry SDK:** Monitoramento de erros e performance.
+* **Spring Data JPA & Hibernate:** Persistência de dados.
 
 ### Frontend
-* **Thymeleaf:** Renderização de páginas no servidor (SSR).
-* **HTML5 & CSS3:** Layout responsivo com Flexbox/Grid e variáveis CSS.
-* **JavaScript (ES6+):** Lógica de interface, Fetch API e manipulação do DOM.
-* **SweetAlert2:** Alertas modernos e responsivos.
+* **Thymeleaf:** Renderização dinâmica (SSR).
+* **HTML5, CSS3 & JavaScript:** Layout responsivo e interatividade sem frameworks pesados.
+* **SweetAlert2:** Alertas modais elegantes.
+* **Umami Analytics:** Métricas de acesso respeitando a privacidade.
 
 ### APIs Externas
-* **The Movie Database (TMDB):** Fonte de dados para capas de filmes e séries.
+* **The Movie Database (TMDB):** Metadados de filmes e séries.
 
 ---
 
@@ -55,34 +53,29 @@ O **Meus Backlog** evoluiu de uma lista simples para uma aplicação **Fullstack
 ### Pré-requisitos
 * Java JDK 17+.
 * Maven.
-* MySQL Server (ou H2 para testes rápidos).
-* Uma chave de API gratuita da [TMDB](https://www.themoviedb.org/documentation/api).
+* MySQL Server.
+* Chave da API [TMDB](https://www.themoviedb.org/).
+* DSN do [Sentry](https://sentry.io/) (Opcional).
 
 ### Passo a Passo
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/seu-usuario/meus-backlog.git](https://github.com/seu-usuario/meus-backlog.git)
+    git clone https://github.com/seu-usuario/meus-backlog.git
     ```
 
 2.  **Configure o Banco de Dados:**
-    Edite o arquivo `src/main/resources/application.properties`:
+    Edite o `src/main/resources/application.properties`:
     ```properties
     spring.datasource.url=jdbc:mysql://localhost:3306/backlog_db
     spring.datasource.username=seu_usuario
     spring.datasource.password=sua_senha
-    spring.jpa.hibernate.ddl-auto=update
     ```
 
-3.  **Configure a Chave da API (Segurança):**
-    Você deve configurar a chave da TMDB como variável de ambiente ou direto no arquivo (não recomendado para produção).
-    * **Opção A (Variável de Ambiente - Recomendado):**
-      Crie uma variável chamada `TMDB_API_KEY` no seu sistema ou IDE com sua chave.
-    * **Opção B (Arquivo):**
-      No `application.properties`, altere:
-      ```properties
-      tmdb.api.key=SUA_CHAVE_AQUI
-      ```
+3.  **Variáveis de Ambiente (Recomendado):**
+    Configure as chaves no seu sistema ou IDE:
+    * `TMDB_API_KEY`: Sua chave da TMDB.
+    * `SENTRY_DSN`: Seu link do projeto Sentry (se for usar).
 
 4.  **Execute a Aplicação:**
     ```bash
@@ -94,12 +87,14 @@ O **Meus Backlog** evoluiu de uma lista simples para uma aplicação **Fullstack
 
 ---
 
-## 🛣️ Roadmap
+## 🛣️ Roadmap & Futuro
 
-- [x] V1.0: CRUD Básico de Itens.
-- [x] V2.0: Sistema de Login, Segurança e Perfil.
-- [x] **V3.0:** Busca Automática de Capas (TMDB) para Filmes e Séries.
-- [ ] **V3.1:** Modo Social (Compartilhar lista com amigos).
+- [x] V1.0: CRUD Básico.
+- [x] V2.0: Login, Segurança e Perfil.
+- [x] V3.0: Integração TMDB e Capas.
+- [x] **V3.1: Modo Social e Monitoramento (Sentry/Umami).**
+- [ ] **V4.0: Dashboard de Estatísticas** (Gráficos visuais de quantos filmes vs jogos, nota média, gêneros favoritos).
+- [ ] **V4.1: Gamificação** (Conquistas/Badges por quantidade de itens cadastrados).
 
 ---
 
