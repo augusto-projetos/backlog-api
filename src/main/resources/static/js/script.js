@@ -701,7 +701,7 @@ async function carregarMeusLinks() {
         links.reverse().forEach(link => {
 
             // Calcula data legível
-            const dataExp = new Date(link.expiresAt).toLocaleString('pt-BR');
+            const dataExp = new Date(link.expiresAt + (link.expiresAt.endsWith('Z') ? '' : 'Z')).toLocaleString('pt-BR');
             // Monta a URL completa (Pega o domínio atual + /share/ + token)
             const urlCompleta = `${window.location.origin}/share/${link.token}`;
 
