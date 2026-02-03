@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title th:text="'Coleção de ' + ${apelido}">Coleção Compartilhada</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <style>
+            /* Ajuste para esconder botões de edição caso vazem */
+            .card-actions .btn-group { display: none !important; }
+            .header-actions { display: none; }
+        </style>
+    </head>
+    <body>
+
+        <header class="app-header">
+            <div class="header-info">
+                <h2>Meus Backlog 🎮</h2>
+                <p class="user-greeting">
+                    Coleção de <span class="user-name" th:text="${apelido}">Alguém</span>
+                </p>
+            </div>
+        </header>
+
+        <div class="controls-wrapper">
+            <div class="filter-container">
+                <select id="filter-order" title="Ordenar">
+                    <option value="padrao">🔃 Padrão (A-Z)</option>
+                    <option value="maior">⭐ Maior Nota</option>
+                    <option value="menor">👎 Menor Nota</option>
+                </select>
+                <select id="filter-status" title="Filtrar">
+                    <option value="todos">🌪️ Todos</option>
+                    <option value="andamento">▶️ Jogando / Assistindo</option>
+                    <option value="concluido">✅ Zerado / Assistido</option>
+                    <option value="backlog">📅 Backlog</option>
+                    <option value="dropado">❌ Dropado</option>
+                </select>
+            </div>
+            <div class="search-container">
+                <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção de seu amigo...">
+            </div>
+        </div>
+
+        <div id="msg-nao-encontrado" style="display: none; text-align: center; color: #7f8c8d; margin-top: 20px;">
+            <p style="font-size: 2rem; margin: 0;">😕</p>
+            <p>Nenhum item encontrado.</p>
+        </div>
+
+        <div id="lista-itens">
+
+            <div class="card" th:each="item : ${itens}">
+                <div class="card-img-wrapper">
+                    <img th:src="${item.imagemUrl != null && item.imagemUrl != '' ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Capa'}" alt="Capa">
+                </div>
+
+                <div class="card-info">
+                    <h3>
+                        <span th:text="${item.titulo}">Título</span>
+                        <span class="badge" th:text="${item.tipo}">Tipo</span>
+                    </h3>
+
+                    <div class="resenha-wrapper">
+                        <p class="resenha-texto" th:id="'resenha-' + ${item.id}" th:text="${item.resenha} ?: 'Sem resenha.'"></p>
+                        <button class="btn-ver-mais" th:id="'btn-ver-' + ${item.id}" th:onclick="'alternarResenha(' + ${item.id} + ')'">... Ver mais</button>
+                    </div>
+
+                    <small>Status: <span th:text="${item.status}">Status</span></small>
+                </div>
+
+                <div class="card-actions">
+                    <div class="nota">
+                        Nota: <span th:text="${item.nota}">10</span>/10
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(itens)}" style="text-align: center; width: 100%; color: #7f8c8d;">
+                <h3>Essa coleção ainda está vazia! 🕸️</h3>
+            </div>
+        </div>
+
+        <button id="btn-topo" title="Voltar ao topo">⬆</button>
+
+        <script th:src="@{/js/script.js}"></script>
+        <script th:src="@{/js/search-scroll.js}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                if(typeof verificarTamanhoResenhas === 'function') verificarTamanhoResenhas();
+            });
+        </script>
+    </body>
+</html>

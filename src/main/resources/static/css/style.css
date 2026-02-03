@@ -94,6 +94,18 @@ body {
     color: white;
 }
 
+/* Estilo Específico do Botão Compartilhar */
+.btn-share {
+    background-color: #9b59b6 !important;
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Espaço entre o ícone e o texto */
+}
+
+.btn-share:hover {
+    background-color: #8e44ad !important; /* Roxo mais escuro no hover */
+}
+
 /* --- LISTA DE CARDS --- */
 #lista-itens {
     display: flex;
@@ -344,11 +356,30 @@ body {
         flex-direction: column; /* Um embaixo do outro */
         text-align: center;
         gap: 15px;
+        padding: 20px 15px;
     }
 
     .header-actions {
         width: 100%;
-        justify-content: center; /* Centraliza os botões */
+        flex-direction: column; /* Empilha um botão embaixo do outro */
+        gap: 10px;
+    }
+
+    /* Faz os botões ocuparem a largura toda (estilo App) */
+    .header-actions .btn-novo,
+    .header-actions .btn-share,
+    .header-actions .form-logout,
+    .header-actions .btn-sair {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+    /* Removemos margens extras do form */
+    .form-logout {
+        width: 100%;
+        margin: 0;
     }
 
     /* Adaptação dos Cards (Grid 2 colunas) */
