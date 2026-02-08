@@ -10,6 +10,7 @@
         <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
         <title>Meu Backlog</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
         <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -49,39 +50,51 @@
 
         </header>
 
-        <div class="controls-wrapper">
+        <main>
+            <div class="controls-wrapper">
 
-            <div class="filter-container">
-                <select id="filter-order" title="Ordenar lista">
-                    <option value="padrao">🔃 Padrão (A-Z)</option>
-                    <option value="maior">⭐ Maior Nota</option>
-                    <option value="menor">👎 Menor Nota</option>
-                </select>
+                <div class="filter-container">
+                    <select id="filter-order" title="Ordenar lista">
+                        <option value="padrao">🔃 Padrão (A-Z)</option>
+                        <option value="maior">⭐ Maior Nota</option>
+                        <option value="menor">👎 Menor Nota</option>
+                    </select>
 
-                <select id="filter-status" title="Filtrar por status">
-                    <option value="todos">🌪️ Todos</option>
-                    <option value="andamento">▶️ Jogando / Assistindo</option>
-                    <option value="concluido">✅ Zerado / Assistido</option>
-                    <option value="backlog">📅 Backlog</option>
-                    <option value="dropado">❌ Dropado</option>
-                </select>
+                    <select id="filter-status" title="Filtrar por status">
+                        <option value="todos">🌪️ Todos</option>
+                        <option value="andamento">▶️ Jogando / Assistindo</option>
+                        <option value="concluido">✅ Zerado / Assistido</option>
+                        <option value="backlog">📅 Backlog</option>
+                        <option value="dropado">❌ Dropado</option>
+                    </select>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção...">
+                </div>
             </div>
 
-            <div class="search-container">
-                <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção...">
+            <div id="msg-nao-encontrado" style="display: none; text-align: center; color: #7f8c8d; margin-top: 20px;">
+                <p style="font-size: 2rem; margin: 0;">😕</p>
+                <p>Nenhum item encontrado com esse nome.</p>
             </div>
-        </div>
 
-        <div id="msg-nao-encontrado" style="display: none; text-align: center; color: #7f8c8d; margin-top: 20px;">
-            <p style="font-size: 2rem; margin: 0;">😕</p>
-            <p>Nenhum item encontrado com esse nome.</p>
-        </div>
+            <div id="lista-itens">
+                <p style="text-align: center; width: 100%; color: #aaa;">Carregando sua coleção...</p>
+            </div>
 
-        <div id="lista-itens">
-            <p style="text-align: center; width: 100%; color: #aaa;">Carregando sua coleção...</p>
-        </div>
+            <button id="btn-topo" title="Voltar ao topo">⬆</button>
+        </main>
 
-        <button id="btn-topo" title="Voltar ao topo">⬆</button>
+        <footer th:fragment="footer" class="main-footer">
+            <div class="footer-content">
+                <p>&copy; 2026 <strong>Luiz Augusto</strong> | Meus Backlog</p>
+                <nav class="footer-links">
+                    <a th:href="@{/creditos}">Créditos</a>
+                    <a href="https://github.com/augusto-projetos" target="_blank">GitHub</a>
+                </nav>
+            </div>
+        </footer>
 
         <script th:src="@{/js/script.js}"></script>
         <script th:src="@{/js/search-scroll.js}"></script>
