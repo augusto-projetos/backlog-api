@@ -1,8 +1,19 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     background-color: #f0f2f5;
-    padding: 20px;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+    padding: 20px;
 }
 
 /* --- HEADER --- */
@@ -344,11 +355,50 @@ body {
     text-decoration: underline;
 }
 
+/* Rodapé (Footer) */
+.main-footer {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    padding: 30px 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: 15px;
+    border-radius: 0;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+}
+
+.footer-content p {
+    margin: 0 0 15px 0;
+    font-size: 0.95rem;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.footer-links a:hover {
+    color: #e94560;
+}
+
 /* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 600px) {
 
     body {
-        padding: 10px;
+        padding: 0;
+    }
+
+    .app-header, main {
+        padding: 15px;
     }
 
     /* Adaptação do Header no Celular */
@@ -357,6 +407,7 @@ body {
         text-align: center;
         gap: 15px;
         padding: 20px 15px;
+        margin: 10px;
     }
 
     .header-actions {
@@ -437,7 +488,7 @@ body {
     }
 
     #search-bar {
-        width: 85%;
+        width: 100%;
     }
 
     #btn-topo {
@@ -456,5 +507,12 @@ body {
     #filter-status, #filter-order {
         font-size: 0.8rem;
         padding: 5px 25px 5px 10px; /* Ajusta padding pra caber */
+    }
+
+    .main-footer {
+        width: 100%;
+        margin-top: 15px;
+        border-radius: 0;
+        padding: 30px 15px;
     }
 }

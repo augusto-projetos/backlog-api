@@ -11,42 +11,82 @@
     flex-wrap: wrap;
     gap: 15px;
 }
-.link-info h4 { margin: 0 0 5px 0; color: #2c3e50; }
-.link-info p { margin: 0; color: #7f8c8d; font-size: 0.9rem; }
+
+.link-info h4 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+}
+
+.link-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
 
 .link-url {
+    width: 100%;
     background: #f0f2f5;
-    padding: 8px 12px;
+    padding: 10px 12px;
     border-radius: 6px;
     color: #2c3e50;
     font-family: monospace;
     margin-top: 5px;
-    display: inline-block;
+    display: block;
     border: 1px solid #ddd;
+    word-break: break-all;
+    white-space: normal;
 }
 
-.link-actions { display: flex; gap: 10px; }
+.link-actions {
+    display: flex;
+    gap: 10px;
+}
 
-.btn-copy { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-.btn-copy:hover { background: #2980b9; }
+.btn-copy {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
-.btn-revoke { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-.btn-revoke:hover { background: #c0392b; }
+.btn-copy:hover {
+    background: #2980b9;
+}
+
+.btn-revoke {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-revoke:hover {
+    background: #c0392b;
+}
 
 .gerar-box {
     background: linear-gradient(135deg, #1a1a2e, #16213e);
     color: white;
     padding: 30px;
+    margin: 10px;
     border-radius: 12px;
     text-align: center;
     margin-bottom: 40px;
 }
+
 .gerar-box select {
     padding: 10px;
     border-radius: 6px;
     border: none;
     margin-right: 10px;
 }
+
 .btn-gerar {
     background: #e94560;
     color: white;
@@ -57,4 +97,28 @@
     cursor: pointer;
     transition: 0.3s;
 }
-.btn-gerar:hover { background: #c1354b; box-shadow: 0 0 15px rgba(233,69,96,0.5); }
+
+.btn-gerar:hover {
+    background: #c1354b;
+    box-shadow: 0 0 15px rgba(233,69,96,0.5);
+}
+
+@media (max-width: 600px) {
+
+    .link-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+
+    .link-actions {
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .btn-copy, .btn-revoke {
+        flex: 1;
+        text-align: center;
+    }
+}

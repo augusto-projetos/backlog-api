@@ -24,65 +24,69 @@
             </div>
         </header>
 
-        <div class="controls-wrapper">
-            <div class="filter-container">
-                <select id="filter-order" title="Ordenar">
-                    <option value="padrao">🔃 Padrão (A-Z)</option>
-                    <option value="maior">⭐ Maior Nota</option>
-                    <option value="menor">👎 Menor Nota</option>
-                </select>
-                <select id="filter-status" title="Filtrar">
-                    <option value="todos">🌪️ Todos</option>
-                    <option value="andamento">▶️ Jogando / Assistindo</option>
-                    <option value="concluido">✅ Zerado / Assistido</option>
-                    <option value="backlog">📅 Backlog</option>
-                    <option value="dropado">❌ Dropado</option>
-                </select>
-            </div>
-            <div class="search-container">
-                <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção de seu amigo...">
-            </div>
-        </div>
-
-        <div id="msg-nao-encontrado" style="display: none; text-align: center; color: #7f8c8d; margin-top: 20px;">
-            <p style="font-size: 2rem; margin: 0;">😕</p>
-            <p>Nenhum item encontrado.</p>
-        </div>
-
-        <div id="lista-itens">
-
-            <div class="card" th:each="item : ${itens}">
-                <div class="card-img-wrapper">
-                    <img th:src="${item.imagemUrl != null && item.imagemUrl != '' ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Capa'}" alt="Capa">
+        <main>
+            <div class="controls-wrapper">
+                <div class="filter-container">
+                    <select id="filter-order" title="Ordenar">
+                        <option value="padrao">🔃 Padrão (A-Z)</option>
+                        <option value="maior">⭐ Maior Nota</option>
+                        <option value="menor">👎 Menor Nota</option>
+                    </select>
+                    <select id="filter-status" title="Filtrar">
+                        <option value="todos">🌪️ Todos</option>
+                        <option value="andamento">▶️ Jogando / Assistindo</option>
+                        <option value="concluido">✅ Zerado / Assistido</option>
+                        <option value="backlog">📅 Backlog</option>
+                        <option value="dropado">❌ Dropado</option>
+                    </select>
                 </div>
+                <div class="search-container">
+                    <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção de seu amigo...">
+                </div>
+            </div>
 
-                <div class="card-info">
-                    <h3>
-                        <span th:text="${item.titulo}">Título</span>
-                        <span class="badge" th:text="${item.tipo}">Tipo</span>
-                    </h3>
+            <div id="msg-nao-encontrado" style="display: none; text-align: center; color: #7f8c8d; margin-top: 20px;">
+                <p style="font-size: 2rem; margin: 0;">😕</p>
+                <p>Nenhum item encontrado.</p>
+            </div>
 
-                    <div class="resenha-wrapper">
-                        <p class="resenha-texto" th:id="'resenha-' + ${item.id}" th:text="${item.resenha} ?: 'Sem resenha.'"></p>
-                        <button class="btn-ver-mais" th:id="'btn-ver-' + ${item.id}" th:onclick="'alternarResenha(' + ${item.id} + ')'">... Ver mais</button>
+            <div id="lista-itens">
+
+                <div class="card" th:each="item : ${itens}">
+                    <div class="card-img-wrapper">
+                        <img th:src="${item.imagemUrl != null && item.imagemUrl != '' ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Capa'}" alt="Capa">
                     </div>
 
-                    <small>Status: <span th:text="${item.status}">Status</span></small>
-                </div>
+                    <div class="card-info">
+                        <h3>
+                            <span th:text="${item.titulo}">Título</span>
+                            <span class="badge" th:text="${item.tipo}">Tipo</span>
+                        </h3>
 
-                <div class="card-actions">
-                    <div class="nota">
-                        Nota: <span th:text="${item.nota}">10</span>/10
+                        <div class="resenha-wrapper">
+                            <p class="resenha-texto" th:id="'resenha-' + ${item.id}" th:text="${item.resenha} ?: 'Sem resenha.'"></p>
+                            <button class="btn-ver-mais" th:id="'btn-ver-' + ${item.id}" th:onclick="'alternarResenha(' + ${item.id} + ')'">... Ver mais</button>
+                        </div>
+
+                        <small>Status: <span th:text="${item.status}">Status</span></small>
+                    </div>
+
+                    <div class="card-actions">
+                        <div class="nota">
+                            Nota: <span th:text="${item.nota}">10</span>/10
+                        </div>
                     </div>
                 </div>
+
+                <div th:if="${#lists.isEmpty(itens)}" style="text-align: center; width: 100%; color: #7f8c8d;">
+                    <h3>Essa coleção ainda está vazia! 🕸️</h3>
+                </div>
             </div>
 
-            <div th:if="${#lists.isEmpty(itens)}" style="text-align: center; width: 100%; color: #7f8c8d;">
-                <h3>Essa coleção ainda está vazia! 🕸️</h3>
-            </div>
-        </div>
+            <button id="btn-topo" title="Voltar ao topo">⬆</button>
+        </main>
 
-        <button id="btn-topo" title="Voltar ao topo">⬆</button>
+        <div th:replace="~{home :: footer}"></div>
 
         <script th:src="@{/js/script.js}"></script>
         <script th:src="@{/js/search-scroll.js}"></script>

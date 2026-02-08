@@ -24,25 +24,29 @@
             </div>
         </header>
 
-        <div class="gerar-box">
-            <h3>Criar Novo Link</h3>
-            <p style="margin-bottom: 20px; color: #a0a0a0;">O link permite que qualquer pessoa veja a sua lista (sem editar).</p>
+        <main>
+            <div class="gerar-box">
+                <h3>Criar Novo Link</h3>
+                <p style="margin-bottom: 20px; color: #a0a0a0;">O link permite que qualquer pessoa veja a sua lista (sem editar).</p>
 
-            <div style="display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <label for="validade">Validade:</label>
-                <select id="validade">
-                    <option value="24" selected>24 Horas</option>
-                    <option value="72">3 Dias</option>
-                    <option value="168">7 Dias</option>
-                </select>
-                <button onclick="gerarLink()" class="btn-gerar">✨ Gerar Link Mágico</button>
+                <div style="display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <label for="validade">Validade:</label>
+                    <select id="validade">
+                        <option value="24" selected>24 Horas</option>
+                        <option value="72">3 Dias</option>
+                        <option value="168">7 Dias</option>
+                    </select>
+                    <button onclick="gerarLink()" class="btn-gerar">✨ Gerar Link Mágico</button>
+                </div>
             </div>
-        </div>
 
-        <h3 style="color: #2c3e50; margin-bottom: 20px;">Seus Links Ativos</h3>
-        <div id="lista-links">
-            <p style="text-align: center; color: #aaa;">Carregando...</p>
-        </div>
+            <h3 style="color: #2c3e50; margin-bottom: 20px;">Seus Links Ativos</h3>
+            <div id="lista-links">
+                <p style="text-align: center; color: #aaa;">Carregando...</p>
+            </div>
+        </main>
+
+        <div th:replace="~{home :: footer}"></div>
 
         <script th:src="@{/js/script.js}"></script>
         <script>
