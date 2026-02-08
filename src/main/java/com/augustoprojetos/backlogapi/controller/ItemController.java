@@ -43,6 +43,17 @@ public class ItemController {
     @GetMapping("/cadastro")
     public String paginaCadastro() { return "cadastro"; }
 
+    @GetMapping("/creditos")
+    public String exibirCreditos(Model model, @AuthenticationPrincipal User userLogado) {
+        if (userLogado != null) {
+            model.addAttribute("nomeUsuario", userLogado.getLogin());
+        } else {
+            model.addAttribute("nomeUsuario", "Visitante");
+        }
+
+        return "creditos";
+    }
+
     // --- ROTAS DA API (JSON) COM SEGURANÇA ---
 
     // 1. CADASTRAR (Agora associa ao usuário logado!)
@@ -85,6 +96,7 @@ public class ItemController {
         return itemRepository.findById(id).orElse(null);
     }
 
+    // Bloqueia pesquisa para jogos
     @GetMapping("/api/buscar-capa")
     @ResponseBody // Indica que retorna JSON, não HTML
     public List<TmdbService.SearchResult> buscarCapa(@RequestParam String query, @RequestParam(required = false) String tipo) {

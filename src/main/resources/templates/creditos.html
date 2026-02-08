@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Créditos - Meus Backlog</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link rel="stylesheet" th:href="@{/css/creditos.css}">
+    </head>
+
+    <body>
+        <div th:replace="~{home :: .app-header}"></div>
+
+        <main class="container-creditos">
+            <section class="card-creditos">
+                <h1>Créditos e Atribuições 🏆</h1>
+
+                <div class="developer-info">
+                    <h3>Sobre o Desenvolvedor</h3>
+                    <p>
+                        <strong>Luiz Augusto</strong>, Técnico em Informática formado pelo <strong>SENAC</strong>.
+                        Apaixonado por desenvolvimento de software e criação de soluções que organizam a rotina.
+                    </p>
+                </div>
+
+                <p>O <strong>Meus Backlog</strong> foi desenvolvido como um projeto de portfólio para gerenciar coleções de entretenimento.</p>
+
+                <hr>
+
+                <h3>Tecnologias Utilizadas</h3>
+                <ul>
+                    <li><strong>Backend:</strong> Java com Spring Boot.</li>
+                    <li><strong>Frontend:</strong> HTML5, CSS3 e Thymeleaf.</li>
+                    <li><strong>Banco de Dados:</strong> PostgreSQL (Hospedado na Neon.tech).</li>
+                    <li><strong>Hospedagem:</strong> Render.com.</li>
+                </ul>
+
+                <h3>APIs e Recursos</h3>
+                <ul>
+                    <li><strong>TMDB:</strong> Fornecimento de posters e dados de filmes/séries.</li>
+                    <li><strong>Google Fonts:</strong> Fonte Poppins.</li>
+                    <li><strong>SweetAlert2:</strong> Alertas e diálogos interativos.</li>
+                </ul>
+
+                <div class="btn-voltar-wrapper">
+                    <a th:href="@{/home}" class="btn-novo">🏠 Voltar para a Home</a>
+                </div>
+            </section>
+        </main>
+
+        <div th:replace="~{home :: .main-footer}"></div>
+    </body>
+</html>

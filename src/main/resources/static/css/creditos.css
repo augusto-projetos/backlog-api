@@ -1,0 +1,59 @@
+.container-creditos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.card-creditos {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-width: 800px;
+    width: 100%;
+}
+
+.card-creditos h1 {
+    color: #e94560;
+    margin-bottom: 20px;
+}
+
+.card-creditos h3 {
+    margin-top: 25px;
+    color: #2c3e50;
+}
+
+.card-creditos ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.card-creditos li {
+    margin-bottom: 10px;
+    color: #7f8c8d;
+}
+
+.developer-info {
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: rgba(233, 69, 96, 0.05);
+    border-left: 4px solid #e94560;
+    border-radius: 4px;
+}
+
+.developer-info h3 {
+    margin-top: 0 !important;
+    color: #e94560;
+}
+
+.developer-info p {
+    color: #2c3e50;
+    line-height: 1.6;
+    margin: 10px 0 0 0;
+}
+
+.btn-voltar-wrapper {
+    margin-top: 30px;
+    text-align: center;
+}
