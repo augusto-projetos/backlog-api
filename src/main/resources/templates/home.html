@@ -58,24 +58,49 @@
         <main>
             <div class="controls-wrapper">
 
-                <div class="filter-container">
-                    <select id="filter-order" title="Ordenar lista">
-                        <option value="padrao">🔃 Padrão (A-Z)</option>
-                        <option value="maior">⭐ Maior Nota</option>
-                        <option value="menor">👎 Menor Nota</option>
-                    </select>
+                <button id="btn-filtros-toggle" class="btn-filtros-toggle">
+                    <span>🔍 Filtros e Busca</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
 
-                    <select id="filter-status" title="Filtrar por status">
-                        <option value="todos">🌪️ Todos</option>
-                        <option value="andamento">▶️ Jogando / Assistindo</option>
-                        <option value="concluido">✅ Zerado / Assistido</option>
-                        <option value="backlog">📅 Backlog</option>
-                        <option value="dropado">❌ Dropado</option>
-                    </select>
-                </div>
+                <div id="filter-menu" class="filter-menu">
+                    <div class="filter-group">
+                        <label>Tipo:</label>
+                        <select id="filter-type">
+                            <option value="todos">🌪️ Todos</option>
+                            <option value="Jogo">🎮 Jogos</option>
+                            <option value="Filme">🎬 Filmes</option>
+                            <option value="Série">📺 Séries</option>
+                        </select>
+                    </div>
 
-                <div class="search-container">
-                    <input type="text" id="search-bar" placeholder="🔍 Pesquisar na coleção...">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="filter-status" title="Filtrar por status">
+                            <option value="todos">🌪️ Todos</option>
+                            <option value="andamento">▶️ Jogando / Assistindo</option>
+                            <option value="concluido">✅ Zerado / Assistido</option>
+                            <option value="backlog">📅 Backlog</option>
+                            <option value="dropado">❌ Dropado</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Ordem:</label>
+                        <select id="filter-order">
+                            <option value="padrao">🔃 Nome (A-Z)</option>
+                            <option value="maior">⭐ Maior Nota</option>
+                            <option value="menor">👎 Menor Nota</option>
+                        </select>
+                    </div>
+
+                    <div class="search-container">
+                        <input type="text" id="search-bar" placeholder="Pesquisar por nome...">
+                    </div>
+
+                    <button id="btn-limpar-filtros" class="btn-limpar">
+                        🧹 Limpar Filtros
+                    </button>
                 </div>
             </div>
 
