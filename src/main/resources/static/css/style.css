@@ -227,15 +227,15 @@ main {
 
 #search-bar {
     width: 100%;
-    max-width: 500px;
-    background-color: var(--bg-card);
-    padding: 12px 20px;
-    border: 2px solid #ddd;
-    border-radius: 50px;
-    font-size: 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.95rem;
     outline: none;
     transition: all 0.3s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 #search-bar:focus {
@@ -245,48 +245,130 @@ main {
 
 /* --- CONTROLES DE BUSCA E FILTRO --- */
 .controls-wrapper {
-    max-width: 500px;
-    margin: 0 auto 30px auto; /* Centraliza o bloco todo */
+    max-width: 600px;
+    margin: 0 auto 30px auto;
+    width: 100%;
+    position: relative;
+}
+
+/* O Botão que abre a gaveta */
+.btn-filtros-toggle {
+    width: 100%;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 14px 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px var(--card-shadow);
+    position: relative;
+    z-index: 101;
+}
+
+.btn-filtros-toggle:hover {
+    border-color: #e94560;
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.15);
+}
+
+/* A Gaveta (Filter Menu) */
+.filter-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 10px;
+    display: none; /* JS controla com a classe .aberto */
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 10px 25px var(--card-shadow);
+    animation: slideDown 0.3s ease-out;
+}
+
+.filter-menu.aberto {
+    display: flex;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Organização Interna da Gaveta */
+.filter-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap; /* No mobile ele quebra a linha sozinho */
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 140px;
     display: flex;
     flex-direction: column;
+    gap: 5px;
 }
 
-/* Container dos Filtros (Alinha na direita) */
-.filter-container {
-    display: flex;
-    justify-content: flex-end; /* Joga pra direita */
-    margin-bottom: -15px; /* Puxa pra baixo pra sobrepor visualmente */
-    z-index: 10;
-    padding-right: 15px;
-    gap: 8px; /* Espaço entre os dois filtros */
+.filter-group label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* Estilo para AMBOS os selects */
-#filter-status, #filter-order {
-    background-color: var(--bg-card);
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    padding: 5px 15px;
-    font-size: 0.85rem;
+/* Estilo unificado para os 3 Selects */
+#filter-status, #filter-order, #filter-type {
+    width: 100%;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.9rem;
     color: var(--text-main);
     cursor: pointer;
     outline: none;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: all 0.3s;
-    appearance: none; /* Remove seta padrão */
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23E94560%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
-    background-position: right .7em top 50%;
-    background-size: .65em auto;
-    padding-right: 2.5em;
+    transition: border-color 0.3s;
 }
 
-#filter-status:hover, #filter-order:hover {
+#filter-status:focus, #filter-order:focus, #filter-type:focus {
     border-color: #e94560;
 }
 
-.search-container input {
+.search-container {
     width: 100%;
+    margin-top: 5px;
+}
+
+.btn-limpar {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: transparent;
+    border: 1px dashed var(--text-muted);
+    color: var(--text-muted);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.btn-limpar:hover {
+    border-color: #e74c3c; /* Vermelho ao passar o mouse */
+    color: #e74c3c;
+    background-color: rgba(231, 76, 60, 0.05);
 }
 
 /* --- BOTÃO VOLTAR AO TOPO --- */
@@ -521,15 +603,9 @@ main {
         height: 45px;
     }
 
-    .filter-container {
-        justify-content: center; /* Centraliza no mobile */
-        padding-right: 0;
-        margin-bottom: 10px; /* Tira o sobreposto e dá espaço */
-    }
-
-    #filter-status, #filter-order {
+    #filter-status, #filter-order, #filter-type {
         font-size: 0.8rem;
-        padding: 5px 25px 5px 10px; /* Ajusta padding pra caber */
+        padding: 10px 25px 10px 10px;
     }
 
     .main-footer {
