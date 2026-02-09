@@ -12,9 +12,10 @@
     max-width: 500px;
     margin: 40px auto;
     padding: 30px;
-    background-color: white;
+    color: var(--text-main);
+    background-color: var(--bg-card);
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px var(--card-shadow);
 }
 
 /* --- CABEÇALHO --- */
@@ -30,7 +31,7 @@
 .perfil-title {
     margin: 0;
     font-size: 1.5rem;
-    color: #2c3e50;
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 10px; /* Espaço entre o ícone e o texto */
@@ -63,7 +64,7 @@
 .form-group label {
     display: block; /* Força ficar na linha de cima */
     margin-bottom: 8px;
-    color: #2c3e50;
+    color: var(--text-main);
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -72,11 +73,11 @@
 .form-group input {
     width: 100%; /* Ocupa tudo */
     padding: 12px 15px;
-    border: 2px solid #eee;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 0.95rem;
-    color: #333;
-    background-color: #fafafa;
+    color: var(--text-main);
+    background-color: var(--bg-body);
     transition: border-color 0.3s;
     box-sizing: border-box; /* Garante que o padding não estoure a largura */
 }
@@ -104,7 +105,7 @@
 
 /* Títulos das Seções */
 .secao-titulo {
-    color: #2c3e50;
+    color: var(--text-main);
     margin-bottom: 20px;
     font-size: 1.1rem;
     display: flex;

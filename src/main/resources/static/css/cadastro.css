@@ -1,22 +1,23 @@
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f0f2f5;
+    background-color: var(--bg-body);
     padding: 20px;
     margin: 0;
 }
 
 h1 {
     text-align: center;
-    color: #2c3e50;
+    color: var(--text-main);
     margin-bottom: 30px;
 }
 
 /* Ajuste do Card para virar um bloco de formulário */
 .card {
-    background: white;
+    background: var(--bg-card);
+    color: var(--text-main);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px var(--card-shadow);
     margin: 50px auto;
     max-width: 600px;
     display: block; /* Garante que não é flexbox igual na home */
@@ -31,7 +32,7 @@ h1 {
     display: block;
     margin-bottom: 8px;
     font-weight: bold;
-    color: #34495e;
+    color: var(--text-main);
 }
 
 .form-group input,
@@ -39,7 +40,9 @@ h1 {
 .form-group textarea {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ddd;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     box-sizing: border-box;
     font-family: inherit;

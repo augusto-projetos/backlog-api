@@ -1,8 +1,8 @@
 .link-card {
-    background: white;
+    background: var(--bg-card);
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px var(--card-shadow);
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
@@ -14,7 +14,7 @@
 
 .link-info h4 {
     margin: 0 0 5px 0;
-    color: #2c3e50;
+    color: var(--text-main);
 }
 
 .link-info p {
@@ -25,14 +25,14 @@
 
 .link-url {
     width: 100%;
-    background: #f0f2f5;
+    background: var(--bg-body);
     padding: 10px 12px;
     border-radius: 6px;
-    color: #2c3e50;
+    color: var(--text-main);
     font-family: monospace;
     margin-top: 5px;
     display: block;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     word-break: break-all;
     white-space: normal;
 }

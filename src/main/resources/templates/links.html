@@ -10,6 +10,7 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <link rel="stylesheet" th:href="@{/css/style.css}">
         <link rel="stylesheet" th:href="@{/css/links.css}">
+        <link rel="stylesheet" th:href="@{/css/variaveis.css}">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     </head>
     <body>
@@ -49,6 +50,7 @@
         <div th:replace="~{home :: footer}"></div>
 
         <script th:src="@{/js/script.js}"></script>
+        <script th:src="@{/js/theme-toggle.js}"></script>
         <script>
             document.addEventListener('DOMContentLoaded', carregarMeusLinks);
         </script>

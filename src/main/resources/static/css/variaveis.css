@@ -1,4 +1,4 @@
-/* --- VARIÁVEIS DE CORES --- */
+/* --- VARIÁVEIS PARA MODO CLARO --- */
 :root {
     --bg-body: #f0f2f5;
     --bg-card: #ffffff;
@@ -9,6 +9,7 @@
     --card-shadow: rgba(0, 0, 0, 0.05);
 }
 
+/* --- VARIÁVEIS PARA MODO ESCURO --- */
 [data-theme="dark"] {
     --bg-body: #121212;
     --bg-card: #1e1e1e;
