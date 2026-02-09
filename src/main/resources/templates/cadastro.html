@@ -63,7 +63,10 @@
 
             <div class="form-group">
                 <label for="resenha">Resenha rápida:</label>
-                <textarea id="resenha" rows="3" placeholder="O que achou da experiência?"></textarea>
+                <textarea id="resenha" rows="3" maxlength="255" placeholder="O que achou da experiência?"></textarea>
+                <div id="contador-caracteres">
+                    <span id="char-count">0</span> / 255
+                </div>
             </div>
 
             <div style="margin-top: 20px;">
