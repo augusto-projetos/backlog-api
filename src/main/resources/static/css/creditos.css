@@ -6,7 +6,8 @@
 }
 
 .card-creditos {
-    background: white;
+    background: var(--bg-card);
+    color: var(--text-main);
     padding: 40px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
@@ -21,7 +22,7 @@
 
 .card-creditos h3 {
     margin-top: 25px;
-    color: #2c3e50;
+    color: var(--text-main);
 }
 
 .card-creditos ul {
@@ -48,7 +49,7 @@
 }
 
 .developer-info p {
-    color: #2c3e50;
+    color: var(--text-main);
     line-height: 1.6;
     margin: 10px 0 0 0;
 }

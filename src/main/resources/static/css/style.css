@@ -4,11 +4,13 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f0f2f5;
+    background-color: var(--bg-body);
+    color: var(--text-main);
     margin: 0;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 main {
@@ -22,10 +24,10 @@ main {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
-    background-color: white;
+    background-color: var(--bg-header);
     padding: 15px 25px;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px var(--card-shadow);
 }
 
 .header-info h2 {
@@ -41,7 +43,7 @@ main {
 }
 
 .user-name {
-    color: #2c3e50;
+    color: var(--text-main);
     font-weight: bold;
 }
 
@@ -126,12 +128,12 @@ main {
 }
 
 .card {
-    background: white;
+    background: var(--bg-card);
     padding: 15px;
     flex: 1 1 350px; /* Base de 350px, cresce e encolhe */
     max-width: 600px;
     border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px var(--card-shadow);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -162,7 +164,7 @@ main {
 
 .info h3 {
     margin: 0 0 5px 0;
-    color: #2c3e50;
+    color: var(--text-main);
     font-size: 1.1rem;
 }
 
@@ -226,6 +228,7 @@ main {
 #search-bar {
     width: 100%;
     max-width: 500px;
+    background-color: var(--bg-card);
     padding: 12px 20px;
     border: 2px solid #ddd;
     border-radius: 50px;
@@ -260,19 +263,17 @@ main {
 
 /* Estilo para AMBOS os selects */
 #filter-status, #filter-order {
-    background-color: white;
+    background-color: var(--bg-card);
     border: 1px solid #ddd;
     border-radius: 20px;
     padding: 5px 15px;
     font-size: 0.85rem;
-    color: #2c3e50;
+    color: var(--text-main);
     cursor: pointer;
     outline: none;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: all 0.3s;
     appearance: none; /* Remove seta padrão */
-
-    /* Setinha Rosa Customizada */
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23E94560%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat;
     background-position: right .7em top 50%;
@@ -353,6 +354,28 @@ main {
 
 .btn-ver-mais:hover {
     text-decoration: underline;
+}
+
+/* --- BOTÃO DE TEMA --- */
+.btn-theme {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px var(--card-shadow);
+}
+
+.btn-theme:hover {
+    border-color: #e94560;
+    transform: scale(1.1);
 }
 
 /* Rodapé (Footer) */

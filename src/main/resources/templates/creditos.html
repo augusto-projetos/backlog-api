@@ -10,6 +10,7 @@
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
         <link rel="stylesheet" th:href="@{/css/style.css}">
         <link rel="stylesheet" th:href="@{/css/creditos.css}">
+        <link rel="stylesheet" th:href="@{/css/variaveis.css}">
     </head>
 
     <body>
@@ -53,5 +54,7 @@
         </main>
 
         <div th:replace="~{home :: .main-footer}"></div>
+
+        <script th:src="@{/js/theme-toggle.js}"></script>
     </body>
 </html>
