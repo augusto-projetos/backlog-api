@@ -1,5 +1,8 @@
 /* --- LAYOUT GERAL --- */
-/* Força a fonte correta em tudo dentro do perfil */
+body {
+    background-color: var(--bg-body);
+}
+
 .perfil-container,
 .perfil-container input,
 .perfil-container button,
@@ -25,7 +28,7 @@
     justify-content: space-between;
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .perfil-title {
@@ -40,10 +43,10 @@
 .btn-voltar {
     text-decoration: none;
     padding: 8px 16px;
-    border: 1px solid #ddd;
-    border-radius: 50px; /* Redondinho */
-    color: #7f8c8d;
-    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    color: var(--text-muted);
+    background-color: var(--bg-card);
     font-size: 0.85rem;
     font-weight: 600;
     transition: all 0.2s;
@@ -85,14 +88,15 @@
 .form-group input:focus {
     outline: none;
     border-color: #e94560; /* Rosa do tema no foco */
-    background-color: white;
+    background-color: var(--bg-card);
 }
 
 /* Inputs de leitura (Nome/Email) */
 .input-leitura {
-    background-color: #e9ecef !important;
-    color: #6c757d;
-    border-color: #dee2e6;
+    background-color: var(--bg-body) !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border-color);
+    opacity: 0.7;
     cursor: default;
 }
 
@@ -100,7 +104,7 @@
 .divisor {
     margin: 30px 0;
     border: 0;
-    border-top: 1px dashed #ddd; /* Tracejado fica mais leve */
+    border-top: 1px dashed var(--border-color);
 }
 
 /* Títulos das Seções */
@@ -134,8 +138,8 @@
 
 /* --- ZONA DE PERIGO --- */
 .zona-perigo {
-    background-color: #fff5f5; /* Fundo avermelhado bem leve */
-    border: 1px solid #ffebeb;
+    background-color: rgba(231, 76, 60, 0.05);
+    border: 1px solid rgba(231, 76, 60, 0.2);
     padding: 20px;
     border-radius: 8px;
     text-align: center;
@@ -183,11 +187,12 @@
     left: 0;
     width: 100%;
     z-index: 1000; /* Garante que flutue acima de tudo */
-    background: #ffffff;
+    background: var(--bg-card);
+    color: var(--text-main);
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid #ddd;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
     display: none; /* Começa invisível */
 }
 
@@ -202,7 +207,7 @@
     gap: 10px;
     margin-bottom: 5px;
     font-size: 0.85rem;
-    color: #666;
+    color: var(--text-muted);
     font-family: sans-serif;
 }
 
