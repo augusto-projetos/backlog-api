@@ -379,6 +379,27 @@ function verificarTamanhoResenhas() {
     });
 }
 
+// --- Lógica do Contador de Resenha ---
+const resenhaInput = document.getElementById('resenha');
+const charCount = document.getElementById('char-count');
+const contadorDiv = document.getElementById('contador-caracteres');
+
+if (resenhaInput && charCount) {
+    resenhaInput.addEventListener('input', () => {
+        const comprimento = resenhaInput.value.length;
+        charCount.innerText = comprimento;
+
+        // Feedback visual de cores
+        if (comprimento >= 250) {
+            contadorDiv.className = 'limite-atingido';
+        } else if (comprimento >= 200) {
+            contadorDiv.className = 'limite-proximo';
+        } else {
+            contadorDiv.className = '';
+        }
+    });
+}
+
 // --- PERFIL USUÁRIO ---
 
 // --- LÓGICA DE SENHA FORTE (Universal) ---

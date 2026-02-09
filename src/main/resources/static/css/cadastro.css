@@ -251,6 +251,23 @@ h1 {
     background-color: #c1354b;
 }
 
+/* Contador da resenha */
+#contador-caracteres {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+#contador-caracteres.limite-proximo {
+    color: #e67e22; /* Laranja quando faltar pouco */
+}
+
+#contador-caracteres.limite-atingido {
+    color: #e74c3c; /* Vermelho no máximo */
+}
+
 /* --- Responsividade (Mobile) --- */
 @media (max-width: 600px) {
     body {
