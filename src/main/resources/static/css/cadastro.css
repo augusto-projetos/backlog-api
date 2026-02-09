@@ -254,15 +254,15 @@ h1 {
 /* --- Responsividade (Mobile) --- */
 @media (max-width: 600px) {
     body {
-        padding: 20px; /* Mais espaço nas bordas da tela */
+        padding: 0;
     }
 
     .card {
-        margin: 10px auto 40px auto; /* Margem extra no fundo pra rolar a tela */
-        padding: 20px 20px; /* Padding interno equilibrado */
-        width: 90%;
-        box-shadow: none; /* Remove sombra pesada no mobile pra ficar mais leve */
-        border: 1px solid #e0e0e0; /* Troca sombra por borda sutil */
+        width: auto;
+        margin: 10px 15px 40px 15px;
+        padding: 25px 15px;
+        max-width: none;
+        box-shadow: none;
     }
 
     h1 {
