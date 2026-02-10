@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard - Meus Backlog</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+
+        <header class="app-header">
+            <div class="header-info">
+                <h2>Estatísticas 📊</h2>
+                <a th:href="@{/home}" class="btn-voltar">
+                    ⬅ Voltar para Lista
+                </a>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="btn-theme">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="dashboard-container">
+
+                <div class="chart-card">
+                    <h3 class="chart-title">Acervo por Tipo</h3>
+                    <div class="canvas-container">
+                        <canvas id="graficoTipo"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3 class="chart-title">Status dos Itens</h3>
+                    <div class="canvas-container">
+                        <canvas id="graficoStatus"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <script th:src="@{/js/theme-toggle.js}"></script>
+        <script th:src="@{/js/dashboard.js}"></script>
+    </body>
+</html>

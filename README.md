@@ -3,6 +3,7 @@
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-green)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6-6db33f)
+![Chart.js](https://img.shields.io/badge/Frontend-Chart.js-FF6384)
 ![Render](https://img.shields.io/badge/Deploy-Render-black)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![TMDB](https://img.shields.io/badge/API-TMDB-01b4e4)
@@ -13,35 +14,34 @@
 
 ## 🚀 Sobre o Projeto
 
-O **Meus Backlog** é uma aplicação **Fullstack Segura** que simula um ambiente de produção real. A versão atual (V3.1) transforma o projeto numa plataforma social e monitorada profissionalmente.
+O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V4.0**) introduz uma camada de **Business Intelligence (BI)** pessoal, permitindo a visualização de dados agregados em tempo real.
 
-### ✨ Destaques da Versão 3.1 (Atual)
-* 🌐 **Modo Social (Compartilhamento):** Gere links públicos temporários (24h, 3 dias ou 7 dias) para mostrar a sua coleção aos amigos sem que eles precisem logar. Inclui painel de gerenciamento para revogar acessos.
-* 📊 **Observabilidade Profissional:** Integração com **Sentry** para monitoramento de erros em tempo real e **Umami** para analytics focado em privacidade.
-* 📉 **Filtros Avançados:** Nova ordenação por "Maior Nota" e "Menor Nota", além da busca textual e por status.
-* 📱 **UX Mobile Aprimorada:** Interface 100% responsiva, com botões adaptáveis e melhorias na usabilidade em telas pequenas.
+### ✨ Destaques da Versão 4.0 (Atual)
+* 📈 **Dashboard de Estatísticas:** Gráficos interativos (Chart.js) que mostram a distribuição do acervo (Jogos vs Filmes vs Séries) e o progresso dos itens (Backlog vs Concluídos).
+* 🎨 **Integração Visual Profissional:** Os gráficos se adaptam automaticamente ao **Modo Escuro/Claro** e são responsivos para mobile.
+* 🧠 **Otimização de Performance:** Consultas de agregação (`COUNT`, `GROUP BY`) feitas diretamente no banco de dados via JPQL, trafegando apenas DTOs leves para o frontend (nada de processar listas gigantes na memória Java).
 
 ### 🌟 Funcionalidades Consolidadas
-* 🎬 **Busca Automática de Capas:** Integração com a **API da TMDB** para buscar pôsteres oficiais.
-* 🔐 **Segurança de Ponta:** Login blindado (BCrypt), proteção CSRF e rotas autenticadas.
-* 👤 **Gestão de Perfil:** Alteração de dados sensíveis e "Zona de Perigo" (Exclusão de conta).
-* 👁️ **Privacidade (Multi-Tenancy):** Dados isolados por usuário.
+* 🌐 **Modo Social:** Links públicos temporários para compartilhar sua coleção.
+* 🎬 **API da TMDB:** Busca automática de capas e metadados de filmes.
+* 🔍 **Filtros Avançados:** "Gaveta" de filtros com ordenação por nota, tipo e status.
+* 🛡️ **Segurança:** Spring Security 6, BCrypt, Proteção CSRF e Monitoramento via Sentry.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Arquitetura & Tecnologias
 
 ### Backend (Java Ecosystem)
-* **Java 17 & Spring Boot 3:** Core da aplicação.
-* **Spring Security 6:** Autenticação e Autorização (incluindo rotas públicas via Token UUID).
-* **Sentry SDK:** Monitoramento de erros e performance.
-* **Spring Data JPA & Hibernate:** Persistência de dados.
+* **Java 17 & Spring Boot 3:** API REST e MVC.
+* **JPA/Hibernate:** Consultas otimizadas com Projections e DTOs.
+* **Spring Security:** Controle de sessão e autenticação.
+* **Sentry SDK:** Monitoramento de erros em produção.
 
 ### Frontend
-* **Thymeleaf:** Renderização dinâmica (SSR).
-* **HTML5, CSS3 & JavaScript:** Layout responsivo e interatividade sem frameworks pesados.
-* **SweetAlert2:** Alertas modais elegantes.
-* **Umami Analytics:** Métricas de acesso respeitando a privacidade.
+* **Thymeleaf:** Renderização Server-Side (SSR).
+* **Chart.js:** Biblioteca de visualização de dados (Canvas).
+* **JavaScript (Vanilla):** Lógica assíncrona (`async/await`) para consumo de APIs internas.
+* **CSS3 (Neon Theme):** Variáveis CSS para temas dinâmicos.
 
 ### APIs Externas
 * **The Movie Database (TMDB):** Metadados de filmes e séries.
@@ -92,9 +92,10 @@ O **Meus Backlog** é uma aplicação **Fullstack Segura** que simula um ambient
 - [x] V1.0: CRUD Básico.
 - [x] V2.0: Login, Segurança e Perfil.
 - [x] V3.0: Integração TMDB e Capas.
-- [x] **V3.1: Modo Social e Monitoramento (Sentry/Umami).**
-- [ ] **V4.0: Dashboard de Estatísticas** (Gráficos visuais de quantos filmes vs jogos, nota média, gêneros favoritos).
-- [ ] **V4.1: Gamificação** (Conquistas/Badges por quantidade de itens cadastrados).
+- [x] V3.1: Modo Social e Monitoramento (Sentry/Umami).
+- [x] V4.0: Dashboard de Estatísticas (Chart.js + DTOs).
+- [ ] **V4.1: Gamificação** (Sistema de Badges/Conquistas no Perfil).
+- [ ] **V5.0: Exportação de Relatórios** (Gerar PDF/Excel da coleção).
 
 ---
 
