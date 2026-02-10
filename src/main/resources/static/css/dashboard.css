@@ -1,0 +1,74 @@
+.dashboard-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.chart-card {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px var(--card-shadow);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.chart-title {
+    color: var(--text-main);
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.canvas-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* --- Botão Voltar --- */
+.btn-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    background: var(--bg-card);
+    transition: all 0.3s;
+    height: 40px;
+}
+
+.btn-voltar:hover {
+    border-color: #e94560;
+    color: #e94560;
+    background-color: rgba(233, 69, 96, 0.05);
+    transform: translateX(-3px); /* Efeito de mover pra esquerda */
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+    .header-actions {
+        flex-direction: row !important; /* Força linha no mobile */
+        justify-content: center;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .btn-voltar-dash {
+        width: auto;
+        flex: 1;
+        justify-content: center;
+    }
+}
