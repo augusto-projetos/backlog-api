@@ -11,7 +11,6 @@
         <style>
             /* Ajuste para esconder botões de edição caso vazem */
             .card-actions .btn-group { display: none !important; }
-            .header-actions { display: none; }
         </style>
     </head>
     <body>
@@ -22,6 +21,12 @@
                 <p class="user-greeting">
                     Coleção de <span class="user-name" th:text="${apelido}">Alguém</span>
                 </p>
+            </div>
+
+            <div class="header-actions">
+                <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
+                    <span id="theme-icon">🌙</span>
+                </button>
             </div>
         </header>
 
