@@ -544,7 +544,7 @@ if (formApelido) { // Só entra se ele existir na página
     });
 }
 
-// --- LÓGICA DA BUSCA DE CAPAS (V3.0) ---
+// --- LÓGICA DA BUSCA DE CAPAS ---
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -555,15 +555,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputBusca = document.getElementById('buscaCapaInput');
 
     // Se não tiver modal na página (ex: login ou home), para aqui e não dá erro
-    // É POR ISSO QUE NÃO APARECIA ERRO NO CONSOLE: Ele parava aqui silenciosamente.
     if (!modal || !btnBusca) {
         console.log("Busca de capas não ativa nesta página.");
         return;
     }
 
-    console.log("Sistema de Busca de Capas ATIVO! 🚀"); // Debug para confirmar que carregou
-
-    // 2. Evento de Abrir (substitui o onclick="abrirModalCapa()")
+    // 2. Evento de Abrir
     btnBusca.addEventListener('click', () => {
         modal.style.display = 'flex';
 
@@ -571,8 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tituloInput = document.getElementById('titulo');
         if (tituloInput && tituloInput.value && inputBusca) {
             inputBusca.value = tituloInput.value;
-            // Opcional: já buscar automático se quiser
-            // buscarCapaApi();
+            buscarCapaApi();
         }
         if(inputBusca) inputBusca.focus();
     });
@@ -592,8 +588,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 5. Botão "Buscar" de dentro do modal
-    // Precisamos achar o botão que chama a função buscarCapaApi
-    // Vamos adicionar um ID nele no HTML pra facilitar, ou pegar pelo onclick
     const btnBuscarInterno = document.querySelector('#modalCapas button[onclick="buscarCapaApi()"]');
     if (btnBuscarInterno) {
         btnBuscarInterno.onclick = null; // Remove o onclick antigo do HTML para não duplicar
