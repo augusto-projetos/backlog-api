@@ -14,18 +14,19 @@
 
 ## 🚀 Sobre o Projeto
 
-O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V4.0**) introduz uma camada de **Business Intelligence (BI)** pessoal, permitindo a visualização de dados agregados em tempo real.
+O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V5.0**) eleva o nível do projeto adicionando recursos de **Relatórios Gerenciais**, permitindo que o usuário extraia seus dados para uso externo, além de manter a camada de **Business Intelligence (BI)** para visualização em tempo real.
 
-### ✨ Destaques da Versão 4.0 (Atual)
-* 📈 **Dashboard de Estatísticas:** Gráficos interativos (Chart.js) que mostram a distribuição do acervo (Jogos vs Filmes vs Séries) e o progresso dos itens (Backlog vs Concluídos).
-* 🎨 **Integração Visual Profissional:** Os gráficos se adaptam automaticamente ao **Modo Escuro/Claro** e são responsivos para mobile.
-* 🧠 **Otimização de Performance:** Consultas de agregação (`COUNT`, `GROUP BY`) feitas diretamente no banco de dados via JPQL, trafegando apenas DTOs leves para o frontend (nada de processar listas gigantes na memória Java).
+### ✨ Destaques da Versão 5.0 (Atual)
+* 📄 **Exportação de Dados (Relatórios):** Funcionalidade corporativa essencial. Agora é possível baixar todo o acervo em **PDF** (com layout formatado para impressão) ou **Excel** (planilha estruturada para análise de dados externa).
+* ⚡ **Processamento em Memória:** A geração dos arquivos utiliza `ByteArrayOutputStream` e bibliotecas otimizadas (**Apache POI** e **OpenPDF**), processando tudo na memória RAM para entregar o download instantaneamente, sem onerar o disco do servidor.
+* 🛡️ **Blindagem contra Falhas:** Tratamento robusto de dados nulos e formatação condicional na geração dos documentos, garantindo que o relatório nunca quebre, mesmo com informações incompletas.
 
 ### 🌟 Funcionalidades Consolidadas
-* 🌐 **Modo Social:** Links públicos temporários para compartilhar sua coleção.
-* 🎬 **API da TMDB:** Busca automática de capas e metadados de filmes.
+* 📊 **Dashboard de BI:** Gráficos interativos (Chart.js) com distribuição de acervo, status de progresso e histograma de notas.
+* 🌐 **Modo Social:** Links públicos temporários para compartilhar sua coleção com amigos.
+* 🎬 **API da TMDB:** Busca automática de capas, sinopses e metadados de filmes/séries.
 * 🔍 **Filtros Avançados:** "Gaveta" de filtros com ordenação por nota, tipo e status.
-* 🛡️ **Segurança:** Spring Security 6, BCrypt, Proteção CSRF e Monitoramento via Sentry.
+* 🔐 **Segurança:** Spring Security 6, BCrypt, Proteção CSRF e Monitoramento via Sentry.
 
 ---
 
@@ -33,6 +34,7 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 
 ### Backend (Java Ecosystem)
 * **Java 17 & Spring Boot 3:** API REST e MVC.
+* **Apache POI & OpenPDF:** Manipulação avançada de arquivos Office e PDFs.
 * **JPA/Hibernate:** Consultas otimizadas com Projections e DTOs.
 * **Spring Security:** Controle de sessão e autenticação.
 * **Sentry SDK:** Monitoramento de erros em produção.
@@ -40,8 +42,8 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 ### Frontend
 * **Thymeleaf:** Renderização Server-Side (SSR).
 * **Chart.js:** Biblioteca de visualização de dados (Canvas).
-* **JavaScript (Vanilla):** Lógica assíncrona (`async/await`) para consumo de APIs internas.
-* **CSS3 (Neon Theme):** Variáveis CSS para temas dinâmicos.
+* **JavaScript (Vanilla):** Lógica assíncrona (`async/await`) e manipulação de DOM.
+* **CSS3 (Neon Theme):** Variáveis CSS para temas dinâmicos (Dark/Light Mode).
 
 ### APIs Externas
 * **The Movie Database (TMDB):** Metadados de filmes e séries.
@@ -94,8 +96,8 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 - [x] V3.0: Integração TMDB e Capas.
 - [x] V3.1: Modo Social e Monitoramento (Sentry/Umami).
 - [x] V4.0: Dashboard de Estatísticas (Chart.js + DTOs).
-- [ ] **V4.1: Gamificação** (Sistema de Badges/Conquistas no Perfil).
-- [ ] **V5.0: Exportação de Relatórios** (Gerar PDF/Excel da coleção).
+- [x] V5.0: Exportação de Relatórios (Gerar PDF/Excel da coleção).
+- [ ] **V6.0:** ???
 
 ---
 
