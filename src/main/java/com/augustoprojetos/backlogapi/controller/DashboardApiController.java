@@ -11,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -69,17 +71,31 @@ public class DashboardApiController {
 
         // 5. Processa as NOTAS
         List<Object[]> listaNotas = itemRepository.countItensPorNota(user.getId());
-        Map<String, Long> mapaNotas = new LinkedHashMap<>();
+
+        // Cria uma lista temporária para ordenar corretamente
+        List<Map.Entry<Double, Long>> listaOrdenada = new ArrayList<>();
 
         for (Object[] obj : listaNotas) {
-            Double nota = (Double) obj[0]; // O banco devolve Double
+            Double nota = (Double) obj[0];
             Long qtd = (Long) obj[1];
+            // Adiciona na lista temporária usando Map.entry
+            listaOrdenada.add(new java.util.AbstractMap.SimpleEntry<>(nota, qtd));
+        }
 
-            // Truque visual: Se for 10.0 mostra "10", se for 9.5 mostra "9.5"
+        // Ordenação: Compara os Doubles de forma decrescente (10.0 -> 0.0)
+        listaOrdenada.sort((a, b) -> Double.compare(b.getKey(), a.getKey()));
+
+        // Joga para o LinkedHashMap (que respeita a ordem de inserção da lista acima)
+        Map<String, Long> mapaNotas = new LinkedHashMap<>();
+        for (Map.Entry<Double, Long> entry : listaOrdenada) {
+            Double nota = entry.getKey();
+            Long qtd = entry.getValue();
+
+            // Formata: Se for 10.0 vira "10", senão fica "9.5"
             String label = (nota % 1 == 0) ? String.valueOf(nota.intValue()) : String.valueOf(nota);
-
             mapaNotas.put(label, qtd);
         }
+
         stats.setNotas(mapaNotas);
 
         return ResponseEntity.ok(stats);
