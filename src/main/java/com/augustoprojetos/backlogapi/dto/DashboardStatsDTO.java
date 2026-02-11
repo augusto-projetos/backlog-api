@@ -1,5 +1,7 @@
 package com.augustoprojetos.backlogapi.dto;
 
+import java.util.Map;
+
 public class DashboardStatsDTO {
 
     // Contagem por TIPO
@@ -12,6 +14,9 @@ public class DashboardStatsDTO {
     private long totalJogando;
     private long totalBacklog;
     private long totalDropados;
+
+    // Mapa de Notas
+    private Map<String, Long> notas;
 
     // Getters e Setters
     public long getTotalJogos() { return totalJogos; }
@@ -34,4 +39,7 @@ public class DashboardStatsDTO {
 
     public long getTotalDropados() { return totalDropados; }
     public void setTotalDropados(long totalDropados) { this.totalDropados = totalDropados; }
+
+    public Map<String, Long> getNotas() { return notas; }
+    public void setNotas(Map<String, Long> notas) { this.notas = notas; }
 }
