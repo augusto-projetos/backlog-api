@@ -160,6 +160,7 @@ main {
 
 .card-info {
     flex: 1;
+    min-width: 0;
 }
 
 .info h3 {
@@ -415,6 +416,8 @@ main {
     color: #7f8c8d;
     font-size: 0.9rem;
     line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .resenha-texto.expandido {
@@ -570,9 +573,7 @@ main {
 
     .info h3 {
         font-size: 0.95rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis; /* ... se o nome for longo */
+        word-break: break-word;
     }
 
     /* Esconde a resenha no celular pra economizar espaço */

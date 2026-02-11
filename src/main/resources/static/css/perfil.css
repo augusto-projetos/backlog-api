@@ -136,6 +136,44 @@ body {
     transform: scale(0.98);
 }
 
+/* --- BOTÕES DE EXPORTAÇÃO --- */
+.export-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.btn-export {
+    flex: 1; /* Divide o espaço igualmente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: white;
+}
+
+.btn-export:hover {
+    transform: translateY(-3px); /* Pulo leve */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Cores Específicas */
+.btn-pdf {
+    background-color: #e74c3c; /* Vermelho Adobe */
+    border: 1px solid #c0392b;
+}
+
+.btn-excel {
+    background-color: #27ae60; /* Verde Excel */
+    border: 1px solid #219150;
+}
+
 /* --- ZONA DE PERIGO --- */
 .zona-perigo {
     background-color: rgba(231, 76, 60, 0.05);
@@ -261,5 +299,9 @@ body {
 
     .perfil-title {
         font-size: 1.3rem;
+    }
+
+    .export-buttons {
+        flex-direction: column;
     }
 }
