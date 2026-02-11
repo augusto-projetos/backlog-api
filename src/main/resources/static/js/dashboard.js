@@ -77,6 +77,43 @@ async function carregarDashboard() {
             }
         });
 
+        // --- GRÁFICO 3: NOTAS ---
+        // Extrai as chaves (notas) e valores (quantidades) do Map
+        const labelsNotas = Object.keys(dados.notas);
+        const valoresNotas = Object.values(dados.notas);
+
+        const ctxNotas = document.getElementById('graficoNotas').getContext('2d');
+        new Chart(ctxNotas, {
+            type: 'bar',
+            data: {
+                labels: labelsNotas, // Ex: ["10", "9.5", "8"]
+                datasets: [{
+                    label: 'Itens com essa nota',
+                    data: valoresNotas,
+                    backgroundColor: '#9b59b6', // Roxo
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#7f8c8d', stepSize: 1 }, // stepSize 1 para não mostrar "1.5 itens"
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#7f8c8d' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
     } catch (erro) {
         console.error("Erro no dashboard:", erro);
     }

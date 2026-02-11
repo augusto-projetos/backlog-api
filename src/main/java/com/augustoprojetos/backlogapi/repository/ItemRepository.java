@@ -21,4 +21,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     // 2. Conta quantos itens existem por STATUS (Ex: Zerado: 8, Backlog: 20)
     @Query("SELECT i.status, COUNT(i) FROM Item i WHERE i.user.id = :userId GROUP BY i.status")
     List<Object[]> countItensPorStatus(@Param("userId") Long userId);
+
+    // 3. Distribuição de Notas (Ex: Nota 10: 5 itens, Nota 9.5: 2 itens)
+    @Query("SELECT i.nota, COUNT(i) FROM Item i WHERE i.user.id = :userId AND i.nota > 0 GROUP BY i.nota ORDER BY i.nota DESC")
+    List<Object[]> countItensPorNota(@Param("userId") Long userId);
 }

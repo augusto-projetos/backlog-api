@@ -11,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import java.util.List;
 
@@ -64,6 +66,21 @@ public class DashboardApiController {
                 stats.setTotalDropados(qtd);
             }
         }
+
+        // 5. Processa as NOTAS
+        List<Object[]> listaNotas = itemRepository.countItensPorNota(user.getId());
+        Map<String, Long> mapaNotas = new LinkedHashMap<>();
+
+        for (Object[] obj : listaNotas) {
+            Double nota = (Double) obj[0]; // O banco devolve Double
+            Long qtd = (Long) obj[1];
+
+            // Truque visual: Se for 10.0 mostra "10", se for 9.5 mostra "9.5"
+            String label = (nota % 1 == 0) ? String.valueOf(nota.intValue()) : String.valueOf(nota);
+
+            mapaNotas.put(label, qtd);
+        }
+        stats.setNotas(mapaNotas);
 
         return ResponseEntity.ok(stats);
     }
