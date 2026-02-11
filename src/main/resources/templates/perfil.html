@@ -77,6 +77,23 @@
 
             <hr class="divisor">
 
+            <h3 class="secao-titulo">📂 Exportar Dados</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                Baixe uma cópia completa da sua coleção para guardar ou abrir no Excel.
+            </p>
+
+            <div class="export-buttons">
+                <a th:href="@{/api/export/pdf}" class="btn-export btn-pdf" target="_blank">
+                    <i class="fa-solid fa-file-pdf"></i> Baixar PDF
+                </a>
+
+                <a th:href="@{/api/export/excel}" class="btn-export btn-excel" target="_blank">
+                    <i class="fa-solid fa-file-excel"></i> Baixar Excel
+                </a>
+            </div>
+
+            <hr class="divisor">
+
             <div class="zona-perigo">
                 <h3 class="zona-perigo-titulo">⚠️ Zona de Perigo</h3>
                 <p class="zona-perigo-texto">
