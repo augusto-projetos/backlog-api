@@ -25,6 +25,17 @@ if (formCadastro) {
 
     atualizarStatusDinamico();
 
+    setTimeout(travarCamposPeloStatus, 100);
+
+    // Quando mudar o STATUS (ex: de Backlog para Zerado), roda a função
+    document.getElementById('status').addEventListener('change', travarCamposPeloStatus);
+
+    // Quando mudar o TIPO, também roda, pois o tipo muda as opções de status
+    document.getElementById('tipo').addEventListener('change', () => {
+        atualizarStatusDinamico();
+        travarCamposPeloStatus();
+    });
+
     // Ouve o clique no botão salvar
     formCadastro.addEventListener('submit', salvarItem);
 }
@@ -87,10 +98,14 @@ async function carregarDadosParaEdicao(id) {
             // Preenche os campos do formulário com o que veio do banco
             document.getElementById('titulo').value = item.titulo;
             document.getElementById('tipo').value = item.tipo;
+
             atualizarStatusDinamico(); // Chamamos a função para trocar os nomes (Zerado <-> Assistido)
+
             document.getElementById('status').value = item.status;
             document.getElementById('nota').value = item.nota;
             document.getElementById('resenha').value = item.resenha;
+
+            travarCamposPeloStatus();
 
             // Tratamento especial para imagem (caso venha nulo)
             const campoImagem = document.getElementById('imagemUrl');
@@ -343,6 +358,60 @@ async function deletarItem(id) {
             }
         } catch (erro) {
             console.error("Erro:", erro);
+        }
+    }
+}
+
+// Função para travar Nota e Resenha dependendo do Status
+function travarCamposPeloStatus() {
+    const status = document.getElementById('status').value;
+    const tipo = document.getElementById('tipo').value;
+    const notaInput = document.getElementById('nota');
+    const resenhaInput = document.getElementById('resenha');
+
+    // Lista de status que devem travar os campos
+    const statusBloqueados = ['Backlog', 'Jogando', 'Assistindo'];
+
+    if (statusBloqueados.includes(status)) {
+        // --- MODO TRAVADO ---
+
+        // 1. Texto Dinâmico (Jogo/Filme/Série)
+        let artigo = "o item";
+        if (tipo === 'Jogo') artigo = "o jogo";
+        else if (tipo === 'Filme') artigo = "o filme";
+        else if (tipo === 'Série') artigo = "a série";
+
+        // 1. Trava a Resenha
+        resenhaInput.disabled = true;
+        resenhaInput.style.opacity = "0.5";
+        resenhaInput.style.cursor = "not-allowed";
+        resenhaInput.placeholder = `Termine ${artigo} para escrever uma resenha.`;
+
+        // 2. Trava a Nota e define como 0
+        if (notaInput.value == '') {
+            notaInput.value = 0;
+        }
+        notaInput.readOnly = true; // readOnly para o usuário ver o 0 mas não mudar
+        notaInput.style.opacity = "0.5";
+        notaInput.style.cursor = "not-allowed";
+
+    } else {
+        // --- MODO LIBERADO (Zerado, Assistido, Dropado) ---
+
+        // 1. Libera Resenha
+        resenhaInput.disabled = false;
+        resenhaInput.style.opacity = "1";
+        resenhaInput.style.cursor = "text";
+        resenhaInput.placeholder = "Escreva sua opinião..."; // Restaura placeholder
+
+        // 2. Libera Nota
+        notaInput.readOnly = false;
+        notaInput.style.opacity = "1";
+        notaInput.style.cursor = "text";
+
+        // 3. Remove o '0' automático apenas se o usuário ainda não tiver dado nota
+        if (notaInput.value == 0) {
+            notaInput.value = '';
         }
     }
 }
