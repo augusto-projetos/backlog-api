@@ -15,17 +15,29 @@
         <div class="card">
             <h2>Nova Senha 🔒</h2>
 
+            <div th:if="${error}" class="error" th:text="${error}"></div>
+
             <form th:action="@{/resetar-senha}" method="post">
                 <input type="hidden" name="token" th:value="${token}">
 
-                <div class="password-wrapper">
-                  <input type="password" name="password" placeholder="Digite sua nova senha" required>
-                  <button type="button" class="toggle-password" onclick="togglePassword(this)" tabindex="-1">
-                    <i class="fa-solid fa-eye"></i>
-                  </button>
+                <div class="container-senha" style="position: relative;">
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="novaSenha" class="senha-verifica" placeholder="Digite sua nova senha" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword(this)" tabindex="-1">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="requisitos-senha" id="box-requisitos">
+                        <div class="requisito-item" id="req-tamanho"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</div>
+                        <div class="requisito-item" id="req-maiuscula"><i class="fa-solid fa-circle-xmark"></i> Letra Maiúscula</div>
+                        <div class="requisito-item" id="req-minuscula"><i class="fa-solid fa-circle-xmark"></i> Letra Minúscula</div>
+                        <div class="requisito-item" id="req-numero"><i class="fa-solid fa-circle-xmark"></i> Número</div>
+                        <div class="requisito-item" id="req-especial"><i class="fa-solid fa-circle-xmark"></i> Caractere Especial</div>
+                    </div>
                 </div>
 
-                <button type="submit">Salvar nova senha</button>
+                <button type="submit" style="margin-top: 15px;">Salvar nova senha</button>
             </form>
 
             <br>

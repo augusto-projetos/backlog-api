@@ -52,6 +52,12 @@ public class PasswordResetController {
             return "redirect:/login?resetError=true";
         }
 
+        // Verifica se a senha atende aos requisitos antes de salvar
+        if (!isValidPassword(password)) {
+            redirectAttributes.addFlashAttribute("error", "A senha não atende aos requisitos mínimos de segurança.");
+            return "redirect:/resetar-senha?token=" + token;
+        }
+
         Optional<User> userOptional = passwordResetService.getUserByPasswordResetToken(token);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
@@ -86,5 +92,16 @@ public class PasswordResetController {
         // Passa o token para o HTML (ele vai ficar escondido no formulário)
         model.addAttribute("token", token);
         return "resetar-senha";
+    }
+
+    // --- METODO AUXILIAR DE VALIDAÇÃO ---
+    // Valida: mín 8 chars, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial
+    private boolean isValidPassword(String password) {
+        if (password == null) {
+            return false;
+        }
+        // Expressão Regular (Regex) para validar a força da senha
+        String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&._-])[A-Za-z\\d@$!%*?&._-]{8,}$";
+        return password.matches(regex);
     }
 }
