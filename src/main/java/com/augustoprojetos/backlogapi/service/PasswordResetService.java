@@ -23,11 +23,16 @@ public class PasswordResetService {
 
     // Gera um token válido por 15 minutos
     public String createToken(User user) {
+        // 1. Busca se o usuário já tem um token perdido lá no banco e apaga
+        Optional<PasswordResetToken> existingToken = tokenRepository.findByUser(user);
+        existingToken.ifPresent(tokenRepository::delete);
+
+        // 2. Cria um novo
         String token = UUID.randomUUID().toString();
         PasswordResetToken myToken = new PasswordResetToken(
                 token,
                 user,
-                LocalDateTime.now().plusMinutes(15) // Validade de 15 minutos
+                LocalDateTime.now().plusMinutes(15)
         );
         tokenRepository.save(myToken);
         return token;
