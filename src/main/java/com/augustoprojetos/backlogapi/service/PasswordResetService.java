@@ -53,7 +53,7 @@ public class PasswordResetService {
     // Envia o e-mail de fato
     public void sendResetEmail(String userEmail, String token) {
         // Altere a URL abaixo para a URL do seu Render quando for subir para produção
-        String resetUrl = "http://localhost:8080/resetar-senha?token=" + token;
+        String resetUrl = "http://meus-backlog.onrender.com/resetar-senha?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(userEmail);
