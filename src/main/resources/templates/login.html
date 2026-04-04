@@ -16,26 +16,40 @@
             <h2>Acesse sua conta 🎮</h2>
 
             <div th:if="${param.error}" class="error">
-              Usuário ou senha incorretos!
+                Usuário ou senha incorretos!
             </div>
-            <div th:if="${param.success}" style="color: #4cd137; margin-bottom: 10px;">
-              Conta criada! Pode entrar.
+            <div th:if="${param.success}" style="color: #4cd137; margin-bottom: 10px; text-align: center;">
+                Conta criada! Pode entrar.
+            </div>
+            <div th:if="${param.emailSent}" style="color: #f39c12; margin-bottom: 10px; font-size: 14px; text-align: center;">
+                Se o e-mail estiver cadastrado, você receberá um link de recuperação.
+            </div>
+            <div th:if="${param.resetError}" class="error">
+                Link de recuperação inválido ou expirado.
+            </div>
+            <div th:if="${param.resetSuccess}" style="color: #4cd137; margin-bottom: 10px; font-size: 14px; text-align: center;">
+                Sua senha foi alterada com sucesso!
             </div>
 
             <form th:action="@{/login}" method="post">
-              <input type="text" name="username" placeholder="Email" required>
+                <input type="text" name="username" placeholder="Email" required>
 
-              <div class="password-wrapper">
-                  <input type="password" name="password" placeholder="Senha" required>
+                <div class="password-wrapper">
+                    <input type="password" name="password" placeholder="Senha" required>
 
-                  <button type="button" class="toggle-password" onclick="togglePassword(this)" tabindex="-1">
-                      <i class="fa-solid fa-eye"></i>
-                  </button>
-              </div>
+                    <button type="button" class="toggle-password" onclick="togglePassword(this)" tabindex="-1">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
 
-              <button type="submit">Entrar</button>
+                <button type="submit">Entrar</button>
             </form>
 
+            <br>
+
+            <div class="opcoes-login">
+                <a href="/recuperar-senha" class="forgot-password">Esqueci minha senha</a>
+            </div>
             <br>
             <a href="/register">Criar uma conta</a>
         </div>

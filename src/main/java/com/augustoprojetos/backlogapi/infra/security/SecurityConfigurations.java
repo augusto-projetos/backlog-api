@@ -22,6 +22,8 @@ public class SecurityConfigurations {
                         // LIBERA O ACESSO PÚBLICO PARA:
                         .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/images/**", "/share/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/recuperar-senha", "/resetar-senha").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/recuperar-senha", "/resetar-senha").permitAll()
                         // QUALQUER OUTRA COISA PRECISA DE SENHA:
                         .anyRequest().authenticated()
                 )
