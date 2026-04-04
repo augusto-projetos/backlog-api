@@ -2,6 +2,7 @@ package com.augustoprojetos.backlogapi.infra.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +21,9 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(auth -> auth
                         // LIBERA O ACESSO PÚBLICO PARA:
                         .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/images/**", "/share/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/recuperar-senha", "/resetar-senha").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/recuperar-senha", "/resetar-senha").permitAll()
                         // QUALQUER OUTRA COISA PRECISA DE SENHA:
                         .anyRequest().authenticated()
                 )
