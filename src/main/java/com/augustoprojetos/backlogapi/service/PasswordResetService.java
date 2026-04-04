@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -55,19 +57,44 @@ public class PasswordResetService {
         return "valid";
     }
 
-    // Envia o e-mail de fato
+    // Envia o e-mail formatado em HTML
     public void sendResetEmail(String userEmail, String token) {
-        // Altere a URL abaixo para a URL do seu Render quando for subir para produção
-        String resetUrl = "http://meus-backlog.onrender.com/resetar-senha?token=" + token;
+        String resetUrl = "https://meus-backlog.onrender.com/resetar-senha?token=" + token;
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(userEmail);
-        message.setSubject("Recuperação de Senha - Meus Backlog");
-        message.setText("Você solicitou a redefinição de sua senha.\n\n" +
-                "Clique no link abaixo para criar uma nova senha:\n" + resetUrl +
-                "\n\nEste link expira em 15 minutos.");
+        // Caminho da sua logo hospedada no seu próprio site
+        String logoUrl = "https://meus-backlog.onrender.com/img/logo.png";
 
-        mailSender.send(message);
+        try {
+            // Cria uma mensagem do tipo MIME (que suporta HTML)
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+
+            // O "true" indica que a mensagem será multipart (permite HTML)
+            org.springframework.mail.javamail.MimeMessageHelper helper =
+                    new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(userEmail);
+            helper.setSubject("Recuperação de Senha - Meus Backlog");
+
+            // Montando o HTML do E-mail
+            String htmlMsg =
+                    "<div style='font-family: Arial, sans-serif; background-color: #1a1a2e; color: #ffffff; padding: 40px 20px; text-align: center; border-radius: 10px; max-width: 600px; margin: 0 auto; border: 1px solid #333;'>"
+                            + "  <img src='" + logoUrl + "' alt='Meus Backlog Logo' style='max-width: 250px; margin-bottom: 20px;'>"
+                            + "  <h2 style='color: #ffffff; margin-bottom: 10px;'>Recuperação de Senha</h2>"
+                            + "  <p style='font-size: 16px; color: #cccccc; line-height: 1.5;'>Você solicitou a redefinição de sua senha.<br>Clique no botão abaixo para criar uma nova senha:</p>"
+                            + "  <a href='" + resetUrl + "' style='display: inline-block; padding: 14px 28px; margin: 25px 0; background-color: #e94560; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Redefinir Minha Senha</a>"
+                            + "  <p style='font-size: 14px; color: #888888; margin-top: 30px;'>Este link expira com segurança em 15 minutos.</p>"
+                            + "  <p style='font-size: 12px; color: #555555; margin-top: 10px;'>Se você não solicitou essa alteração, apenas ignore este e-mail.</p>"
+                            + "</div>";
+
+            // O segundo parâmetro 'true' informa ao Java que o texto deve ser lido como HTML
+            helper.setText(htmlMsg, true);
+
+            mailSender.send(message);
+
+        } catch (jakarta.mail.MessagingException e) {
+            e.printStackTrace();
+            System.out.println("Erro ao tentar enviar o e-mail HTML: " + e.getMessage());
+        }
     }
 
     // Busca o usuário dono do token para podermos trocar a senha dele

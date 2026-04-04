@@ -20,7 +20,7 @@ public class SecurityConfigurations {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         // LIBERA O ACESSO PÚBLICO PARA:
-                        .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/images/**", "/share/**").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/img/**", "/share/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/recuperar-senha", "/resetar-senha").permitAll()
                         .requestMatchers(HttpMethod.POST, "/recuperar-senha", "/resetar-senha").permitAll()
