@@ -89,10 +89,11 @@ public class PasswordResetService {
             helper.setText(htmlMsg, true);
 
             mailSender.send(message);
+            System.out.println("✅ E-mail enviado com sucesso para: " + userEmail);
 
-        } catch (jakarta.mail.MessagingException e) {
+        } catch (Exception e) {
+            System.err.println("❌ ERRO AO ENVIAR E-MAIL: " + e.getMessage());
             e.printStackTrace();
-            System.out.println("Erro ao tentar enviar o e-mail HTML: " + e.getMessage());
         }
     }
 
