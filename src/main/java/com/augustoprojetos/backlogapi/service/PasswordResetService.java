@@ -4,9 +4,13 @@ import com.augustoprojetos.backlogapi.entity.PasswordResetToken;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.PasswordResetTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -18,8 +22,8 @@ public class PasswordResetService {
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${brevo.api.key}")
+    private String brevoApiKey;
 
     // Gera um token válido por 15 minutos
     public String createToken(User user) {
@@ -27,12 +31,12 @@ public class PasswordResetService {
         Optional<PasswordResetToken> existingToken = tokenRepository.findByUser(user);
         existingToken.ifPresent(tokenRepository::delete);
 
-        // 2. Cria um novo
+        // 2. Agora sim, cria um novo em folha
         String token = UUID.randomUUID().toString();
         PasswordResetToken myToken = new PasswordResetToken(
                 token,
                 user,
-                LocalDateTime.now().plusMinutes(15)
+                LocalDateTime.now().plusMinutes(15) // Validade de 15 minutos
         );
         tokenRepository.save(myToken);
         return token;
@@ -55,44 +59,49 @@ public class PasswordResetService {
         return "valid";
     }
 
-    // Envia o e-mail formatado em HTML
+    // Envia o e-mail de fato usando a API do Brevo
     @Async
     public void sendResetEmail(String userEmail, String token) {
+        // URLs do seu projeto no Render
         String resetUrl = "https://meus-backlog.onrender.com/resetar-senha?token=" + token;
-
-        // Caminho da sua logo hospedada no seu próprio site
         String logoUrl = "https://meus-backlog.onrender.com/img/logo.png";
 
+        // Montando o HTML do E-mail
+        String htmlMsg =
+                "<div style='font-family: Arial, sans-serif; background-color: #1a1a2e; color: #ffffff; padding: 40px 20px; text-align: center; border-radius: 10px; max-width: 600px; margin: 0 auto; border: 1px solid #333;'>"
+                        + "  <img src='" + logoUrl + "' alt='Meus Backlog Logo' style='max-width: 250px; margin-bottom: 20px;'>"
+                        + "  <h2 style='color: #ffffff; margin-bottom: 10px;'>Recuperação de Senha</h2>"
+                        + "  <p style='font-size: 16px; color: #cccccc; line-height: 1.5;'>Você solicitou a redefinição de sua senha.<br>Clique no botão abaixo para criar uma nova senha:</p>"
+                        + "  <a href='" + resetUrl + "' style='display: inline-block; padding: 14px 28px; margin: 25px 0; background-color: #e94560; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Redefinir Minha Senha</a>"
+                        + "  <p style='font-size: 14px; color: #888888; margin-top: 30px;'>Este link expira com segurança em 15 minutos.</p>"
+                        + "  <p style='font-size: 12px; color: #555555; margin-top: 10px;'>Se você não solicitou essa alteração, apenas ignore este e-mail.</p>"
+                        + "</div>";
+
         try {
-            // Cria uma mensagem do tipo MIME (que suporta HTML)
-            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            // Configurando a requisição HTTP
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("api-key", brevoApiKey);
+            headers.set("accept", "application/json");
 
-            // O "true" indica que a mensagem será multipart (permite HTML)
-            org.springframework.mail.javamail.MimeMessageHelper helper =
-                    new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+            // Montando o JSON que o Brevo exige
+            String jsonBody = "{"
+                    + "\"sender\": {\"name\": \"Meus Backlog\", \"email\": \"meusbacklog@gmail.com\"},"
+                    + "\"to\": [{\"email\": \"" + userEmail + "\"}],"
+                    + "\"subject\": \"Recuperação de Senha - Meus Backlog\","
+                    + "\"htmlContent\": \"" + htmlMsg.replace("\"", "\\\"") + "\"" // Escapa as aspas pro JSON não quebrar
+                    + "}";
 
-            helper.setTo(userEmail);
-            helper.setSubject("Recuperação de Senha - Meus Backlog");
+            HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
 
-            // Montando o HTML do E-mail
-            String htmlMsg =
-                    "<div style='font-family: Arial, sans-serif; background-color: #1a1a2e; color: #ffffff; padding: 40px 20px; text-align: center; border-radius: 10px; max-width: 600px; margin: 0 auto; border: 1px solid #333;'>"
-                            + "  <img src='" + logoUrl + "' alt='Meus Backlog Logo' style='max-width: 250px; margin-bottom: 20px;'>"
-                            + "  <h2 style='color: #ffffff; margin-bottom: 10px;'>Recuperação de Senha</h2>"
-                            + "  <p style='font-size: 16px; color: #cccccc; line-height: 1.5;'>Você solicitou a redefinição de sua senha.<br>Clique no botão abaixo para criar uma nova senha:</p>"
-                            + "  <a href='" + resetUrl + "' style='display: inline-block; padding: 14px 28px; margin: 25px 0; background-color: #e94560; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Redefinir Minha Senha</a>"
-                            + "  <p style='font-size: 14px; color: #888888; margin-top: 30px;'>Este link expira com segurança em 15 minutos.</p>"
-                            + "  <p style='font-size: 12px; color: #555555; margin-top: 10px;'>Se você não solicitou essa alteração, apenas ignore este e-mail.</p>"
-                            + "</div>";
+            // Disparando o e-mail pela porta 443
+            restTemplate.postForEntity("https://api.brevo.com/v3/smtp/email", request, String.class);
 
-            // O segundo parâmetro 'true' informa ao Java que o texto deve ser lido como HTML
-            helper.setText(htmlMsg, true);
-
-            mailSender.send(message);
-            System.out.println("✅ E-mail enviado com sucesso para: " + userEmail);
+            System.out.println("✅ E-mail disparado com sucesso via API Brevo para: " + userEmail);
 
         } catch (Exception e) {
-            System.err.println("❌ ERRO AO ENVIAR E-MAIL: " + e.getMessage());
+            System.err.println("❌ ERRO AO ENVIAR E-MAIL VIA API BREVO: " + e.getMessage());
             e.printStackTrace();
         }
     }
