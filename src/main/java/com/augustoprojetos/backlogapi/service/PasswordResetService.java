@@ -64,7 +64,7 @@ public class PasswordResetService {
     public void sendResetEmail(String userEmail, String token) {
         // URLs do seu projeto no Render
         String resetUrl = "https://meus-backlog.onrender.com/resetar-senha?token=" + token;
-        String logoUrl = "https://meus-backlog.onrender.com/img/logo.png";
+        String logoUrl = "https://meus-backlog.onrender.com/img/logo.png?t=" + System.currentTimeMillis();
 
         // Montando o HTML do E-mail
         String htmlMsg =
