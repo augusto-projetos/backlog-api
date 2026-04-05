@@ -4,11 +4,9 @@ import com.augustoprojetos.backlogapi.entity.PasswordResetToken;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.PasswordResetTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -58,6 +56,7 @@ public class PasswordResetService {
     }
 
     // Envia o e-mail formatado em HTML
+    @Async
     public void sendResetEmail(String userEmail, String token) {
         String resetUrl = "https://meus-backlog.onrender.com/resetar-senha?token=" + token;
 
