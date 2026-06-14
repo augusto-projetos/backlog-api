@@ -53,6 +53,11 @@ main {
     gap: 15px;
 }
 
+.toggles-group {
+    display: flex;
+    gap: 15px;
+}
+
 /* Link do Perfil no Header */
 .link-perfil {
     text-decoration: none; /* Remove o sublinhado */
@@ -569,6 +574,11 @@ main {
         width: 100%;
         flex-direction: column; /* Empilha um botão embaixo do outro */
         gap: 10px;
+    }
+
+    .toggles-group {
+        width: 100%;
+        justify-content: center;
     }
 
     /* Faz os botões ocuparem a largura toda (estilo App) */
