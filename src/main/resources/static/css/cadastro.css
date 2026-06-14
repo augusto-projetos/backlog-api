@@ -268,6 +268,46 @@ h1 {
     color: #e74c3c; /* Vermelho no máximo */
 }
 
+/* --- ESTRELAS INTERATIVAS NO CADASTRO --- */
+.interactive-stars {
+    display: inline-flex;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 2.2rem; /* Tamanho grande para facilitar o clique no celular */
+    user-select: none; /* Evita que a estrela fique "selecionada" de azul ao dar dois cliques */
+}
+
+.interactive-star {
+    color: #cbd5e1; /* Cor da estrela vazia */
+    position: relative;
+    display: inline-block;
+    transition: transform 0.1s ease;
+}
+
+.interactive-star:active {
+    transform: scale(0.9); /* Dá um efeitinho de "apertar o botão" ao clicar */
+}
+
+.interactive-star.filled {
+    color: #fbbf24; /* Dourado da estrela cheia */
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+.interactive-star .half {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%; /* Corta exatamente no meio */
+    overflow: hidden;
+    color: #fbbf24;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+    display: none;
+}
+
+.interactive-star.half-filled .half {
+    display: inline-block; /* Exibe a metade dourada */
+}
+
 /* --- Responsividade (Mobile) --- */
 @media (max-width: 600px) {
     body {

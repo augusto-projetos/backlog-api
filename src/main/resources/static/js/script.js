@@ -46,6 +46,78 @@ if (formCadastro) {
 
     // Ouve o clique no botão salvar
     formCadastro.addEventListener('submit', salvarItem);
+
+    // --- LÓGICA DAS ESTRELAS INTERATIVAS NO CADASTRO ---
+    const inputNota = document.getElementById('nota');
+    const starsContainer = document.getElementById('interactive-stars');
+    const starText = document.getElementById('star-rating-text');
+    const ratingMode = localStorage.getItem('ratingMode') || 'nota';
+
+    if (inputNota && starsContainer && ratingMode === 'estrela') {
+        // Esconde o input numérico e mostra as estrelas
+        inputNota.style.display = 'none';
+        starsContainer.style.display = 'inline-flex';
+        if (starText) starText.style.display = 'inline';
+
+        // Cria as 5 estrelas interagíveis
+        for (let i = 0; i < 5; i++) {
+            const star = document.createElement('span');
+            star.className = 'interactive-star';
+            star.innerHTML = '★<span class="half">★</span>';
+
+            // Função: descobre se o clique/hover foi na metade esquerda ou direita da estrela
+            const calculateRating = (e) => {
+                const rect = star.getBoundingClientRect();
+                const isHalf = (e.clientX - rect.left) < (rect.width / 2);
+                return (i * 2) + (isHalf ? 1 : 2); // Transforma em nota de 0 a 10
+            };
+
+            // Evento: Passar o mouse (Hover) pinta as estrelas temporariamente
+            star.addEventListener('mousemove', (e) => {
+                const hoverRating = calculateRating(e);
+                renderInteractiveStars(hoverRating);
+            });
+
+            // Evento: Clicar salva a nota de verdade no input escondido
+            star.addEventListener('click', (e) => {
+                const selectedRating = calculateRating(e);
+                inputNota.value = selectedRating; // Envia o valor pro formulário
+                renderInteractiveStars(selectedRating);
+            });
+
+            starsContainer.appendChild(star);
+        }
+
+        // Se tirar o mouse do container inteiro, volta a pintar o que está salvo no input
+        starsContainer.addEventListener('mouseleave', () => {
+            renderInteractiveStars(inputNota.value || 0);
+        });
+
+        // Função que pinta as estrelas baseada no número recebido
+        function renderInteractiveStars(rating) {
+            const ratingNum = parseFloat(rating) || 0;
+            const notaArredondada = Math.ceil(ratingNum);
+            const numEstrelas = notaArredondada / 2;
+
+            const allStars = starsContainer.querySelectorAll('.interactive-star');
+            allStars.forEach((s, index) => {
+                s.classList.remove('filled', 'half-filled');
+                if (index + 1 <= Math.floor(numEstrelas)) {
+                    s.classList.add('filled');
+                } else if (index < numEstrelas) {
+                    s.classList.add('half-filled');
+                }
+            });
+
+            if (starText) starText.textContent = ratingNum > 0 ? `${ratingNum}/10` : '0/10';
+        }
+
+        // Esperamos um tempinho rápido para caso seja uma Edição de Item.
+        // Dá tempo do fetch trazer a nota antiga e preencher o input antes de pintarmos as estrelas.
+        setTimeout(() => {
+            renderInteractiveStars(inputNota.value || 0);
+        }, 300);
+    }
 }
 
 // Troca o texto do Status baseado no Tipo
@@ -386,6 +458,7 @@ function travarCamposPeloStatus() {
     const tipo = document.getElementById('tipo').value;
     const notaInput = document.getElementById('nota');
     const resenhaInput = document.getElementById('resenha');
+    const starsContainer = document.getElementById('interactive-stars');
 
     // Lista de status que devem travar os campos
     const statusBloqueados = ['Backlog', 'Jogando', 'Assistindo'];
@@ -413,6 +486,19 @@ function travarCamposPeloStatus() {
         notaInput.style.opacity = "0.5";
         notaInput.style.cursor = "not-allowed";
 
+        // 3. Trava as Estrelas
+        if (starsContainer) {
+            starsContainer.style.pointerEvents = "none";
+            starsContainer.style.opacity = "0.5";
+
+            if (notaInput.value == 0) {
+                const allStars = starsContainer.querySelectorAll('.interactive-star');
+                allStars.forEach(s => s.classList.remove('filled', 'half-filled'));
+                const starText = document.getElementById('star-rating-text');
+                if (starText) starText.textContent = '0/10';
+            }
+        }
+
     } else {
         // --- MODO LIBERADO (Zerado, Assistido, Dropado) ---
 
@@ -430,6 +516,13 @@ function travarCamposPeloStatus() {
         // 3. Remove o '0' automático apenas se o usuário ainda não tiver dado nota
         if (notaInput.value == 0) {
             notaInput.value = '';
+        }
+
+        // 4. Libera as Estrelas
+        if (starsContainer) {
+            starsContainer.style.pointerEvents = "auto";
+            starsContainer.style.opacity = "1";
+            starsContainer.dispatchEvent(new Event('mouseleave'));
         }
     }
 }
