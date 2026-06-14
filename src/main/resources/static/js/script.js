@@ -11,6 +11,14 @@ if (listaItens && !window.location.pathname.includes('/share')) {
     carregarItens();
 }
 
+// OUVINTE PARA A TROCA DE SISTEMA DE AVALIAÇÃO ---
+window.addEventListener('ratingModeChanged', () => {
+    // Recarrega a lista se o usuário clicar no botão de trocar sistema
+    if (listaItens && !window.location.pathname.includes('/share')) {
+        carregarItens();
+    }
+});
+
 // 2. Lógica do Cadastro/Edição (Formulário)
 if (formCadastro) {
     // Verifica se tem ID na URL (Ex: cadastro?id=5)
@@ -244,6 +252,16 @@ async function carregarItens() {
         itens.forEach(item => {
             const imagem = item.imagemUrl ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Imagem';
 
+            // Verifica qual modo o usuário quer ver
+            const ratingMode = localStorage.getItem('ratingMode') || 'nota';
+            let htmlAvaliacao = '';
+
+            if (ratingMode === 'estrela') {
+                htmlAvaliacao = gerarEstrelasHTML(item.nota);
+            } else {
+                htmlAvaliacao = `Nota: ${item.nota}/10`;
+            }
+
             const card = `
                 <div class="card">
                     <div class="card-img-wrapper">
@@ -266,7 +284,7 @@ async function carregarItens() {
 
                     <div class="card-actions">
                         <div class="nota">
-                            Nota: ${item.nota}/10
+                            ${htmlAvaliacao}
                         </div>
 
                         <div class="btn-group">
@@ -879,4 +897,35 @@ function copiarTexto(texto) {
             title: 'Link copiado!'
         });
     });
+}
+
+// --- FUNÇÃO PARA RENDERIZAR ESTRELAS ---
+function gerarEstrelasHTML(notaOriginal) {
+    if (notaOriginal === 0 || notaOriginal === '' || notaOriginal === null) {
+        return '<span style="color: #7f8c8d; font-size: 0.9rem;">Sem nota</span>';
+    }
+
+    // A lógica matemática para meias estrelas
+    const notaArredondada = Math.ceil(notaOriginal);
+    const numEstrelas = notaArredondada / 2;
+    let estrelasHTML = '';
+
+    for (let i = 1; i <= 5; i++) {
+        if (i <= numEstrelas) {
+            // Estrela preenchida (inteira)
+            estrelasHTML += '<span class="star filled">★</span>';
+        } else if (i - 0.5 === numEstrelas) {
+            // Meia estrela (truque de sobreposição com CSS)
+            estrelasHTML += `
+            <span class="star-half-container">
+                <span class="star empty">★</span>
+                <span class="star filled half-filled">★</span>
+            </span>`;
+        } else {
+            // Estrela vazia
+            estrelasHTML += '<span class="star empty">★</span>';
+        }
+    }
+
+    return `<div class="stars-container" title="Nota original: ${notaOriginal}/10">${estrelasHTML}</div>`;
 }
