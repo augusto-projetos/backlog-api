@@ -127,7 +127,10 @@ if (formCadastro) {
                 }
             });
 
-            if (starText) starText.textContent = ratingNum > 0 ? `${ratingNum}/10` : '0/10';
+            if (starText) {
+                const valorEmEstrelas = ratingNum / 2; // Converte a nota de 10 para a escala de 5
+                starText.textContent = ratingNum > 0 ? `${valorEmEstrelas}/5` : '0/5';
+            }
         }
 
         // Esperamos um tempinho rápido para caso seja uma Edição de Item.
@@ -513,7 +516,7 @@ function travarCamposPeloStatus() {
 
             // Reseta o texto ao lado das estrelas
             const starText = document.getElementById('star-rating-text');
-            if (starText) starText.textContent = '0/10';
+            if (starText) starText.textContent = '0/5';
         }
 
     } else {

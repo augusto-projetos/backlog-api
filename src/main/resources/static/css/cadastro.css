@@ -273,8 +273,9 @@ h1 {
     display: inline-flex;
     gap: 4px;
     cursor: pointer;
-    font-size: 2.2rem; /* Tamanho grande para facilitar o clique no celular */
-    user-select: none; /* Evita que a estrela fique "selecionada" de azul ao dar dois cliques */
+    font-size: 2.2rem;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .interactive-star {
@@ -282,6 +283,7 @@ h1 {
     position: relative;
     display: inline-block;
     transition: transform 0.1s ease;
+    outline: none;
 }
 
 .interactive-star:active {
