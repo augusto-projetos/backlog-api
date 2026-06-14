@@ -16,17 +16,25 @@ if (window.location.pathname.includes('/share')) {
     configurarRatingShared();
 }
 
-// OUVINTE PARA A TROCA DE SISTEMA DE AVALIAÇÃO ---
+// OUVINTE PARA A TROCA DE SISTEMA DE AVALIAÇÃO
 window.addEventListener('ratingModeChanged', () => {
-    // Recarrega a lista se o usuário clicar no botão de trocar sistema
-    if (listaItens && !window.location.pathname.includes('/share')) {
-        carregarItens();
-    }
+    // Busca todas as divs de nota na tela
+    const notasNaTela = document.querySelectorAll('.nota[data-nota]');
+    const ratingMode = localStorage.getItem('ratingMode') || 'nota';
 
-    // Se o usuário mudar o modo estando na página compartilhada, atualiza as notas/estrelas
-    if (window.location.pathname.includes('/share')) {
-       configurarRatingShared();
-    }
+    notasNaTela.forEach(el => {
+        // Pega o valor bruto que guardamos no atributo oculto
+        const notaOriginal = el.getAttribute('data-nota');
+        if (notaOriginal === null || notaOriginal === '') return;
+
+        const notaNum = parseFloat(notaOriginal);
+
+        if (ratingMode === 'estrela') {
+            el.innerHTML = gerarEstrelasHTML(notaNum);
+        } else {
+            el.innerHTML = `Nota: ${notaNum}/10`;
+        }
+    });
 });
 
 // 2. Lógica do Cadastro/Edição (Formulário)
@@ -365,7 +373,7 @@ async function carregarItens() {
                     </div>
 
                     <div class="card-actions">
-                        <div class="nota">
+                        <div class="nota" data-nota="${item.nota}">
                             ${htmlAvaliacao}
                         </div>
 
