@@ -472,31 +472,30 @@ function travarCamposPeloStatus() {
         else if (tipo === 'Filme') artigo = "o filme";
         else if (tipo === 'Série') artigo = "a série";
 
-        // 1. Trava a Resenha
+        // 2. Trava a Resenha
         resenhaInput.disabled = true;
         resenhaInput.style.opacity = "0.5";
         resenhaInput.style.cursor = "not-allowed";
         resenhaInput.placeholder = `Termine ${artigo} para escrever uma resenha.`;
 
-        // 2. Trava a Nota e define como 0
-        if (notaInput.value == '') {
-            notaInput.value = 0;
-        }
+        // 3. Trava a Nota e define como 0
+        notaInput.value = 0;
         notaInput.readOnly = true; // readOnly para o usuário ver o 0 mas não mudar
         notaInput.style.opacity = "0.5";
         notaInput.style.cursor = "not-allowed";
 
-        // 3. Trava as Estrelas
+        // 4. Trava e limpa as Estrelas
         if (starsContainer) {
             starsContainer.style.pointerEvents = "none";
             starsContainer.style.opacity = "0.5";
 
-            if (notaInput.value == 0) {
-                const allStars = starsContainer.querySelectorAll('.interactive-star');
-                allStars.forEach(s => s.classList.remove('filled', 'half-filled'));
-                const starText = document.getElementById('star-rating-text');
-                if (starText) starText.textContent = '0/10';
-            }
+            // Remove o preenchimento de todas as estrelas
+            const allStars = starsContainer.querySelectorAll('.interactive-star');
+            allStars.forEach(s => s.classList.remove('filled', 'half-filled'));
+
+            // Reseta o texto ao lado das estrelas
+            const starText = document.getElementById('star-rating-text');
+            if (starText) starText.textContent = '0/10';
         }
 
     } else {
