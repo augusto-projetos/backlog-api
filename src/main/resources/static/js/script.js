@@ -11,11 +11,21 @@ if (listaItens && !window.location.pathname.includes('/share')) {
     carregarItens();
 }
 
+// Lógica para a Página Compartilhada (/share)
+if (window.location.pathname.includes('/share')) {
+    configurarRatingShared();
+}
+
 // OUVINTE PARA A TROCA DE SISTEMA DE AVALIAÇÃO ---
 window.addEventListener('ratingModeChanged', () => {
     // Recarrega a lista se o usuário clicar no botão de trocar sistema
     if (listaItens && !window.location.pathname.includes('/share')) {
         carregarItens();
+    }
+
+    // Se o usuário mudar o modo estando na página compartilhada, atualiza as notas/estrelas
+    if (window.location.pathname.includes('/share')) {
+       configurarRatingShared();
     }
 });
 
@@ -1020,4 +1030,26 @@ function gerarEstrelasHTML(notaOriginal) {
     }
 
     return `<div class="stars-container" title="Nota original: ${notaOriginal}/10">${estrelasHTML}</div>`;
+}
+
+// --- FUNÇÃO PARA RENDERIZAR E FORMATAR AS NOTAS NA PÁGINA COMPARTILHADA ---
+function configurarRatingShared() {
+    // Busca todas as divs de nota que possuem o atributo data-nota
+    const notasShared = document.querySelectorAll('.nota[data-nota]');
+    const ratingMode = localStorage.getItem('ratingMode') || 'nota';
+
+    notasShared.forEach(el => {
+        const notaOriginal = el.getAttribute('data-nota');
+        if (notaOriginal === null || notaOriginal === '') return;
+
+        const notaNum = parseFloat(notaOriginal);
+
+        if (ratingMode === 'estrela') {
+            // Aplica o sistema de estrelas
+            el.innerHTML = gerarEstrelasHTML(notaNum);
+        } else {
+            // Restaura o modo nota
+            el.innerHTML = `Nota: ${notaNum}/10`;
+        }
+    });
 }
