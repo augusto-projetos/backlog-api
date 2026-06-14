@@ -53,6 +53,11 @@ main {
     gap: 15px;
 }
 
+.toggles-group {
+    display: flex;
+    gap: 15px;
+}
+
 /* Link do Perfil no Header */
 .link-perfil {
     text-decoration: none; /* Remove o sublinhado */
@@ -498,6 +503,53 @@ main {
     color: #e94560;
 }
 
+/* --- ESTILIZAÇÃO DO SISTEMA DE ESTRELAS --- */
+
+.stars-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.star {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease, text-shadow 0.2s ease;
+    cursor: default;
+}
+
+/* Estrela Vazia */
+.star.empty {
+    color: #cbd5e1;
+}
+
+/* Estrela Preenchida */
+.star.filled {
+    color: #fbbf24
+    text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); /* Efeito de leve brilho */
+}
+
+/* Efeito: quando o usuário passar o mouse no contêiner, as estrelas preenchidas dão uma leve "pulsada" */
+.stars-container:hover .star.filled {
+    transform: scale(1.1);
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+.star-half-container {
+    position: relative;
+    display: inline-block;
+}
+
+.half-filled {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%; /* Corta a estrela dourada exatamente ao meio */
+    overflow: hidden;
+    white-space: nowrap; /* Impede que o ícone quebre a linha dentro do corte */
+}
+
 /* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 600px) {
 
@@ -522,6 +574,11 @@ main {
         width: 100%;
         flex-direction: column; /* Empilha um botão embaixo do outro */
         gap: 10px;
+    }
+
+    .toggles-group {
+        width: 100%;
+        justify-content: center;
     }
 
     /* Faz os botões ocuparem a largura toda (estilo App) */
@@ -583,14 +640,19 @@ main {
 
     .card-actions {
         width: 100%;
-        flex-direction: row; /* Botões lado a lado no rodapé do card */
-        justify-content: space-between;
+        flex-direction: column;
+        justify-content: center;
         align-items: center;
         margin-top: 10px;
+        gap: 8px;
     }
 
     .nota {
         font-size: 0.9em;
+    }
+
+    .star {
+        font-size: 1.2rem;
     }
 
     #search-bar {

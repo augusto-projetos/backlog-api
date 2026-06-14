@@ -11,6 +11,32 @@ if (listaItens && !window.location.pathname.includes('/share')) {
     carregarItens();
 }
 
+// Lógica para a Página Compartilhada (/share)
+if (window.location.pathname.includes('/share')) {
+    configurarRatingShared();
+}
+
+// OUVINTE PARA A TROCA DE SISTEMA DE AVALIAÇÃO
+window.addEventListener('ratingModeChanged', () => {
+    // Busca todas as divs de nota na tela
+    const notasNaTela = document.querySelectorAll('.nota[data-nota]');
+    const ratingMode = localStorage.getItem('ratingMode') || 'nota';
+
+    notasNaTela.forEach(el => {
+        // Pega o valor bruto que guardamos no atributo oculto
+        const notaOriginal = el.getAttribute('data-nota');
+        if (notaOriginal === null || notaOriginal === '') return;
+
+        const notaNum = parseFloat(notaOriginal);
+
+        if (ratingMode === 'estrela') {
+            el.innerHTML = gerarEstrelasHTML(notaNum);
+        } else {
+            el.innerHTML = `Nota: ${notaNum}/10`;
+        }
+    });
+});
+
 // 2. Lógica do Cadastro/Edição (Formulário)
 if (formCadastro) {
     // Verifica se tem ID na URL (Ex: cadastro?id=5)
@@ -38,6 +64,81 @@ if (formCadastro) {
 
     // Ouve o clique no botão salvar
     formCadastro.addEventListener('submit', salvarItem);
+
+    // --- LÓGICA DAS ESTRELAS INTERATIVAS NO CADASTRO ---
+    const inputNota = document.getElementById('nota');
+    const starsContainer = document.getElementById('interactive-stars');
+    const starText = document.getElementById('star-rating-text');
+    const ratingMode = localStorage.getItem('ratingMode') || 'nota';
+
+    if (inputNota && starsContainer && ratingMode === 'estrela') {
+        // Esconde o input numérico e mostra as estrelas
+        inputNota.style.display = 'none';
+        starsContainer.style.display = 'inline-flex';
+        if (starText) starText.style.display = 'inline';
+
+        // Cria as 5 estrelas interagíveis
+        for (let i = 0; i < 5; i++) {
+            const star = document.createElement('span');
+            star.className = 'interactive-star';
+            star.innerHTML = '★<span class="half">★</span>';
+
+            // Função: descobre se o clique/hover foi na metade esquerda ou direita da estrela
+            const calculateRating = (e) => {
+                const rect = star.getBoundingClientRect();
+                const isHalf = (e.clientX - rect.left) < (rect.width / 2);
+                return (i * 2) + (isHalf ? 1 : 2); // Transforma em nota de 0 a 10
+            };
+
+            // Evento: Passar o mouse (Hover) pinta as estrelas temporariamente
+            star.addEventListener('mousemove', (e) => {
+                const hoverRating = calculateRating(e);
+                renderInteractiveStars(hoverRating);
+            });
+
+            // Evento: Clicar salva a nota de verdade no input escondido
+            star.addEventListener('click', (e) => {
+                const selectedRating = calculateRating(e);
+                inputNota.value = selectedRating; // Envia o valor pro formulário
+                renderInteractiveStars(selectedRating);
+            });
+
+            starsContainer.appendChild(star);
+        }
+
+        // Se tirar o mouse do container inteiro, volta a pintar o que está salvo no input
+        starsContainer.addEventListener('mouseleave', () => {
+            renderInteractiveStars(inputNota.value || 0);
+        });
+
+        // Função que pinta as estrelas baseada no número recebido
+        function renderInteractiveStars(rating) {
+            const ratingNum = parseFloat(rating) || 0;
+            const notaArredondada = Math.ceil(ratingNum);
+            const numEstrelas = notaArredondada / 2;
+
+            const allStars = starsContainer.querySelectorAll('.interactive-star');
+            allStars.forEach((s, index) => {
+                s.classList.remove('filled', 'half-filled');
+                if (index + 1 <= Math.floor(numEstrelas)) {
+                    s.classList.add('filled');
+                } else if (index < numEstrelas) {
+                    s.classList.add('half-filled');
+                }
+            });
+
+            if (starText) {
+                const valorEmEstrelas = ratingNum / 2; // Converte a nota de 10 para a escala de 5
+                starText.textContent = ratingNum > 0 ? `${valorEmEstrelas}/5` : '0/5';
+            }
+        }
+
+        // Esperamos um tempinho rápido para caso seja uma Edição de Item.
+        // Dá tempo do fetch trazer a nota antiga e preencher o input antes de pintarmos as estrelas.
+        setTimeout(() => {
+            renderInteractiveStars(inputNota.value || 0);
+        }, 300);
+    }
 }
 
 // Troca o texto do Status baseado no Tipo
@@ -244,6 +345,16 @@ async function carregarItens() {
         itens.forEach(item => {
             const imagem = item.imagemUrl ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Imagem';
 
+            // Verifica qual modo o usuário quer ver
+            const ratingMode = localStorage.getItem('ratingMode') || 'nota';
+            let htmlAvaliacao = '';
+
+            if (ratingMode === 'estrela') {
+                htmlAvaliacao = gerarEstrelasHTML(item.nota);
+            } else {
+                htmlAvaliacao = `Nota: ${item.nota}/10`;
+            }
+
             const card = `
                 <div class="card">
                     <div class="card-img-wrapper">
@@ -265,8 +376,8 @@ async function carregarItens() {
                     </div>
 
                     <div class="card-actions">
-                        <div class="nota">
-                            Nota: ${item.nota}/10
+                        <div class="nota" data-nota="${item.nota}">
+                            ${htmlAvaliacao}
                         </div>
 
                         <div class="btn-group">
@@ -368,6 +479,7 @@ function travarCamposPeloStatus() {
     const tipo = document.getElementById('tipo').value;
     const notaInput = document.getElementById('nota');
     const resenhaInput = document.getElementById('resenha');
+    const starsContainer = document.getElementById('interactive-stars');
 
     // Lista de status que devem travar os campos
     const statusBloqueados = ['Backlog', 'Jogando', 'Assistindo'];
@@ -381,19 +493,31 @@ function travarCamposPeloStatus() {
         else if (tipo === 'Filme') artigo = "o filme";
         else if (tipo === 'Série') artigo = "a série";
 
-        // 1. Trava a Resenha
+        // 2. Trava a Resenha
         resenhaInput.disabled = true;
         resenhaInput.style.opacity = "0.5";
         resenhaInput.style.cursor = "not-allowed";
         resenhaInput.placeholder = `Termine ${artigo} para escrever uma resenha.`;
 
-        // 2. Trava a Nota e define como 0
-        if (notaInput.value == '') {
-            notaInput.value = 0;
-        }
+        // 3. Trava a Nota e define como 0
+        notaInput.value = 0;
         notaInput.readOnly = true; // readOnly para o usuário ver o 0 mas não mudar
         notaInput.style.opacity = "0.5";
         notaInput.style.cursor = "not-allowed";
+
+        // 4. Trava e limpa as Estrelas
+        if (starsContainer) {
+            starsContainer.style.pointerEvents = "none";
+            starsContainer.style.opacity = "0.5";
+
+            // Remove o preenchimento de todas as estrelas
+            const allStars = starsContainer.querySelectorAll('.interactive-star');
+            allStars.forEach(s => s.classList.remove('filled', 'half-filled'));
+
+            // Reseta o texto ao lado das estrelas
+            const starText = document.getElementById('star-rating-text');
+            if (starText) starText.textContent = '0/5';
+        }
 
     } else {
         // --- MODO LIBERADO (Zerado, Assistido, Dropado) ---
@@ -412,6 +536,13 @@ function travarCamposPeloStatus() {
         // 3. Remove o '0' automático apenas se o usuário ainda não tiver dado nota
         if (notaInput.value == 0) {
             notaInput.value = '';
+        }
+
+        // 4. Libera as Estrelas
+        if (starsContainer) {
+            starsContainer.style.pointerEvents = "auto";
+            starsContainer.style.opacity = "1";
+            starsContainer.dispatchEvent(new Event('mouseleave'));
         }
     }
 }
@@ -878,5 +1009,58 @@ function copiarTexto(texto) {
             icon: 'success',
             title: 'Link copiado!'
         });
+    });
+}
+
+// --- FUNÇÃO PARA RENDERIZAR ESTRELAS ---
+function gerarEstrelasHTML(notaOriginal) {
+    if (notaOriginal === 0 || notaOriginal === '' || notaOriginal === null) {
+        return '<span style="color: #7f8c8d; font-size: 0.9rem;">Sem nota</span>';
+    }
+
+    // A lógica matemática para meias estrelas
+    const notaArredondada = Math.ceil(notaOriginal);
+    const numEstrelas = notaArredondada / 2;
+    let estrelasHTML = '';
+
+    for (let i = 1; i <= 5; i++) {
+        if (i <= numEstrelas) {
+            // Estrela preenchida (inteira)
+            estrelasHTML += '<span class="star filled">★</span>';
+        } else if (i - 0.5 === numEstrelas) {
+            // Meia estrela (truque de sobreposição com CSS)
+            estrelasHTML += `
+            <span class="star-half-container">
+                <span class="star empty">★</span>
+                <span class="star filled half-filled">★</span>
+            </span>`;
+        } else {
+            // Estrela vazia
+            estrelasHTML += '<span class="star empty">★</span>';
+        }
+    }
+
+    return `<div class="stars-container" title="Nota original: ${notaOriginal}/10">${estrelasHTML}</div>`;
+}
+
+// --- FUNÇÃO PARA RENDERIZAR E FORMATAR AS NOTAS NA PÁGINA COMPARTILHADA ---
+function configurarRatingShared() {
+    // Busca todas as divs de nota que possuem o atributo data-nota
+    const notasShared = document.querySelectorAll('.nota[data-nota]');
+    const ratingMode = localStorage.getItem('ratingMode') || 'nota';
+
+    notasShared.forEach(el => {
+        const notaOriginal = el.getAttribute('data-nota');
+        if (notaOriginal === null || notaOriginal === '') return;
+
+        const notaNum = parseFloat(notaOriginal);
+
+        if (ratingMode === 'estrela') {
+            // Aplica o sistema de estrelas
+            el.innerHTML = gerarEstrelasHTML(notaNum);
+        } else {
+            // Restaura o modo nota
+            el.innerHTML = `Nota: ${notaNum}/10`;
+        }
     });
 }

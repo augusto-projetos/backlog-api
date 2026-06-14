@@ -24,9 +24,15 @@
             </div>
 
             <div class="header-actions">
-                <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
-                    <span id="theme-icon">🌙</span>
-                </button>
+                <div class="toggles-group">
+                    <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+
+                    <button id="rating-toggle" class="btn-theme" title="Alternar para Estrelas">
+                        <span id="rating-icon">⭐</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -106,7 +112,7 @@
                     </div>
 
                     <div class="card-actions">
-                        <div class="nota">
+                        <div class="nota" th:data-nota="${item.nota}">
                             Nota: <span th:text="${item.nota}">10</span>/10
                         </div>
                     </div>
@@ -125,6 +131,7 @@
         <script th:src="@{/js/script.js}"></script>
         <script th:src="@{/js/search-scroll.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
+        <script th:src="@{/js/rating-toggle.js}"></script>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 if(typeof verificarTamanhoResenhas === 'function') verificarTamanhoResenhas();

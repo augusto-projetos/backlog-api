@@ -34,9 +34,15 @@
 
             <div class="header-actions">
 
-                <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
-                    <span id="theme-icon">🌙</span>
-                </button>
+                <div class="toggles-group">
+                    <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+
+                    <button id="rating-toggle" class="btn-theme" title="Alternar para Estrelas">
+                        <span id="rating-icon">⭐</span>
+                    </button>
+                </div>
 
                 <a th:href="@{/meus-links}" class="btn-novo btn-share">
                     🔗 Compartilhar
@@ -133,6 +139,7 @@
         <script th:src="@{/js/script.js}"></script>
         <script th:src="@{/js/search-scroll.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
+        <script th:src="@{/js/rating-toggle.js}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </body>
 </html>

@@ -53,17 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tituloB = b.querySelector('h3').textContent.trim();
                 return tituloA.localeCompare(tituloB);
             } else {
-                const textoNotaA = a.querySelector('.nota').textContent;
-                const textoNotaB = b.querySelector('.nota').textContent;
+                // Buscamos o valor numérico puro direto do atributo oculto 'data-nota'
+                const notaA = parseFloat(a.querySelector('.nota').getAttribute('data-nota')) || 0;
+                const notaB = parseFloat(b.querySelector('.nota').getAttribute('data-nota')) || 0;
 
-                const getNota = (str) => {
-                    const match = str.match(/(\d+(\.\d+)?)/);
-                    return match ? parseFloat(match[0]) : 0;
-                };
-
-                const notaA = getNota(textoNotaA);
-                const notaB = getNota(textoNotaB);
-
+                // Se o select for 'maior', faz Maior -> Menor (B - A). Se não, Menor -> Maior (A - B)
                 return ordem === 'maior' ? notaB - notaA : notaA - notaB;
             }
         });
