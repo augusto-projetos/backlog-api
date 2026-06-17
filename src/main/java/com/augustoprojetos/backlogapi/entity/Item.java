@@ -2,7 +2,6 @@ package com.augustoprojetos.backlogapi.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import com.augustoprojetos.backlogapi.entity.User;
 import lombok.Data;
 
 @Entity // Diz pro Spring: "Isso aqui é uma tabela no banco!"

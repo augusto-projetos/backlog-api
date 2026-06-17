@@ -1,6 +1,5 @@
 package com.augustoprojetos.backlogapi.service;
 
-import com.augustoprojetos.backlogapi.dto.tmdb.TmdbMovie;
 import com.augustoprojetos.backlogapi.dto.tmdb.TmdbResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 public class TmdbService {
 
-    @Value("${tmdb.api.key:}")
+    @Value("${TMDB_API_KEY}")
     private String apiKey;
 
     @Value("${tmdb.api.url:https://api.themoviedb.org/3}")
