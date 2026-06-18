@@ -22,7 +22,7 @@ public class PasswordResetService {
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
 
-    @Value("${brevo.api.key}")
+    @Value("${BREVO_API_KEY}")
     private String brevoApiKey;
 
     // Gera um token válido por 15 minutos
