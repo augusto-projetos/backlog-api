@@ -7,9 +7,13 @@ import com.augustoprojetos.backlogapi.repository.UserRepository;
 import com.augustoprojetos.backlogapi.repository.EmailVerificationTokenRepository;
 import com.augustoprojetos.backlogapi.service.UserService;
 import com.augustoprojetos.backlogapi.service.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +35,8 @@ public class AuthenticationController {
 
     @Autowired
     private EmailService emailService;
+
+    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @GetMapping("/register")
     public String registerForm() {
@@ -76,7 +82,7 @@ public class AuthenticationController {
 
     // 3. Endpoint que o utilizador vai clicar no e-mail
     @GetMapping("/auth/verify")
-    public String verifyEmail(@RequestParam("token") String token) {
+    public String verifyEmail(@RequestParam("token") String token, HttpServletRequest request, HttpServletResponse response) {
         Optional<EmailVerificationToken> optionalToken = emailVerificationTokenRepository.findByToken(token);
 
         if (optionalToken.isEmpty()) {
@@ -105,6 +111,7 @@ public class AuthenticationController {
                 user, null, user.getAuthorities()
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
 
         // Vai direto para o home já autenticado
         return "redirect:/home";

@@ -15,24 +15,34 @@
         <div class="card">
             <h2>Acesse sua conta 🎮</h2>
 
-            <div th:if="${param.error}" class="error">
-                Usuário ou senha incorretos!
+            <!-- Mensagens de erro e sucesso -->
+            <div th:if="${param.error}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+                <i class="fa-solid fa-circle-exclamation"></i> Credenciais inválidas ou conta ainda não ativada pelo link do e-mail.
             </div>
-            <div th:if="${param.success}" style="color: #4cd137; margin-bottom: 10px; text-align: center;">
-                Conta criada! Pode entrar.
-            </div>
+
             <div th:if="${param.emailSent}" style="color: #f39c12; margin-bottom: 10px; font-size: 14px; text-align: center;">
                 Se o e-mail estiver cadastrado, você receberá um link de recuperação.
             </div>
+
             <div th:if="${param.resetError}" class="error">
                 Link de recuperação inválido ou expirado.
             </div>
+
             <div th:if="${param.resetSuccess}" style="color: #4cd137; margin-bottom: 10px; font-size: 14px; text-align: center;">
                 Sua senha foi alterada com sucesso!
             </div>
 
+            <div th:if="${param.pendingVerification}" class="info-message" style="background-color: #2e7d32; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+                <i class="fa-solid fa-envelope-circle-check"></i> Conta criada com sucesso! Enviámos um link de confirmação para o seu e-mail. Verifique a sua caixa de entrada ou a pasta de spam.
+            </div>
+
+            <div th:if="${param.error != null && param.error[0] == 'tokenInvalid'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+                <i class="fa-solid fa-circle-xmark"></i> O link de verificação é inválido ou já foi utilizado.
+            </div>
+            <!-- Fim das mensagens -->
+
             <form th:action="@{/login}" method="post">
-                <input type="text" name="username" placeholder="Email" required>
+                <input type="email" name="username" placeholder="Email" required>
 
                 <div class="password-wrapper">
                     <input type="password" name="password" placeholder="Senha" required>
