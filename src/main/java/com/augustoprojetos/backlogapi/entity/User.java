@@ -36,6 +36,7 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String email;
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean emailVerified = false;
 
     // --- Métodos obrigatórios do UserDetails ---

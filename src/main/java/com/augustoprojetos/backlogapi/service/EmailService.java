@@ -23,8 +23,8 @@ public class EmailService {
             headers.set("api-key", brevoApiKey);
             headers.set("accept", "application/json");
 
-            // Magic Link (ajuste a porta/domínio se necessário)
-            String verificationLink = "http://localhost:8080/auth/verify?token=" + token;
+            // Magic Link
+            String verificationLink = "https://meus-backlog.onrender.com/auth/verify?token=" + token;
 
             // Corpo do e-mail em HTML
             String htmlMsg = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>"
