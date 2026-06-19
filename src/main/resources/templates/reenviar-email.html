@@ -11,6 +11,25 @@
     </head>
 
     <body>
+
+        <!-- Mensagens de erro e sucesso -->
+        <div th:if="${param.error != null && param.error[0] == 'spam'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+            <i class="fa-solid fa-circle-exclamation"></i> Muitas solicitações! Por favor, aguarde alguns minutos antes de pedir um novo e-mail.
+        </div>
+
+        <div th:if="${param.error != null && param.error[0] == 'alreadyVerified'}" class="error-message" style="background-color: #1565c0; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+            <i class="fa-solid fa-circle-info"></i> Esta conta já foi verificada anteriormente. Você já pode fazer login normalmente.
+        </div>
+
+        <div th:if="${param.error != null && param.error[0] == 'userNotFound'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+            <i class="fa-solid fa-circle-xmark"></i> Não encontramos nenhuma conta vinculada a este endereço de e-mail.
+        </div>
+
+        <div th:if="${param.resendSuccess}" class="success-message" style="background-color: #2e7d32; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+            <i class="fa-solid fa-circle-check"></i> Sucesso! Um novo link de verificação foi enviado para o seu e-mail.
+        </div>
+        <!-- Fim das mensagens -->
+
         <div class="card">
             <h2>Reenviar Link ✉️</h2>
 

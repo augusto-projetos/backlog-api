@@ -106,8 +106,15 @@ public class AuthenticationController {
 
         Object userObj = userRepository.findByEmail(email);
 
-        // Se o usuário existir e ainda não estiver verificado
-        if (userObj instanceof User user && !user.isEnabled()) {
+        // Se o usuário existir e ainda não o estiver verificado
+        if (userObj instanceof User user) {
+            
+            // CASO 1: Usuário já está verificado/ativo
+            if (user.isEnabled()) {
+                return "redirect:/reenviar-email?error=alreadyVerified";
+            }
+
+            // CASO 2: Usuário existe mas está pendente
             // Apaga o token antigo se existir
             Optional<EmailVerificationToken> tokenAntigo = emailVerificationTokenRepository.findByUser_Id(user.getId());
             tokenAntigo.ifPresent(emailVerificationTokenRepository::delete);
@@ -116,9 +123,12 @@ public class AuthenticationController {
             EmailVerificationToken novoToken = new EmailVerificationToken(user);
             emailVerificationTokenRepository.save(novoToken);
             emailService.sendVerificationEmail(user.getEmail(), novoToken.getToken());
+
+            return "redirect:/reenviar-email?resendSuccess";
         }
 
-        return "redirect:/reenviar-email?resendSuccess";
+        // CASO 3: Se o userObj não for uma instância de User (Usuário não encontrado)
+        return "redirect:/reenviar-email?error=userNotFound";
     }
 
     // 4. Endpoint que o utilizador vai clicar no e-mail
