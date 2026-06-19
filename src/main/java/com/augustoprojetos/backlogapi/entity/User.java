@@ -36,6 +36,8 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String email;
 
+    private boolean emailVerified = false;
+
     // --- Métodos obrigatórios do UserDetails ---
 
     @Override
@@ -72,10 +74,9 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true; // O usuário está sempre ativo
+        return this.emailVerified; 
     }
 
-    // Método explícito para o Thymeleaf ler o nome
     public String getLogin() {
         return this.login;
     }
