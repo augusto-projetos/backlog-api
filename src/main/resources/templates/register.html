@@ -12,7 +12,9 @@
     </head>
     <body>
         <div class="card">
-            <h2>Crie sua conta 🎮</h2>
+            <a href="/" style="text-decoration: none; color: inherit;">
+                <h2>Crie sua conta 🎮</h2>
+            </a>
 
             <!-- Mensagens de erro -->
             <div th:if="${param.error != null and param.error[0] == 'email'}" class="alert">
@@ -29,6 +31,10 @@
 
             <div th:if="${param.error != null && param.error[0] == 'tokenExpired'}" class="warning-message" style="background-color: #ef6c00; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
                 <i class="fa-solid fa-clock"></i> O seu link de verificação expirou. Por motivos de segurança, os seus dados foram removidos. Por favor, realize um novo registo.
+            </div>
+
+            <div th:if="${param.error != null && param.error[0] == 'spam'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+                <i class="fa-solid fa-hand"></i> Muitas tentativas de cadastro. Aguarde 10 minutos.
             </div>
             <!-- Fim das mensagens -->
 

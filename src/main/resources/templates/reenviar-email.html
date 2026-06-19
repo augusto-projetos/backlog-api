@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reenviar E-mail - Meus Backlog</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✉️</text></svg>">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <link rel="stylesheet" th:href="@{/css/auth.css}">
+    </head>
+
+    <body>
+        <div class="card">
+            <h2>Reenviar Link ✉️</h2>
+
+            <p style="text-align: center; margin-bottom: 20px; font-size: 14px; color: #ccc;">
+                Digite seu e-mail cadastrado. Se a sua conta estiver pendente, enviaremos um novo link de ativação.
+            </p>
+
+            <div th:if="${param.resendSuccess}" class="info-message" style="background-color: #2e7d32; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+                <i class="fa-solid fa-envelope-circle-check"></i> Se o e-mail estiver cadastrado e pendente, um novo link foi enviado!
+            </div>
+
+            <div th:if="${param.error != null && param.error[0] == 'spam'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+                <i class="fa-solid fa-hand"></i> Muitas tentativas. Aguarde 10 minutos antes de tentar novamente.
+            </div>
+
+            <form th:action="@{/auth/reenviar-email}" method="post">
+                <input type="email" name="email" placeholder="Digite seu e-mail" required>
+                <button type="submit" style="margin-top: 15px;">Reenviar E-mail</button>
+            </form>
+
+            <br>
+            <a href="/login">Voltar para o Login</a>
+        </div>
+    </body>
+</html>

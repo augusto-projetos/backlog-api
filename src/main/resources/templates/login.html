@@ -13,7 +13,9 @@
     <body>
 
         <div class="card">
-            <h2>Acesse sua conta 🎮</h2>
+            <a href="/" style="text-decoration: none; color: inherit;">
+                <h2>Acesse sua conta 🎮</h2>
+            </a>
 
             <!-- Mensagens de erro e sucesso -->
             <div th:if="${param.error}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
@@ -39,6 +41,10 @@
             <div th:if="${param.error != null && param.error[0] == 'tokenInvalid'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
                 <i class="fa-solid fa-circle-xmark"></i> O link de verificação é inválido ou já foi utilizado.
             </div>
+
+            <div th:if="${param.error != null && param.error[0] == 'spam'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+                <i class="fa-solid fa-hand"></i> Muitas tentativas. Aguarde 10 minutos antes de tentar novamente.
+            </div>
             <!-- Fim das mensagens -->
 
             <form th:action="@{/login}" method="post">
@@ -59,6 +65,7 @@
 
             <div class="opcoes-login">
                 <a href="/recuperar-senha" class="forgot-password">Esqueci minha senha</a>
+                <a href="/reenviar-email" class="forgot-password">Não recebeu o link de verificação?</a>
             </div>
             <br>
             <a href="/register">Criar uma conta</a>

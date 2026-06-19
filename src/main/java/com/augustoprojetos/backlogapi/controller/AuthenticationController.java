@@ -7,6 +7,8 @@ import com.augustoprojetos.backlogapi.repository.UserRepository;
 import com.augustoprojetos.backlogapi.repository.EmailVerificationTokenRepository;
 import com.augustoprojetos.backlogapi.service.UserService;
 import com.augustoprojetos.backlogapi.service.EmailService;
+import com.augustoprojetos.backlogapi.service.RateLimitService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,9 @@ public class AuthenticationController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private RateLimitService rateLimitService;
+
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @GetMapping("/register")
@@ -43,10 +48,21 @@ public class AuthenticationController {
         return "register";
     }
 
+    @GetMapping("/reenviar-email")
+    public String reenviarEmailForm() {
+        return "reenviar-email";
+    }
+
     // 2. Recebe os dados do formulário, salva inativo e dispara o e-mail
     @PostMapping("/auth/register")
     public String register(RegisterDTO data) {
-        // 1. Verifica se o EMAIL já existe
+
+        // Verifica o rate limit para evitar spam
+        if (!rateLimitService.isPermitido(data.email())) {
+            return "redirect:/register?error=spam"; 
+        }
+
+        // Verifica se o email já existe
         if (userRepository.findByEmail(data.email()) != null) {
             return "redirect:/register?error=email";
         }
@@ -80,7 +96,32 @@ public class AuthenticationController {
         }
     }
 
-    // 3. Endpoint que o utilizador vai clicar no e-mail
+    // 3. Endpoint para reenvio do e-mail de verificação
+    @PostMapping("/auth/reenviar-email")
+    public String reenviarEmail(@RequestParam("email") String email) {
+        // Proteção contra spam no reenvio
+        if (!rateLimitService.isPermitido(email)) {
+            return "redirect:/reenviar-email?error=spam";
+        }
+
+        Object userObj = userRepository.findByEmail(email);
+
+        // Se o usuário existir e ainda não estiver verificado
+        if (userObj instanceof User user && !user.isEnabled()) {
+            // Apaga o token antigo se existir
+            Optional<EmailVerificationToken> tokenAntigo = emailVerificationTokenRepository.findByUser_Id(user.getId());
+            tokenAntigo.ifPresent(emailVerificationTokenRepository::delete);
+
+            // Gera um novo e envia
+            EmailVerificationToken novoToken = new EmailVerificationToken(user);
+            emailVerificationTokenRepository.save(novoToken);
+            emailService.sendVerificationEmail(user.getEmail(), novoToken.getToken());
+        }
+
+        return "redirect:/reenviar-email?resendSuccess";
+    }
+
+    // 4. Endpoint que o utilizador vai clicar no e-mail
     @GetMapping("/auth/verify")
     public String verifyEmail(@RequestParam("token") String token, HttpServletRequest request, HttpServletResponse response) {
         Optional<EmailVerificationToken> optionalToken = emailVerificationTokenRepository.findByToken(token);
