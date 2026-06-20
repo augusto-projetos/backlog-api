@@ -7,12 +7,12 @@ const formCadastro = document.getElementById('form-cadastro');
 let idEdicao = null;
 
 // 1. Lógica da Home (Lista)
-if (listaItens && !window.location.pathname.includes('/share')) {
+if (listaItens && !window.location.pathname.includes('/share') && !window.location.pathname.includes('/u/')) {
     carregarItens();
 }
 
-// Lógica para a Página Compartilhada (/share)
-if (window.location.pathname.includes('/share')) {
+// Lógica para a Página Compartilhada (/share) e Perfil Público (/u/)
+if (window.location.pathname.includes('/share') || window.location.pathname.includes('/u/')) {
     configurarRatingShared();
 }
 

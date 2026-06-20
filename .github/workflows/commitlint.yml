@@ -1,0 +1,20 @@
+name: Lint Commit Messages
+
+on:
+  pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize']
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Validar os commits do PR
+        uses: wagoid/commitlint-github-action@v6

@@ -22,14 +22,31 @@ public class UserService {
 
     // --- CADASTRAR COM SEGURANÇA ---
     public void cadastrarUsuario(User user) {
-        // 1. Valida antes de tudo
+        
+        // 1. Verifica se o e-mail já está em uso
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("email");
+        }
+
+        // 2. Verifica se o @ de usuário já está em uso
+        String arroba = user.getSocialUsername();
+        
+        if (arroba == null || arroba.trim().isEmpty()) {
+            throw new IllegalArgumentException("O @ de usuário não chegou no servidor!");
+        }
+
+        if (userRepository.findBySocialUsername(arroba).isPresent()) {
+            throw new RuntimeException("social");
+        }
+
+        // 3. Valida a senha antes de tudo
         assert user.getPassword() != null;
         validarRequisitosSenha(user.getPassword());
 
-        // 2. Criptografa
+        // 4. Criptografa a senha
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // 3. Salva
+        // 5. Salva no banco de dados
         userRepository.save(user);
     }
 

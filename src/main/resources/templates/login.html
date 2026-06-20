@@ -18,7 +18,7 @@
             </a>
 
             <!-- Mensagens de erro e sucesso -->
-            <div th:if="${param.error}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
+            <div th:if="${param.error != null && param.error[0] != 'spam' && param.error[0] != 'alreadyVerified' && param.error[0] != 'userNotFound'}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
                 <i class="fa-solid fa-circle-exclamation"></i> Credenciais inválidas ou conta ainda não ativada pelo link do e-mail.
             </div>
 
@@ -26,7 +26,7 @@
                 Se o e-mail estiver cadastrado, você receberá um link de recuperação.
             </div>
 
-            <div th:if="${param.resetError}" class="error">
+            <div th:if="${param.resetError}" class="error-message" style="background-color: #c62828; color: white; padding: 12px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px;">
                 Link de recuperação inválido ou expirado.
             </div>
 

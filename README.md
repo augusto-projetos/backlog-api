@@ -5,7 +5,9 @@
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6-6db33f)
 ![Chart.js](https://img.shields.io/badge/Frontend-Chart.js-FF6384)
 ![Render](https://img.shields.io/badge/Deploy-Render-black)
+![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+![Brevo](https://img.shields.io/badge/API-Brevo_Email-009286)
 ![TMDB](https://img.shields.io/badge/API-TMDB-01b4e4)
 
 > **Sua coleção, suas regras.** Organize os jogos que você zerou, os filmes que assistiu e as séries que maratonou em um único lugar seguro e moderno.
@@ -14,39 +16,41 @@
 
 ## 🚀 Sobre o Projeto
 
-O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V5.0**) eleva o nível do projeto adicionando recursos de **Relatórios Gerenciais**, permitindo que o usuário extraia seus dados para uso externo, além de manter a camada de **Business Intelligence (BI)** para visualização em tempo real.
+O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V6.0**) marca a maior evolução do sistema, transformando-o de um gerenciador pessoal em uma verdadeira **Rede Social de Colecionadores**, com perfis públicos, sistema de buscas e autenticação blindada com verificação de e-mail.
 
-### ✨ Destaques da Versão 5.0 (Atual)
-* 📄 **Exportação de Dados (Relatórios):** Funcionalidade corporativa essencial. Agora é possível baixar todo o acervo em **PDF** (com layout formatado para impressão) ou **Excel** (planilha estruturada para análise de dados externa).
-* ⚡ **Processamento em Memória:** A geração dos arquivos utiliza `ByteArrayOutputStream` e bibliotecas otimizadas (**Apache POI** e **OpenPDF**), processando tudo na memória RAM para entregar o download instantaneamente, sem onerar o disco do servidor.
-* 🛡️ **Blindagem contra Falhas:** Tratamento robusto de dados nulos e formatação condicional na geração dos documentos, garantindo que o relatório nunca quebre, mesmo com informações incompletas.
+### ✨ Destaques da Versão 6.0 (A Atualização Social)
+* 🌐 **Perfis Públicos & Identidade:** Todo usuário agora possui um `@username` único (`socialUsername`). A plataforma gera dinamicamente uma URL de perfil público (`/u/seu_arroba`) no formato Read-Only para exibição do acervo e métricas para amigos.
+* 🔍 **Busca Social Inteligente:** Nova barra de pesquisa no cabeçalho com requisições assíncronas em tempo real. Utiliza a técnica de *Debounce* no JavaScript para poupar requisições ao banco de dados e conta com uma UI adaptativa (botão circular flutuante) desenhada para uma experiência Mobile-First.
+* 📧 **Autenticação Avançada & E-mail:** Fluxo de cadastro seguro com geração de *tokens* temporários (`EmailVerificationToken`) e envio de e-mails de confirmação utilizando a API do **Brevo**.
+* 🛡️ **Defesa Anti-Spam:** Implementação de `RateLimitService` para proteger os endpoints de registro e reenvio de e-mails contra abusos e requisições em massa.
 
 ### 🌟 Funcionalidades Consolidadas
+* 📄 **Exportação de Relatórios (V5.0):** Geração de relatórios gerenciais em PDF (layout para impressão) e Excel (planilha para análise), com processamento 100% em memória RAM via `ByteArrayOutputStream`.
 * 📊 **Dashboard de BI:** Gráficos interativos (Chart.js) com distribuição de acervo, status de progresso e histograma de notas.
-* 🌐 **Modo Social:** Links públicos temporários para compartilhar sua coleção com amigos.
-* 🎬 **API da TMDB:** Busca automática de capas, sinopses e metadados de filmes/séries.
+* 🎬 **Integração TMDB:** Busca automática de capas, sinopses e metadados de filmes/séries.
+* 🌐 **Modo Share:** Links públicos temporários para compartilhar listas específicas.
 * 🔍 **Filtros Avançados:** "Gaveta" de filtros com ordenação por nota, tipo e status.
-* 🔐 **Segurança:** Spring Security 6, BCrypt, Proteção CSRF e Monitoramento via Sentry.
 
 ---
 
 ## 🛠️ Arquitetura & Tecnologias
 
 ### Backend (Java Ecosystem)
-* **Java 17 & Spring Boot 3:** API REST e MVC.
-* **Apache POI & OpenPDF:** Manipulação avançada de arquivos Office e PDFs.
-* **JPA/Hibernate:** Consultas otimizadas com Projections e DTOs.
-* **Spring Security:** Controle de sessão e autenticação.
-* **Sentry SDK:** Monitoramento de erros em produção.
+* **Java 17 & Spring Boot 3:** API REST e arquitetura MVC.
+* **Spring Security 6:** Controle de sessão, criptografia (BCrypt), autorização de rotas e proteção CSRF.
+* **JPA/Hibernate:** Consultas otimizadas, uso extensivo de `Optional` e DTOs (Records).
+* **Apache POI & OpenPDF:** Manipulação e geração em tempo real de arquivos Office e PDFs.
+* **Sentry SDK:** Monitoramento proativo de erros em produção.
 
 ### Frontend
-* **Thymeleaf:** Renderização Server-Side (SSR).
-* **Chart.js:** Biblioteca de visualização de dados (Canvas).
-* **JavaScript (Vanilla):** Lógica assíncrona (`async/await`) e manipulação de DOM.
-* **CSS3 (Neon Theme):** Variáveis CSS para temas dinâmicos (Dark/Light Mode).
+* **Thymeleaf:** Renderização Server-Side (SSR) acoplada ao backend.
+* **Vanilla JavaScript:** Lógica de interface com chamadas assíncronas (`fetch API`), debounce para buscas e manipulação de DOM baseada em eventos.
+* **CSS3 (Modern UI):** Variáveis nativas (Dark/Light Mode) e Flexbox/Grid para designs altamente responsivos.
+* **Chart.js:** Biblioteca Canvas para renderização de dados estatísticos.
 
 ### APIs Externas
-* **The Movie Database (TMDB):** Metadados de filmes e séries.
+* **TMDB (The Movie Database):** Consumo de REST API para metadados de mídia.
+* **Brevo API:** Serviço de mensageria para validação de contas via SMTP.
 
 ---
 
@@ -56,7 +60,7 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 * Java JDK 17+.
 * Maven.
 * MySQL Server.
-* Chave da API [TMDB](https://www.themoviedb.org/).
+* Chaves de API externas (TMDB e Brevo).
 * DSN do [Sentry](https://sentry.io/) (Opcional).
 
 ### Passo a Passo
@@ -76,8 +80,9 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 
 3.  **Variáveis de Ambiente (Recomendado):**
     Configure as chaves no seu sistema ou IDE:
-    * `TMDB_API_KEY`: Sua chave da TMDB.
-    * `SENTRY_DSN`: Seu link do projeto Sentry (se for usar).
+    * `TMDB_API_KEY`: Para buscar capas.
+    * `BREVO_API_KEY`: Para o envio de e-mails de verificação de conta.
+    * `SENTRY_DSN`: Monitoramento de logs (Opcional).
 
 4.  **Execute a Aplicação:**
     ```bash
@@ -97,13 +102,15 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 - [x] V3.1: Modo Social e Monitoramento (Sentry/Umami).
 - [x] V4.0: Dashboard de Estatísticas (Chart.js + DTOs).
 - [x] V5.0: Exportação de Relatórios (Gerar PDF/Excel da coleção).
-- [ ] **V6.0:** ???
+- [x] V6.0: Rede Social (Busca dinâmica, Perfis com @ e Verificação de E-mail).
+- [ ] **V7.0 ???**
 
 ---
 
 ## 🤝 Autor
 
 Desenvolvido com 🤍 e ☕ por **Luiz Augusto**.  
-*Estudante de Engenharia de Software & Técnico em Informática*
+*Técnico em Informática*  
+*Engenharia de Software | Graduando na Universidade Federal de Lavras (UFLA)*
 
 ---

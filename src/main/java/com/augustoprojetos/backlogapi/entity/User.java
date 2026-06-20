@@ -39,6 +39,13 @@ public class User implements UserDetails {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean emailVerified = false;
 
+    @NotBlank(message = "O @ de usuário é obrigatório")
+    @Column(unique = true, length = 30)
+    private String socialUsername;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean isPublic = false;
+
     // --- Métodos obrigatórios do UserDetails ---
 
     @Override
