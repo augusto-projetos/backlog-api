@@ -34,15 +34,20 @@
 
             <div class="header-actions">
 
-                <div class="search-social-container">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <div class="search-social-container" id="container-busca-social">
+                    <i class="fa-solid fa-magnifying-glass search-icon icone-pc"></i>
                     <input type="text" id="input-busca-social" placeholder="Buscar amigos (@)..." autocomplete="off">
                     
-                    <div id="dropdown-busca-social" class="dropdown-social" style="display: none;">
-                        </div>
+                    <button type="button" id="btn-fechar-busca" class="btn-fechar-busca" style="display: none;" title="Fechar busca">✖</button>
+                    
+                    <div id="dropdown-busca-social" class="dropdown-social" style="display: none;"></div>
                 </div>
 
                 <div class="toggles-group">
+                    <button id="btn-mobile-busca" class="btn-theme btn-mobile-busca" title="Buscar Pessoas">
+                        <span>🔍</span>
+                    </button>
+
                     <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
                         <span id="theme-icon">🌙</span>
                     </button>

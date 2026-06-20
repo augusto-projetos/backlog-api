@@ -222,6 +222,19 @@ main {
     font-size: 0.9rem;
 }
 
+.btn-mobile-busca {
+    display: none !important;
+}
+.btn-fechar-busca {
+    background: none;
+    border: none;
+    color: #7f8c8d;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 5px;
+    margin-left: 10px;
+}
+
 /* --- LISTA DE CARDS --- */
 #lista-itens {
     display: flex;
@@ -796,7 +809,35 @@ main {
         padding: 30px 15px;
     }
 
+    /* --- BARRA DE BUSCA SOCIAL NO HEADER (MOBILE) --- */
+    /* 1. Esconde a barra inteira por padrão e mostra a bolinha */
     .search-social-container {
-        width: 100%;
+        display: none; 
+        position: absolute;
+        top: 75px;
+        left: 5%;
+        width: 90%;
+        z-index: 2000;
+        background-color: var(--bg-card);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        padding: 10px 15px;
+    }
+
+    /* 2. O JS vai adicionar essa classe quando o usuário clicar na bolinha */
+    .search-social-container.ativa {
+        display: flex;
+    }
+
+    /* 3. Mostra a bolinha da lupa perto da lua e estrela */
+    .btn-mobile-busca {
+        display: inline-flex !important;
+    }
+
+    /* 4. Esconde a lupinha cinza de PC e exibe o X de fechar */
+    .icone-pc {
+        display: none;
+    }
+    .btn-fechar-busca {
+        display: block !important;
     }
 }

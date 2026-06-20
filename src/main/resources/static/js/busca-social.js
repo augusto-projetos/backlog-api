@@ -1,9 +1,41 @@
 document.addEventListener('DOMContentLoaded', () => {
     const inputBusca = document.getElementById('input-busca-social');
     const dropdown = document.getElementById('dropdown-busca-social');
+    const btnMobile = document.getElementById('btn-mobile-busca');
+    const containerBusca = document.getElementById('container-busca-social');
+    const btnFechar = document.getElementById('btn-fechar-busca');
     let timeoutBusca = null;
 
     if (!inputBusca || !dropdown) return;
+
+    // Lógica de abrir/fechar no celular
+    if (btnMobile && containerBusca && btnFechar) {
+        
+        // Abre a barra flutuante
+        btnMobile.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita que feche na mesma hora
+            containerBusca.classList.add('ativa');
+            inputBusca.focus(); // Já coloca o teclado na tela
+        });
+
+        // Fecha pelo botão X
+        btnFechar.addEventListener('click', () => {
+            containerBusca.classList.remove('ativa');
+            dropdown.style.display = 'none';
+            inputBusca.value = ''; // Limpa a busca ao fechar
+        });
+
+        // Fecha se o usuário tocar em qualquer lugar fora da barra
+        document.addEventListener('click', (e) => {
+            if (containerBusca.classList.contains('ativa') && 
+                !containerBusca.contains(e.target) && 
+                !btnMobile.contains(e.target)) {
+                
+                containerBusca.classList.remove('ativa');
+                dropdown.style.display = 'none';
+            }
+        });
+    }
 
     // Fecha o dropdown se clicar fora
     document.addEventListener('click', (e) => {
