@@ -3,14 +3,16 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
     background-color: var(--bg-body);
     color: var(--text-main);
     margin: 0;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    transition: background-color 0.3s, color 0.3s;
+    transition:
+        background-color 0.3s,
+        color 0.3s;
 }
 
 main {
@@ -124,6 +126,102 @@ main {
     background-color: #8e44ad !important; /* Roxo mais escuro no hover */
 }
 
+/* --- BARRA DE BUSCA SOCIAL NO HEADER --- */
+.search-social-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 5px 15px;
+    width: 250px;
+    transition: all 0.3s ease;
+}
+
+.search-social-container:focus-within {
+    border-color: #e94560;
+    box-shadow: 0 0 8px rgba(233, 69, 96, 0.3);
+}
+
+.search-icon {
+    color: #7f8c8d;
+    margin-right: 10px;
+    font-size: 0.9rem;
+}
+
+#input-busca-social {
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+/* O Dropdown flutuante */
+.dropdown-social {
+    position: absolute;
+    top: 110%; /* Fica logo abaixo da barra */
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    z-index: 2000;
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.social-user-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.2s;
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.social-user-item:hover {
+    background-color: rgba(233, 69, 96, 0.1);
+}
+
+.social-user-item:last-child {
+    border-bottom: none;
+}
+
+.social-avatar {
+    background-color: #e94560;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.social-name {
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+
+.social-msg {
+    padding: 15px;
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
 /* --- LISTA DE CARDS --- */
 #lista-itens {
     display: flex;
@@ -147,7 +245,7 @@ main {
 
 .card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .card-img-wrapper {
@@ -160,7 +258,7 @@ main {
     height: 140px;
     object-fit: cover;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .card-info {
@@ -222,8 +320,12 @@ main {
     transition: background 0.3s;
 }
 
-.btn-edit:hover { background-color: #d35400; }
-.btn-delete:hover { background-color: #c0392b; }
+.btn-edit:hover {
+    background-color: #d35400;
+}
+.btn-delete:hover {
+    background-color: #c0392b;
+}
 
 /* --- BARRA DE PESQUISA --- */
 .search-wrapper {
@@ -269,7 +371,7 @@ main {
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
     font-weight: 600;
     font-size: 1rem;
     transition: all 0.3s ease;
@@ -307,8 +409,14 @@ main {
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Organização Interna da Gaveta */
@@ -335,7 +443,9 @@ main {
 }
 
 /* Estilo unificado para os 3 Selects */
-#filter-status, #filter-order, #filter-type {
+#filter-status,
+#filter-order,
+#filter-type {
     width: 100%;
     background-color: var(--bg-body);
     border: 1px solid var(--border-color);
@@ -348,7 +458,9 @@ main {
     transition: border-color 0.3s;
 }
 
-#filter-status:focus, #filter-order:focus, #filter-type:focus {
+#filter-status:focus,
+#filter-order:focus,
+#filter-type:focus {
     border-color: #e94560;
 }
 
@@ -390,7 +502,7 @@ main {
     border-radius: 50%; /* Redondo */
     font-size: 1.2rem;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
@@ -413,6 +525,7 @@ main {
 .resenha-texto {
     /* Técnica para limitar linhas */
     display: -webkit-box;
+    line-clamp: 3;
     -webkit-line-clamp: 3; /* MÁXIMO DE 3 LINHAS */
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -426,6 +539,7 @@ main {
 }
 
 .resenha-texto.expandido {
+    line-clamp: unset;
     -webkit-line-clamp: unset; /* Remove o limite de linhas */
     overflow: visible;
 }
@@ -477,7 +591,7 @@ main {
     width: 100%;
     margin-top: 15px;
     border-radius: 0;
-    box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .footer-content p {
@@ -515,7 +629,9 @@ main {
 
 .star {
     font-size: 1.2rem;
-    transition: transform 0.2s ease, text-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        text-shadow 0.2s ease;
     cursor: default;
 }
 
@@ -526,7 +642,7 @@ main {
 
 /* Estrela Preenchida */
 .star.filled {
-    color: #fbbf24
+    color: #fbbf24;
     text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); /* Efeito de leve brilho */
 }
 
@@ -552,12 +668,12 @@ main {
 
 /* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 600px) {
-
     body {
         padding: 0;
     }
 
-    .app-header, main {
+    .app-header,
+    main {
         padding: 15px;
     }
 
@@ -666,7 +782,9 @@ main {
         height: 45px;
     }
 
-    #filter-status, #filter-order, #filter-type {
+    #filter-status,
+    #filter-order,
+    #filter-type {
         font-size: 0.8rem;
         padding: 10px 25px 10px 10px;
     }
@@ -676,5 +794,9 @@ main {
         margin-top: 15px;
         border-radius: 0;
         padding: 30px 15px;
+    }
+
+    .search-social-container {
+        width: 100%;
     }
 }

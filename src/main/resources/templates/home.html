@@ -34,6 +34,14 @@
 
             <div class="header-actions">
 
+                <div class="search-social-container">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="input-busca-social" placeholder="Buscar amigos (@)..." autocomplete="off">
+                    
+                    <div id="dropdown-busca-social" class="dropdown-social" style="display: none;">
+                        </div>
+                </div>
+
                 <div class="toggles-group">
                     <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
                         <span id="theme-icon">🌙</span>
@@ -140,6 +148,7 @@
         <script th:src="@{/js/search-scroll.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
         <script th:src="@{/js/rating-toggle.js}"></script>
+        <script th:src="@{/js/busca-social.js}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </body>
 </html>
