@@ -77,6 +77,43 @@
 
             <hr class="divisor">
 
+            <h2>⚙️ Configurações</h2>
+
+            <form id="form-social" class="form-perfil">
+                <h3 class="secao-titulo">🌐 Perfil Social</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                    Defina seu @ e escolha se outras pessoas podem encontrar sua coleção na busca.
+                </p>
+
+                <div class="form-group">
+                    <label for="input-social-username">Nome de Usuário (@)</label>
+                    <div class="input-with-icon">
+                        <span class="icon-at">@</span>
+                        <input type="text" id="input-social-username" 
+                            th:value="${usuario.socialUsername}" 
+                            placeholder="seunome" maxlength="30" autocomplete="off">
+                    </div>
+                    <small class="hint-text">Apenas letras, números, pontos (.) e sublinhados (_)</small>
+                </div>
+
+                <div class="form-group toggle-container">
+                    <div class="toggle-text">
+                        <label for="toggle-publico" style="margin-bottom: 0;">Perfil Público</label>
+                        <small style="display: block; color: var(--text-muted); font-size: 0.75rem;">Permitir que achem meu Backlog na busca global.</small>
+                    </div>
+                    <label class="switch-social">
+                        <input type="checkbox" id="toggle-publico" th:checked="${usuario.isPublic}">
+                        <span class="slider-social round"></span>
+                    </label>
+                </div>
+
+                <button type="submit" id="btn-salvar-social" class="btn-salvar" style="margin-top: 15px;">
+                    Salvar Perfil Social
+                </button>
+            </form>
+
+            <hr class="divisor">
+
             <h3 class="secao-titulo">📂 Exportar Dados</h3>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
                 Baixe uma cópia completa da sua coleção para guardar ou abrir no Excel.
@@ -109,5 +146,6 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script th:src="@{/js/script.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
+        <script th:src="@{/js/perfil-social.js}"></script>
     </body>
 </html>

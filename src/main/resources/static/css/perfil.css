@@ -287,7 +287,143 @@ body {
 }
 
 .toggle-password:hover {
-    color: #e94560; /* Rosa do tema */
+    color: #e94560;
+}
+
+/* ESTILOS DO PERFIL SOCIAL */
+
+/* --- Input do @ Username --- */
+.input-with-icon {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-body);
+    border: 1px solid #444;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efeito quando o usuário clica na caixa de texto */
+.input-with-icon:focus-within {
+    border-color: #e94560;
+    box-shadow: 0 0 5px rgba(233, 69, 96, 0.3);
+}
+
+.icon-at {
+    padding: 10px 15px;
+    background-color: rgba(255, 255, 255, 0.05); /* Fundo levemente destacado */
+    color: #7f8c8d;
+    font-weight: bold;
+    border-right: 1px solid #444;
+}
+
+.input-with-icon input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px;
+    color: var(--text-main);
+    outline: none;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.hint-text {
+    display: block;
+    margin-top: 5px;
+    color: #7f8c8d;
+    font-size: 0.75rem;
+}
+
+/* --- Container do Toggle (Interruptor Público/Privado) --- */
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.02);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    margin-top: 15px;
+}
+
+.toggle-text {
+    flex: 1;
+    padding-right: 15px;
+}
+
+/* --- Botão Toggle --- */
+.switch-social {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+/* Esconde o checkbox feio original do navegador */
+.switch-social input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* O fundo do interruptor */
+.slider-social {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #7f8c8d; /* Cinza quando está desligado (Privado) */
+    transition: 0.4s;
+}
+
+/* A bolinha branca do interruptor */
+.slider-social:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Arredondamento */
+.slider-social.round {
+    border-radius: 34px;
+}
+
+.slider-social.round:before {
+    border-radius: 50%;
+}
+
+/* Quando o checkbox invisível estiver marcado (Público), muda a cor e move a bolinha */
+.switch-social input:checked + .slider-social {
+    background-color: #2ecc71; /* Verde indicando que está Público */
+}
+
+.switch-social input:checked + .slider-social:before {
+    transform: translateX(22px); /* Empurra a bolinha para a direita */
+}
+
+.btn-salvar {
+    width: 100%;
+    padding: 14px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+}
+
+.btn-salvar:active {
+    transform: scale(0.98);
 }
 
 /* --- RESPONSIVIDADE --- */
@@ -303,5 +439,20 @@ body {
 
     .export-buttons {
         flex-direction: column;
+    }
+
+    /* No celular, quebramos o container do interruptor para empilhar os textos */
+    .toggle-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .switch-social {
+        align-self: flex-end;
+    }
+    
+    .toggle-text {
+        padding-right: 0;
     }
 }
