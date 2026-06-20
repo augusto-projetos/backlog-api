@@ -25,6 +25,10 @@
                 ⚠️ A senha é muito fraca! Siga os requisitos abaixo.
             </div>
 
+            <div th:if="${param.error != null and param.error[0] == 'social'}" class="alert">
+                ⚠️ Ops! Esse @ já está sendo usado por outra pessoa. Escolha outro.
+            </div>
+
             <div th:if="${param.deleted}" class="error">
                 ❌ Conta deletada!
             </div>
@@ -39,8 +43,10 @@
             <!-- Fim das mensagens -->
 
             <form th:action="@{/auth/register}" method="post">
-                <input type="text" name="login" placeholder="Usuário" required>
+                <input type="text" name="login" placeholder="Seu Nome" required>
                 <input type="email" name="email" placeholder="Seu E-mail de cadastro" required>
+                
+                <input type="text" name="socialUsername" placeholder="Crie seu @ de usuario" pattern="^[a-zA-Z0-9_.]+$" title="Apenas letras, números, pontos ou sublinhados" required>
 
                 <div class="container-senha" style="position: relative;">
 

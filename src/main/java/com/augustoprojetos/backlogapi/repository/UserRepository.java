@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     UserDetails findByLogin(String login);
-    UserDetails findByEmail(String email);
+    Optional<User> findByEmail(String email);
     Optional<User> findBySocialUsername(String socialUsername);
     // Busca utilizadores onde o @ contenha o texto pesquisado E o perfil seja público
     List<User> findBySocialUsernameContainingIgnoreCaseAndIsPublicTrue(String socialUsername);

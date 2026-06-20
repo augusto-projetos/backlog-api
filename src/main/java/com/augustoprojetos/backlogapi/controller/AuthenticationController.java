@@ -55,16 +55,11 @@ public class AuthenticationController {
 
     // 2. Recebe os dados do formulário, salva inativo e dispara o e-mail
     @PostMapping("/auth/register")
-    public String register(RegisterDTO data) {
+    public String register(RegisterDTO data, @RequestParam(value = "socialUsername", required = false) String socialFormulario) {
 
         // Verifica o rate limit para evitar spam
         if (!rateLimitService.isPermitido(data.email())) {
             return "redirect:/register?error=spam"; 
-        }
-
-        // Verifica se o email já existe
-        if (userRepository.findByEmail(data.email()) != null) {
-            return "redirect:/register?error=email";
         }
 
         try {
@@ -73,26 +68,36 @@ public class AuthenticationController {
             newUser.setEmail(data.email());
             newUser.setPassword(data.password());
             
+            // Adiciona o @ vindo do formulário
+            String arrobaFinal = (socialFormulario != null && !socialFormulario.isEmpty()) ? socialFormulario : data.socialUsername();
+            newUser.setSocialUsername(arrobaFinal);
+            
             // Garante que inicia como não verificado (bloqueado no login normal)
             newUser.setEmailVerified(false); 
 
+            // O UserService vai validar duplicidade de e-mail e @ e lançar RuntimeException se der ruim
             userService.cadastrarUsuario(newUser);
 
-            // Procura o utilizador acabado de guardar para garantir que temos o ID correto
-            User savedUser = (User) userRepository.findByEmail(data.email());
-
             // Cria e guarda o token de verificação (expira em 24h automaticamente)
-            EmailVerificationToken verificationToken = new EmailVerificationToken(savedUser);
+            EmailVerificationToken verificationToken = new EmailVerificationToken(newUser);
             emailVerificationTokenRepository.save(verificationToken);
-
-            // Envia o e-mail de forma assíncrona usando a API do Brevo
-            emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken.getToken());
+            emailService.sendVerificationEmail(newUser.getEmail(), verificationToken.getToken());
 
             // Redireciona para o login com um aviso de que a verificação está pendente
             return "redirect:/login?pendingVerification";
 
         } catch (IllegalArgumentException e) {
+            // Cai aqui se a senha for fraca
             return "redirect:/register?error=senha";
+        } catch (RuntimeException e) {
+            if ("email".equals(e.getMessage())) {
+                return "redirect:/register?error=email";
+            }
+            if ("social".equals(e.getMessage())) {
+                return "redirect:/register?error=social";
+            }
+            // Fallback por precaução
+            return "redirect:/register?error=email";
         }
     }
 
@@ -104,10 +109,11 @@ public class AuthenticationController {
             return "redirect:/reenviar-email?error=spam";
         }
 
-        Object userObj = userRepository.findByEmail(email);
+        Optional<User> userOpt = userRepository.findByEmail(email);
 
-        // Se o usuário existir e ainda não o estiver verificado
-        if (userObj instanceof User user) {
+        // Se o usuário existir
+        if (userOpt.isPresent()) {
+            User user = userOpt.get(); // Extrai o usuário do Optional
             
             // CASO 1: Usuário já está verificado/ativo
             if (user.isEnabled()) {
@@ -127,7 +133,7 @@ public class AuthenticationController {
             return "redirect:/reenviar-email?resendSuccess";
         }
 
-        // CASO 3: Se o userObj não for uma instância de User (Usuário não encontrado)
+        // CASO 3: Usuário não encontrado no Optional
         return "redirect:/reenviar-email?error=userNotFound";
     }
 
