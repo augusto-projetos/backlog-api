@@ -1070,25 +1070,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnGaveta = document.getElementById('btn-mobile-gaveta');
     const wrapperGaveta = document.getElementById('gaveta-opcoes-mobile');
     const overlayGaveta = document.getElementById('gaveta-overlay');
+    const conteudoGaveta = wrapperGaveta ? wrapperGaveta.querySelector('.gaveta-conteudo') : null;
     const linksGaveta = document.querySelectorAll('.gaveta-conteudo a, .gaveta-conteudo button');
 
-    if (btnGaveta && wrapperGaveta && overlayGaveta) {
-        // Função para abrir a gaveta
+    let startY = 0;
+    let currentY = 0;
+    let IsDragging = false;
+
+    if (btnGaveta && wrapperGaveta && overlayGaveta && conteudoGaveta) {
+        
+        // Abre a gaveta subindo o transform para 0
         btnGaveta.addEventListener('click', (e) => {
             e.stopPropagation();
             wrapperGaveta.classList.add('ativa');
+            conteudoGaveta.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            conteudoGaveta.style.transform = 'translateY(0)';
+            document.body.style.overflow = 'hidden';
         });
 
-        // Função para fechar a gaveta clicando no overlay escuro
-        overlayGaveta.addEventListener('click', () => {
-            wrapperGaveta.classList.remove('ativa');
-        });
+        // Função unificada de fechar
+        function fecharGaveta() {
+            conteudoGaveta.style.transition = 'transform 0.35s cubic-bezier(0.32, 0.94, 0.6, 1)';
+            conteudoGaveta.style.transform = 'translateY(100%)'; // Desce suavemente a partir de onde estiver
+            
+            overlayGaveta.style.opacity = '0';
+            overlayGaveta.style.pointerEvents = 'none';
 
-        // Fecha a gaveta se clicar em qualquer opção interna dela
-        linksGaveta.forEach(elemento => {
-            elemento.addEventListener('click', () => {
+            setTimeout(() => {
+                wrapperGaveta.classList.remove('remove'); // Remove estados ativos
                 wrapperGaveta.classList.remove('ativa');
-            });
+                overlayGaveta.style.opacity = '';
+                overlayGaveta.style.pointerEvents = '';
+                document.body.style.overflow = '';
+            }, 350);
+        }
+
+        overlayGaveta.addEventListener('click', fecharGaveta);
+        linksGaveta.forEach(elemento => elemento.addEventListener('click', fecharGaveta));
+
+        // --- EVENTOS DE TOQUE (TOUCH) ---
+        conteudoGaveta.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            IsDragging = true;
+            conteudoGaveta.style.transition = 'none'; // Remove a transição para seguir o dedo em tempo real
+        }, { passive: false });
+
+        conteudoGaveta.addEventListener('touchmove', (e) => {
+            if (!IsDragging) return;
+
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+
+            if (e.cancelable) e.preventDefault();
+
+            if (deltaY > 0) {
+                conteudoGaveta.style.transform = `translateY(${deltaY}px)`;
+            }
+        }, { passive: false });
+
+        conteudoGaveta.addEventListener('touchend', (e) => {
+            if (!IsDragging) return;
+            IsDragging = false;
+
+            const deltaY = currentY - startY;
+
+            if (deltaY > 120) {
+                fecharGaveta(); // Continua a descida nativa se arrastou bastante
+            } else {
+                // Volta para o topo suavemente caso tenha arrastado pouco
+                conteudoGaveta.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                conteudoGaveta.style.transform = 'translateY(0)';
+            }
+            
+            startY = 0;
+            currentY = 0;
         });
+
+        overlayGaveta.addEventListener('touchmove', (e) => {
+            if (e.cancelable) e.preventDefault();
+        }, { passive: false });
     }
 });

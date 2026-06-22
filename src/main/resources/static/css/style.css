@@ -893,7 +893,7 @@ main {
     /* O menu que sobe da tela no mobile */
     .gaveta-conteudo {
         position: fixed;
-        bottom: -100%;
+        bottom: 0; /* Fica fixo na base */
         left: 0;
         width: 100%;
         background-color: var(--bg-card);
@@ -901,10 +901,11 @@ main {
         padding: 20px 25px 40px 25px;
         box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
         display: flex;
-        flex-direction: column; /* Empilha no mobile */
+        flex-direction: column;
         gap: 15px;
         z-index: 3100;
-        transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .gaveta-opcoes-wrapper.ativa .gaveta-conteudo {
