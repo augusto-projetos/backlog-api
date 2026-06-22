@@ -1064,3 +1064,31 @@ function configurarRatingShared() {
         }
     });
 }
+
+// Lógica de Controle da Gaveta Mobile
+document.addEventListener('DOMContentLoaded', () => {
+    const btnGaveta = document.getElementById('btn-mobile-gaveta');
+    const wrapperGaveta = document.getElementById('gaveta-opcoes-mobile');
+    const overlayGaveta = document.getElementById('gaveta-overlay');
+    const linksGaveta = document.querySelectorAll('.gaveta-conteudo a, .gaveta-conteudo button');
+
+    if (btnGaveta && wrapperGaveta && overlayGaveta) {
+        // Função para abrir a gaveta
+        btnGaveta.addEventListener('click', (e) => {
+            e.stopPropagation();
+            wrapperGaveta.classList.add('ativa');
+        });
+
+        // Função para fechar a gaveta clicando no overlay escuro
+        overlayGaveta.addEventListener('click', () => {
+            wrapperGaveta.classList.remove('ativa');
+        });
+
+        // Fecha a gaveta se clicar em qualquer opção interna dela
+        linksGaveta.forEach(elemento => {
+            elemento.addEventListener('click', () => {
+                wrapperGaveta.classList.remove('ativa');
+            });
+        });
+    }
+});

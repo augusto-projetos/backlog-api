@@ -169,7 +169,7 @@ main {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     z-index: 2000;
     max-height: 300px;
     overflow-y: auto;
@@ -182,7 +182,7 @@ main {
     align-items: center;
     padding: 12px 15px;
     cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: background 0.2s;
     color: var(--text-main);
     text-decoration: none;
@@ -679,6 +679,28 @@ main {
     white-space: nowrap; /* Impede que o ícone quebre a linha dentro do corte */
 }
 
+/* Esconde o botão da engrenagem no computador */
+.btn-mobile-gaveta {
+    display: none !important;
+}
+
+.gaveta-opcoes-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.gaveta-conteudo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: auto;
+}
+
+.gaveta-barra-arrastar {
+    display: none;
+}
+
 /* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 600px) {
     body {
@@ -810,34 +832,111 @@ main {
     }
 
     /* --- BARRA DE BUSCA SOCIAL NO HEADER (MOBILE) --- */
-    /* 1. Esconde a barra inteira por padrão e mostra a bolinha */
+
+    /* Esconde a barra inteira por padrão e mostra a bolinha */
     .search-social-container {
-        display: none; 
+        display: none;
         position: absolute;
         top: 75px;
         left: 5%;
         width: 90%;
         z-index: 2000;
         background-color: var(--bg-card);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
         padding: 10px 15px;
     }
 
-    /* 2. O JS vai adicionar essa classe quando o usuário clicar na bolinha */
+    /* O JS vai adicionar essa classe quando o usuário clicar na bolinha */
     .search-social-container.ativa {
         display: flex;
     }
 
-    /* 3. Mostra a bolinha da lupa perto da lua e estrela */
+    /* Mostra a bolinha da lupa perto da lua e estrela */
     .btn-mobile-busca {
         display: inline-flex !important;
     }
 
-    /* 4. Esconde a lupinha cinza de PC e exibe o X de fechar */
+    /* Esconde a lupinha cinza de PC e exibe o X de fechar */
     .icone-pc {
         display: none;
     }
     .btn-fechar-busca {
         display: block !important;
+    }
+
+    /* --- GAVETA DE OPÇÕES INFERIOR (BOTTOM SHEET) --- */
+
+    /* Exibe o botão da engrenagem no celular */
+    .btn-mobile-gaveta {
+        display: inline-flex !important;
+    }
+
+    /* Transforma o container em estrutura de gaveta flutuante apenas no mobile */
+    .gaveta-opcoes-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 3000;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    /* Quando a classe ativa estiver presente, permite cliques */
+    .gaveta-opcoes-wrapper.ativa {
+        pointer-events: auto;
+    }
+
+    /* O menu que sobe da tela no mobile */
+    .gaveta-conteudo {
+        position: fixed;
+        bottom: -100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--bg-card);
+        border-radius: 24px 24px 0 0;
+        padding: 20px 25px 40px 25px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column; /* Empilha no mobile */
+        gap: 15px;
+        z-index: 3100;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .gaveta-opcoes-wrapper.ativa .gaveta-conteudo {
+        bottom: 0;
+    }
+
+    .gaveta-barra-arrastar {
+        display: block;
+        width: 40px;
+        height: 5px;
+        background-color: var(--border-color);
+        border-radius: 10px;
+        margin: 0 auto 10px auto;
+    }
+
+    /* Fundo escuro semitransparente */
+    .gaveta-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 3050;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    /* Exibe o fundo escuro quando ativo */
+    .gaveta-opcoes-wrapper.ativa .gaveta-overlay {
+        opacity: 1;
+        pointer-events: auto;
     }
 }

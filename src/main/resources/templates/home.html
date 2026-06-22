@@ -55,25 +55,38 @@
                     <button id="rating-toggle" class="btn-theme" title="Alternar para Estrelas">
                         <span id="rating-icon">⭐</span>
                     </button>
+
+                    <button id="btn-mobile-gaveta" class="btn-theme btn-mobile-gaveta" title="Mais Opções">
+                        <span>⚙️</span>
+                    </button>
                 </div>
 
-                <a th:href="@{/meus-links}" class="btn-novo btn-share">
-                    🔗 Compartilhar
-                </a>
+                <!-- Abstrai os botões para virarem a Bottom Sheet no celular -->
+                <div id="gaveta-opcoes-mobile" class="gaveta-opcoes-wrapper">
+                    <div class="gaveta-conteudo">
+                        <div class="gaveta-barra-arrastar"></div>
+                        
+                        <a th:href="@{/meus-links}" class="btn-novo btn-share">
+                            🔗 Compartilhar
+                        </a>
 
-                <a th:href="@{/dashboard}" class="btn-novo" style="background-color: #f39c12;">
-                    📊 Estatísticas
-                </a>
+                        <a th:href="@{/dashboard}" class="btn-novo" style="background-color: #f39c12;">
+                            📊 Estatísticas
+                        </a>
 
-                <a th:href="@{/cadastro}" class="btn-novo">
-                    + Novo Item
-                </a>
+                        <a th:href="@{/cadastro}" class="btn-novo">
+                            + Novo Item
+                        </a>
 
-                <form th:action="@{/logout}" method="post" class="form-logout">
-                    <button type="submit" class="btn-sair">
-                        Sair 🚪
-                    </button>
-                </form>
+                        <form th:action="@{/logout}" method="post" class="form-logout">
+                            <button type="submit" class="btn-sair">
+                                Sair 🚪
+                            </button>
+                        </form>
+                    </div>
+                    <!-- Fundo escurecido atrás da gaveta -->
+                    <div id="gaveta-overlay" class="gaveta-overlay"></div>
+                </div>
             </div>
 
         </header>
