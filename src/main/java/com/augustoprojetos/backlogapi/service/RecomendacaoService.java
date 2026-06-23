@@ -20,9 +20,16 @@ public class RecomendacaoService {
     private ItemRepository itemRepository;
 
     @Value("${GEMINI_API_KEY}")
-    private String apiKey;
+    private String geminiApiKey;
 
-    private final String apiUrl = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent";
+    @Value("${GROQ_API_KEY}")
+    private String groqApiKey;
+
+    // URL do motor principal (Google Gemini 2.5 Flash)
+    private final String geminiFlashUrl = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent";
+
+    // URL do motor de failover estável e gratuito (Groq API)
+    private final String groqApiUrl = "https://api.groq.com/openai/v1/chat/completions";
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -30,10 +37,9 @@ public class RecomendacaoService {
         String promptCompleto = gerarPromptDoUsuario(user, tipoSolicitado);
 
         try {
-            // Monta a URL concatenando o parâmetro 'key'
-            String urlComKey = apiUrl + "?key=" + apiKey;
+            // 1. TENTATIVA PRINCIPAL: Google Gemini 2.5 Flash
+            String urlComKey = geminiFlashUrl + "?key=" + geminiApiKey;
 
-            // Monta o corpo do JSON exatamente no padrão exigido pela API do Gemini
             Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                     Map.of("parts", List.of(
@@ -46,12 +52,9 @@ public class RecomendacaoService {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-            // Dispara a requisição POST para o Google
             ResponseEntity<Map> response = restTemplate.exchange(urlComKey, HttpMethod.POST, entity, Map.class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                // Navega de forma segura pela árvore do JSON retornado pelo Gemini para capturar o texto
                 List<?> candidates = (List<?>) response.getBody().get("candidates");
                 Map<?, ?> firstCandidate = (Map<?, ?>) candidates.get(0);
                 Map<?, ?> content = (Map<?, ?>) firstCandidate.get("content");
@@ -60,43 +63,74 @@ public class RecomendacaoService {
                 
                 return (String) firstPart.get("text");
             }
-            
-            return "🤖 O Geminino recebeu uma resposta inesperada dos servidores centrais. Tente de novo!";
+            throw new RuntimeException("Resposta inválida do Gemini");
 
         } catch (Exception e) {
-            // Captura falhas de timeout, chaves incorretas ou falta de internet
-            e.printStackTrace();
-            return "🤖 Ops! O Geminino deu uma cochilada e não conseguiu se conectar ao servidor de inteligência agora.";
+            // O Gemini falhou! O catch captura e joga imediatamente para a Groq (Meta Llama 3)
+            System.out.println("⚠️ O motor principal (Gemini 2.5 Flash) falhou devido a: " + e.getMessage());
+            System.out.println("🚀 Acionando plano de contingência: Mudando para Groq Cloud (Llama 3)...");
+            
+            return chamarGroqFallback(promptCompleto);
+        }
+    }
+
+    // Motor secundário de failover utilizando a API Gratuita da Groq Cloud
+    private String chamarGroqFallback(String prompt) {
+        try {
+            // Corpo JSON atualizado com o modelo Llama 3.1 ativo na Groq
+            Map<String, Object> requestBody = Map.of(
+                "model", "llama-3.1-8b-instant",
+                "messages", List.of(
+                    Map.of("role", "user", "content", prompt)
+                ),
+                "temperature", 0.7
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(groqApiKey); // Passa a gsk_ key no Bearer Token
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(groqApiUrl, HttpMethod.POST, entity, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                List<?> choices = (List<?>) response.getBody().get("choices");
+                Map<?, ?> firstChoice = (Map<?, ?>) choices.get(0);
+                Map<?, ?> message = (Map<?, ?>) firstChoice.get("message");
+                
+                return (String) message.get("content");
+            }
+            
+            return "🤖 Ops! O Gemini e o Llama tentaram, mas os servidores de IA estão instáveis. Tente de novo!";
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return "🤖 Ocorreu uma falha geral nos motores de recomendação por IA.";
         }
     }
 
     private String gerarPromptDoUsuario(User user, String tipoSolicitado) {
         List<Item> acervo = itemRepository.findByUser(user);
 
-        // 2. Extrai os favoritos (Notas altas de 8.0 a 10.0) filtrados por tipo ou de forma geral
         String favoritos = acervo.stream()
                 .filter(item -> item.getNota() >= 8.0)
                 .map(item -> item.getTitulo() + " (" + item.getTipo() + ") - Nota: " + item.getNota())
                 .collect(Collectors.joining(", "));
 
-        // 3. Extrai o que ele está consumindo atualmente ("andamento")
         String emAndamento = acervo.stream()
                 .filter(item -> "andamento".equalsIgnoreCase(item.getStatus()))
                 .map(Item::getTitulo)
                 .collect(Collectors.joining(", "));
 
-        // 4. Extrai o que ele planeja consumir no futuro ("backlog")
         String listaDesejos = acervo.stream()
                 .filter(item -> "backlog".equalsIgnoreCase(item.getStatus()))
                 .map(Item::getTitulo)
                 .collect(Collectors.joining(", "));
 
-        // Se o usuário não tiver nada cadastrado ainda, damos um fallback seguro para não quebrar a IA
         if (favoritos.isEmpty() && emAndamento.isEmpty()) {
             favoritos = "Nenhum item cadastrado ainda. O usuário é novo na plataforma.";
         }
 
-        // 5. Engenharia de Prompt: Monta a instrução rígida e estruturada para a IA
         StringBuilder prompt = new StringBuilder();
         prompt.append("Você é um especialista em entretenimento e o motor de recomendações do aplicativo 'Meus Backlog'.\n");
         prompt.append("Analise o perfil de consumo do usuário abaixo e sugira exatamente 3 recomendações inéditas de ");
