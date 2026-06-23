@@ -1223,15 +1223,41 @@ function fecharModalIA() {
 
 function efeitoDigitacao(elemento, texto) {
     let i = 0;
-    elemento.innerText = '';
+    let textoAcumulado = '';
+    elemento.innerHTML = '';
+    
     function digitar() {
         if (i < texto.length) {
-            elemento.innerText += texto.charAt(i);
+            textoAcumulado += texto.charAt(i);
+            
+            // Renderiza o texto processado com HTML real (negritos, itálicos)
+            elemento.innerHTML = converterMarkdownParaHtml(textoAcumulado);
             i++;
+            
             const modalBody = document.querySelector('.modal-ia-body');
             if (modalBody) modalBody.scrollTop = modalBody.scrollHeight;
+            
             setTimeout(digitar, 12);
         }
     }
     digitar();
+}
+
+function converterMarkdownParaHtml(texto) {
+    // 1. Escapa o HTML nativo para evitar ataques XSS
+    let html = texto
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // 2. Converte negritos (ex: **texto** para <strong>texto</strong>)
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // 3. Converte itálicos simples (ex: *texto* para <em>texto</em>)
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    // 4. Converte marcadores de lista/tópicos (ex: * Item ou - Item)
+    html = html.replace(/^\s*[\*\-]\s+(.*)$/gm, '• $1');
+
+    return html;
 }
