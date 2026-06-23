@@ -19,11 +19,10 @@ public class RecomendacaoService {
     @Autowired
     private ItemRepository itemRepository;
 
-    @Value("${gemini.api.key}")
+    @Value("${GEMINI_API_KEY}")
     private String apiKey;
 
-    @Value("${gemini.api.url}")
-    private String apiUrl;
+    private final String apiUrl = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent";
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -31,10 +30,10 @@ public class RecomendacaoService {
         String promptCompleto = gerarPromptDoUsuario(user, tipoSolicitado);
 
         try {
-            // Endereço completo com a chave de autenticação na Query URL
+            // Monta a URL concatenando o parâmetro 'key'
             String urlComKey = apiUrl + "?key=" + apiKey;
 
-            // Monta o corpo do JSON exatamente no padrão exigido pela API do Gemini v1beta
+            // Monta o corpo do JSON exatamente no padrão exigido pela API do Gemini
             Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                     Map.of("parts", List.of(
@@ -66,6 +65,7 @@ public class RecomendacaoService {
 
         } catch (Exception e) {
             // Captura falhas de timeout, chaves incorretas ou falta de internet
+            e.printStackTrace();
             return "🤖 Ops! O Geminino deu uma cochilada e não conseguiu se conectar ao servidor de inteligência agora.";
         }
     }
