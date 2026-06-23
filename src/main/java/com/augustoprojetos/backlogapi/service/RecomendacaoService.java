@@ -141,12 +141,15 @@ public class RecomendacaoService {
         prompt.append("Mídias que ele está assistindo/jogando agora: [ ").append(emAndamento).append(" ]\n");
         prompt.append("Mídias que estão na lista de espera (Backlog): [ ").append(listaDesejos).append(" ]\n\n");
         
-        prompt.append("--- REGRAS DE RESPOSTA ---\n");
+        prompt.append("--- REGRAS DE RESPOSTA E FORMATAÇÃO VISUAL ---\n");
         prompt.append("1. Recomende APENAS itens do tipo: ").append(tipoSolicitado).append(".\n");
         prompt.append("2. Não recomende mídias que já estejam listadas no perfil do usuário.\n");
-        prompt.append("3. Para cada recomendação, forneça o Título e uma justificativa curta e empolgante de até 3 linhas explicando o porquê da escolha baseado nos gostos dele.\n");
-        prompt.append("4. Escreva em português brasileiro com um tom amigável e descontraído de um amigo gamer/cinéfilo.\n");
-        prompt.append("5. Responda em um formato limpo, usando marcadores claros para cada uma das 3 sugestões.");
+        prompt.append("3. Adote OBRIGATORIAMENTE a seguinte estrutura visual para cada uma das 3 recomendações:\n");
+        prompt.append("   **[Número]• [Título da Mídia]**\n");
+        prompt.append("   *Justificativa:* [Escreva aqui o motivo empolgante focado nos gostos dele em até 3 linhas]\n\n");
+        prompt.append("4. Separe cada uma das 3 recomendações por uma linha em branco para o texto respirar na tela.\n");
+        prompt.append("5. Insira uma saudação rápida e amigável com um emoji no início e uma frase descontraída de encerramento no final.\n");
+        prompt.append("6. Escreva em português brasileiro, mantendo um tom de um amigo cinéfilo/gamer.");
 
         return prompt.toString();
     }
