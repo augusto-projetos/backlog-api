@@ -4,9 +4,13 @@ import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -15,8 +19,58 @@ public class RecomendacaoService {
     @Autowired
     private ItemRepository itemRepository;
 
-    public String gerarPromptDoUsuario(User user, String tipoSolicitado) {
-        // 1. Busca todo o acervo do usuário logado
+    @Value("${gemini.api.key}")
+    private String apiKey;
+
+    @Value("${gemini.api.url}")
+    private String apiUrl;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public String obterRecomendacaoDaIA(User user, String tipoSolicitado) {
+        String promptCompleto = gerarPromptDoUsuario(user, tipoSolicitado);
+
+        try {
+            // Endereço completo com a chave de autenticação na Query URL
+            String urlComKey = apiUrl + "?key=" + apiKey;
+
+            // Monta o corpo do JSON exatamente no padrão exigido pela API do Gemini v1beta
+            Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                    Map.of("parts", List.of(
+                        Map.of("text", promptCompleto)
+                    ))
+                )
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            // Dispara a requisição POST para o Google
+            ResponseEntity<Map> response = restTemplate.exchange(urlComKey, HttpMethod.POST, entity, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                // Navega de forma segura pela árvore do JSON retornado pelo Gemini para capturar o texto
+                List<?> candidates = (List<?>) response.getBody().get("candidates");
+                Map<?, ?> firstCandidate = (Map<?, ?>) candidates.get(0);
+                Map<?, ?> content = (Map<?, ?>) firstCandidate.get("content");
+                List<?> parts = (List<?>) content.get("parts");
+                Map<?, ?> firstPart = (Map<?, ?>) parts.get(0);
+                
+                return (String) firstPart.get("text");
+            }
+            
+            return "🤖 O Geminino recebeu uma resposta inesperada dos servidores centrais. Tente de novo!";
+
+        } catch (Exception e) {
+            // Captura falhas de timeout, chaves incorretas ou falta de internet
+            return "🤖 Ops! O Geminino deu uma cochilada e não conseguiu se conectar ao servidor de inteligência agora.";
+        }
+    }
+
+    private String gerarPromptDoUsuario(User user, String tipoSolicitado) {
         List<Item> acervo = itemRepository.findByUser(user);
 
         // 2. Extrai os favoritos (Notas altas de 8.0 a 10.0) filtrados por tipo ou de forma geral
