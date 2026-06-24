@@ -103,7 +103,7 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 - [x] V4.0: Dashboard de Estatísticas (Chart.js + DTOs).
 - [x] V5.0: Exportação de Relatórios (Gerar PDF/Excel da coleção).
 - [x] V6.0: Rede Social (Busca dinâmica, Perfis com @ e Verificação de E-mail).
-- [ ] **V7.0 ???**
+- [ ] **V7.0: Sistema com IA e Conquistas**
 
 ---
 
