@@ -3,7 +3,7 @@ package com.augustoprojetos.backlogapi.service;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import com.augustoprojetos.backlogapi.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import com.augustoprojetos.backlogapi.repository.UserConquistaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,19 +18,21 @@ public class UserService {
     private ItemRepository itemRepository;
 
     @Autowired
+    private UserConquistaRepository userConquistaRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     // --- CADASTRAR COM SEGURANÇA ---
     public void cadastrarUsuario(User user) {
-        
-        // 1. Verifica se o e-mail já está em uso
+
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("email");
         }
 
         // 2. Verifica se o @ de usuário já está em uso
         String arroba = user.getSocialUsername();
-        
+
         if (arroba == null || arroba.trim().isEmpty()) {
             throw new IllegalArgumentException("O @ de usuário não chegou no servidor!");
         }
@@ -74,9 +76,10 @@ public class UserService {
     }
 
     // Deletar Conta (e tudo relacionado a ela)
-    @Transactional // Garante que apaga tudo ou nada
     public void deletarConta(User user) {
-        // Primeiro apaga os itens desse usuário
+        // Apaga conquistas do usuário
+        userConquistaRepository.deleteByUser(user);
+        itemRepository.deleteByUser(user);
         itemRepository.deleteByUser(user);
         // Depois apaga o usuário
         userRepository.delete(user);
@@ -93,7 +96,7 @@ public class UserService {
         boolean temNumero = false;
         boolean temEspecial = false;
 
-        // Lista de caracteres especiais permitidos (igual ao seu regex antigo)
+        // Lista de caracteres especiais permitidos
         String especiais = "!@#$%^&*(),.?\":{}|<>";
 
         // Loop simples: verifica caractere por caractere
