@@ -1151,3 +1151,113 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
     }
 });
+
+// --- SISTEMA DE RECOMENDAÇÃO INTELIGENTE (IA) ---
+const btnIaPc = document.getElementById('btn-ia-toggle-pc');
+const btnIaMobile = document.getElementById('btn-ia-toggle-mobile');
+const dropdownIaOpcoes = document.getElementById('dropdown-ia-opcoes');
+const wrapperGavetaMobile = document.getElementById('gaveta-opcoes-mobile');
+
+// Abrir/Fechar balão flutuante no PC
+if (btnIaPc) {
+    btnIaPc.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownIaOpcoes.classList.toggle('ativo');
+    });
+}
+
+// No Celular: clicar no botão pílula da gaveta abre a janela flutuante de opções
+if (btnIaMobile) {
+    btnIaMobile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Fecha a gaveta mobile primeiro para dar espaço
+        if (wrapperGavetaMobile) wrapperGavetaMobile.classList.remove('ativa');
+        document.body.style.overflow = '';
+        
+        // Abre o painel de opções de IA
+        dropdownIaOpcoes.classList.add('ativo');
+    });
+}
+
+// Fecha as opções flutuantes clicando em qualquer outro lugar fora
+document.addEventListener('click', (e) => {
+    if (dropdownIaOpcoes && !dropdownIaOpcoes.contains(e.target) && e.target !== btnIaPc && e.target !== btnIaMobile) {
+        dropdownIaOpcoes.classList.remove('ativo');
+    }
+});
+
+// --- LÓGICA DE REQUISIÇÃO AJAX DO BACKEND E EFEITO DIGITAÇÃO ---
+function abrirModalIA(tipo) {
+    const modal = document.getElementById('modal-ia');
+    const titulo = document.getElementById('modal-ia-titulo');
+    const loading = document.getElementById('ia-loading');
+    const textoResposta = document.getElementById('ia-texto-resposta');
+
+    dropdownIaOpcoes.classList.remove('ativo'); // Fecha as opções
+    titulo.innerText = `🤖 Recomendações de ${tipo}s`;
+    textoResposta.innerText = ''; 
+    
+    modal.classList.add('ativo');
+    loading.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    fetch(`/api/recomendacoes?tipo=${tipo}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Erro na requisição');
+            return response.json();
+        })
+        .then(data => {
+            loading.style.display = 'none';
+            efeitoDigitacao(textoResposta, data.recomendacao);
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            textoResposta.innerHTML = `<span style="color: #e74c3c;">🤖 Ih, deu erro! O Geminino falhou na conexão com o servidor.</span>`;
+        });
+}
+
+function fecharModalIA() {
+    document.getElementById('modal-ia').classList.remove('ativo');
+    document.body.style.overflow = '';
+}
+
+function efeitoDigitacao(elemento, texto) {
+    let i = 0;
+    let textoAcumulado = '';
+    elemento.innerHTML = '';
+    
+    function digitar() {
+        if (i < texto.length) {
+            textoAcumulado += texto.charAt(i);
+            
+            // Renderiza o texto processado com HTML real (negritos, itálicos)
+            elemento.innerHTML = converterMarkdownParaHtml(textoAcumulado);
+            i++;
+            
+            const modalBody = document.querySelector('.modal-ia-body');
+            if (modalBody) modalBody.scrollTop = modalBody.scrollHeight;
+            
+            setTimeout(digitar, 12);
+        }
+    }
+    digitar();
+}
+
+function converterMarkdownParaHtml(texto) {
+    // 1. Escapa o HTML nativo para evitar ataques XSS
+    let html = texto
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // 2. Converte negritos (ex: **texto** para <strong>texto</strong>)
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // 3. Converte itálicos simples (ex: *texto* para <em>texto</em>)
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    // 4. Converte marcadores de lista/tópicos (ex: * Item ou - Item)
+    html = html.replace(/^\s*[\*\-]\s+(.*)$/gm, '• $1');
+
+    return html;
+}

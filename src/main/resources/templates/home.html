@@ -56,12 +56,27 @@
                         <span id="rating-icon">⭐</span>
                     </button>
 
+                    <!-- Círculo pequeno para IA no PC -->
+                    <button id="btn-ia-toggle-pc" class="btn-theme btn-ia-pc-only" title="Pedir Sugestão para IA">
+                        <span>🤖</span>
+                    </button>
+
                     <button id="btn-mobile-gaveta" class="btn-theme btn-mobile-gaveta" title="Mais Opções">
                         <span>⚙️</span>
                     </button>
+                    
+                    <!-- Janela flutuante com as opções (Dropdown Balão) -->
+                    <div id="dropdown-ia-opcoes" class="dropdown-ia-balao">
+                        <p style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); margin: 0 0 10px 0; text-transform: uppercase; text-align: center;">Recomendações por IA 🤖</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn-ia-opcao" onclick="abrirModalIA('Filme')">🎬 Filmes</button>
+                            <button type="button" class="btn-ia-opcao" onclick="abrirModalIA('Série')">📺 Séries</button>
+                            <button type="button" class="btn-ia-opcao" onclick="abrirModalIA('Jogo')">🎮 Jogos</button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Abstrai os botões para virarem a Bottom Sheet no celular -->
+                <!-- Gaveta flutuante do Celular -->
                 <div id="gaveta-opcoes-mobile" class="gaveta-opcoes-wrapper">
                     <div class="gaveta-conteudo">
                         <div class="gaveta-barra-arrastar"></div>
@@ -78,13 +93,16 @@
                             + Novo Item
                         </a>
 
+                        <button type="button" id="btn-ia-toggle-mobile" class="btn-novo btn-ia-mobile-only">
+                            🤖 Sugestões da IA
+                        </button>
+
                         <form th:action="@{/logout}" method="post" class="form-logout">
                             <button type="submit" class="btn-sair">
                                 Sair 🚪
                             </button>
                         </form>
                     </div>
-                    <!-- Fundo escurecido atrás da gaveta -->
                     <div id="gaveta-overlay" class="gaveta-overlay"></div>
                 </div>
             </div>
@@ -168,5 +186,23 @@
         <script th:src="@{/js/rating-toggle.js}"></script>
         <script th:src="@{/js/busca-social.js}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- MODAL QUE EXIBE O TEXTO COMPLETO DIGITADO PELA IA -->
+        <div id="modal-ia" class="modal-ia-wrapper">
+            <div class="modal-ia-overlay" onclick="fecharModalIA()"></div>
+            <div class="modal-ia-conteudo">
+                <div class="modal-ia-header">
+                    <h3 id="modal-ia-titulo">🤖 Sugestões do Geminino</h3>
+                    <button type="button" class="btn-fechar-modal" onclick="fecharModalIA()">✖</button>
+                </div>
+                <div class="modal-ia-body">
+                    <div id="ia-loading" class="ia-loading-container" style="display: none;">
+                        <div class="ia-spinner"></div>
+                        <p>Analisando seu backlog e pensando nas melhores opções...</p>
+                    </div>
+                    <div id="ia-texto-resposta" class="ia-texto-resposta"></div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
