@@ -25,4 +25,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     // 3. Distribuição de Notas (Ex: Nota 10: 5 itens, Nota 9.5: 2 itens)
     @Query("SELECT i.nota, COUNT(i) FROM Item i WHERE i.user.id = :userId AND i.nota > 0 GROUP BY i.nota ORDER BY i.nota DESC")
     List<Object[]> countItensPorNota(@Param("userId") Long userId);
+
+    // --- Queries para o sistema de conquistas ---
+
+    // Conta itens de um usuário com tipo e nota específicos
+    long countByUserAndTipoAndNota(User user, String tipo, Double nota);
+
+    // Conta itens de um usuário com tipo e status dentro de uma lista
+    long countByUserAndTipoAndStatusIn(User user, String tipo, List<String> statusList);
 }
