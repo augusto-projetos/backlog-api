@@ -1090,6 +1090,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Função unificada de fechar
         function fecharGaveta() {
+            if (window.innerWidth > 600) {
+                wrapperGaveta.classList.remove('ativa');
+                document.body.style.overflow = '';
+                return;
+            }
+
             conteudoGaveta.style.transition = 'transform 0.35s cubic-bezier(0.32, 0.94, 0.6, 1)';
             conteudoGaveta.style.transform = 'translateY(100%)'; // Desce suavemente a partir de onde estiver
             
@@ -1106,17 +1112,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         overlayGaveta.addEventListener('click', fecharGaveta);
-        linksGaveta.forEach(elemento => elemento.addEventListener('click', fecharGaveta));
+        linksGaveta.forEach(elemento => {
+            elemento.addEventListener('click', () => {
+                if (window.innerWidth <= 600) {
+                    fecharGaveta();
+                }
+            });
+        });
 
         // --- EVENTOS DE TOQUE (TOUCH) ---
         conteudoGaveta.addEventListener('touchstart', (e) => {
+            if (window.innerWidth > 600) return;
             startY = e.touches[0].clientY;
             IsDragging = true;
             conteudoGaveta.style.transition = 'none'; // Remove a transição para seguir o dedo em tempo real
         }, { passive: false });
 
         conteudoGaveta.addEventListener('touchmove', (e) => {
-            if (!IsDragging) return;
+            if (!IsDragging || window.innerWidth > 600) return;
 
             currentY = e.touches[0].clientY;
             const deltaY = currentY - startY;
@@ -1129,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
 
         conteudoGaveta.addEventListener('touchend', (e) => {
-            if (!IsDragging) return;
+            if (!IsDragging || window.innerWidth > 600) return;
             IsDragging = false;
 
             const deltaY = currentY - startY;
@@ -1147,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         overlayGaveta.addEventListener('touchmove', (e) => {
-            if (e.cancelable) e.preventDefault();
+            if (e.cancelable && window.innerWidth <= 600) e.preventDefault();
         }, { passive: false });
     }
 });
