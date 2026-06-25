@@ -12,6 +12,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" th:href="@{/css/perfil.css}">
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+        <link rel="stylesheet" th:href="@{/css/conquistas.css}">
     </head>
     <body>
 
@@ -127,6 +128,42 @@
                 <a th:href="@{/api/export/excel}" class="btn-export btn-excel" target="_blank">
                     <i class="fa-solid fa-file-excel"></i> Baixar Excel
                 </a>
+            </div>
+
+            <hr class="divisor">
+
+            <!-- --- Sistema de Conquistas --- -->
+            <h2>🏆 Conquistas &amp; Nível</h2>
+
+            <!-- Barra de XP -->
+            <div class="xp-perfil-container">
+                <div class="xp-nivel-info">
+                    <span class="xp-nivel-label">Nível <strong th:text="${nivel}">1</strong></span>
+                    <span class="xp-total-label" th:text="${xpTotal} + ' XP'">0 XP</span>
+                </div>
+                <div class="xp-bar-track">
+                    <div class="xp-bar-fill" th:style="'width:' + ${progresso} + '%'"></div>
+                </div>
+                <small style="color: var(--text-muted); font-size: 0.75rem;">
+                    <span th:text="${xpTotal % 100}">0</span>/100 XP para o próximo nível
+                </small>
+            </div>
+
+            <!-- Grid de badges -->
+            <div class="conquistas-grid">
+                <div class="conquista-badge"
+                     th:each="uc : ${conquistas}">
+                    <span class="conquista-badge-icone" th:text="${uc.conquista.icone}">🏅</span>
+                    <div class="conquista-badge-info">
+                        <strong th:text="${uc.conquista.nome}">Nome</strong>
+                        <small th:text="${uc.conquista.descricao}">Descrição</small>
+                        <small class="ct-xp" th:text="'+' + ${uc.conquista.xp} + ' XP'">+0 XP</small>
+                    </div>
+                </div>
+
+                <div th:if="${conquistas.isEmpty()}" class="conquistas-vazio">
+                    <p>😴 Nenhuma conquista ainda. Adicione itens ao backlog para começar!</p>
+                </div>
             </div>
 
             <hr class="divisor">

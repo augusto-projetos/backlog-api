@@ -1,0 +1,246 @@
+/* --- Variáveis de tema para a barra de XP --- */
+:root {
+    /* Modo claro: cinza médio visível sobre fundo branco */
+    --xp-track-bg: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] {
+    /* Modo escuro: branco translúcido como antes */
+    --xp-track-bg: rgba(255, 255, 255, 0.15);
+}
+
+/* --- Barra de XP no Header (home.html) --- */
+.xp-bar-container {
+    margin-top: 6px;
+    min-width: 180px;
+}
+
+.xp-nivel-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.xp-nivel-label {
+    font-size: 0.78rem;
+    color: var(--text-muted, #aaa);
+}
+
+.xp-total-label {
+    font-size: 0.72rem;
+    color: var(--text-muted, #aaa);
+}
+
+.xp-bar-track {
+    background: var(--xp-track-bg);
+    border-radius: 20px;
+    height: 8px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+    border-radius: 20px;
+    transition: width 0.7s cubic-bezier(.4,0,.2,1);
+}
+
+/* --- Barra de XP na página de Perfil --- */
+.xp-perfil-container {
+    background: var(--card-bg, #1a1a2e);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.xp-perfil-container .xp-bar-track {
+    height: 12px;
+    margin-bottom: 6px;
+}
+
+/* --- Grid de Conquistas --- */
+.conquistas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+}
+
+.conquista-badge {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card-bg, #1a1a2e);
+    border: 1px solid rgba(255,165,0,0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.conquista-badge:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,165,0,0.55);
+}
+
+.conquista-badge-icone {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.conquista-badge-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.conquista-badge-info strong {
+    font-size: 0.9rem;
+    color: var(--text-primary, #eee);
+}
+
+.conquista-badge-info small {
+    font-size: 0.75rem;
+    color: var(--text-muted, #aaa);
+    line-height: 1.3;
+}
+
+.ct-xp {
+    color: #f39c12 !important;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.conquistas-vazio {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted, #aaa);
+}
+
+/* --- Seção de Conquistas no Perfil Público (shared.html) --- */
+.conquistas-publico-section {
+    max-width: 900px;
+    margin: 0 auto 24px;
+    padding: 20px 16px 16px;
+    background: var(--card-bg, #16213e);
+    border: 1px solid rgba(255,165,0,0.2);
+    border-radius: 14px;
+}
+
+.conquistas-publico-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.conquistas-publico-header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.xp-nivel-badge {
+    font-size: 0.8rem;
+    background: rgba(243,156,18,0.15);
+    color: #f39c12;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(243,156,18,0.3);
+}
+
+.conquistas-grid-publico {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+/* --- Toast de Conquista --- */
+.conquista-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    animation: slideInToast 0.4s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes slideInToast {
+    from { transform: translateX(120%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slideOutToast {
+    from { transform: translateX(0);    opacity: 1; }
+    to   { transform: translateX(120%); opacity: 0; }
+}
+
+.conquista-toast.hide {
+    animation: slideOutToast 0.35s cubic-bezier(.4,0,.2,1) forwards;
+}
+
+.conquista-toast-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(243,156,18,0.5);
+    border-radius: 14px;
+    padding: 14px 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(243,156,18,0.15);
+    min-width: 280px;
+    max-width: 360px;
+}
+
+.conquista-toast-icone {
+    font-size: 2.2rem;
+    flex-shrink: 0;
+}
+
+.conquista-toast-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.conquista-toast-texto small {
+    font-size: 0.7rem;
+    color: #f39c12;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.conquista-toast-texto strong {
+    font-size: 0.95rem;
+    color: #fff;
+}
+
+.conquista-toast-texto small:last-child {
+    font-size: 0.75rem;
+    color: #aaa;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+}
+
+/* --- Responsividade --- */
+@media (max-width: 600px) {
+    .conquista-toast {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+    }
+
+    .conquista-toast-inner {
+        min-width: unset;
+        max-width: unset;
+    }
+
+    .conquistas-grid {
+        grid-template-columns: 1fr;
+    }
+}

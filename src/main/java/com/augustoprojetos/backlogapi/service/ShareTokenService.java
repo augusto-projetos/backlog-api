@@ -17,6 +17,9 @@ public class ShareTokenService {
     @Autowired
     private ShareTokenRepository shareTokenRepository;
 
+    @Autowired
+    private ConquistaService conquistaService;
+
     /**
      * Gera um novo link de compartilhamento.
      * @param user O dono da lista.
@@ -32,6 +35,10 @@ public class ShareTokenService {
 
         // Cria e Salva
         ShareToken token = new ShareToken(tokenString, user, expiracao);
+
+        // GATILHO DA CONQUISTA: Como o link foi persistido, aciona a verificação
+        conquistaService.verificarConquistas(user);
+        
         return shareTokenRepository.save(token);
     }
 

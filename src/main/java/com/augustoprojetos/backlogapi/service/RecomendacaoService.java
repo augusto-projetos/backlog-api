@@ -19,6 +19,9 @@ public class RecomendacaoService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private ConquistaService conquistaService;
+
     @Value("${GEMINI_API_KEY}")
     private String geminiApiKey;
 
@@ -60,6 +63,9 @@ public class RecomendacaoService {
                 Map<?, ?> content = (Map<?, ?>) firstCandidate.get("content");
                 List<?> parts = (List<?>) content.get("parts");
                 Map<?, ?> firstPart = (Map<?, ?>) parts.get(0);
+
+                // GATILHO DA CONQUISTA: Se a IA respondeu, dispara a checagem da chave
+                conquistaService.verificarConquistas(user);
                 
                 return (String) firstPart.get("text");
             }
@@ -70,12 +76,12 @@ public class RecomendacaoService {
             System.out.println("⚠️ O motor principal (Gemini 2.5 Flash) falhou devido a: " + e.getMessage());
             System.out.println("🚀 Acionando plano de contingência: Mudando para Groq Cloud (Llama 3)...");
             
-            return chamarGroqFallback(promptCompleto);
+            return chamarGroqFallback(promptCompleto, user);
         }
     }
 
     // Motor secundário de failover utilizando a API Gratuita da Groq Cloud
-    private String chamarGroqFallback(String prompt) {
+    private String chamarGroqFallback(String prompt, User user) {
         try {
             // Corpo JSON atualizado com o modelo Llama 3.1 ativo na Groq
             Map<String, Object> requestBody = Map.of(
@@ -97,6 +103,9 @@ public class RecomendacaoService {
                 List<?> choices = (List<?>) response.getBody().get("choices");
                 Map<?, ?> firstChoice = (Map<?, ?>) choices.get(0);
                 Map<?, ?> message = (Map<?, ?>) firstChoice.get("message");
+
+                // GATILHO DA CONQUISTA NO FALLBACK
+                conquistaService.verificarConquistas(user);
                 
                 return (String) message.get("content");
             }

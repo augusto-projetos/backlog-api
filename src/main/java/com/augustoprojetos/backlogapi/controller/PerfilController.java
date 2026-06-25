@@ -1,6 +1,8 @@
 package com.augustoprojetos.backlogapi.controller;
 
 import com.augustoprojetos.backlogapi.entity.User;
+import com.augustoprojetos.backlogapi.entity.UserConquista;
+import com.augustoprojetos.backlogapi.service.ConquistaService;
 import com.augustoprojetos.backlogapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -23,10 +26,22 @@ public class PerfilController {
     @Autowired
     private UserService userService;
 
-    // Mostrar a página
+    @Autowired
+    private ConquistaService conquistaService;
+
+    // Mostrar a página - injeta dados de conquistas
     @GetMapping
     public String paginaPerfil(@AuthenticationPrincipal User user, Model model) {
-        model.addAttribute("usuario", user);
+        List<UserConquista> conquistas = conquistaService.listarConquistasDoUsuario(user);
+        int xpTotal  = conquistaService.calcularXpTotal(user);
+        int nivel    = conquistaService.calcularNivel(xpTotal);
+        int progresso = (int) (((xpTotal % 100) / 100.0) * 100);
+
+        model.addAttribute("usuario",    user);
+        model.addAttribute("conquistas", conquistas);
+        model.addAttribute("xpTotal",    xpTotal);
+        model.addAttribute("nivel",      nivel);
+        model.addAttribute("progresso",  progresso);
         return "perfil";
     }
 

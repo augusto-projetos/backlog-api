@@ -263,12 +263,21 @@ async function salvarItem(event) {
 
         // SE DEU CERTO (200 ou 201)
         if (resposta.ok) {
+            const data = await resposta.json();
+
+            // Dispara toasts de conquistas ANTES de redirecionar
+            const novas = data.conquistasDesbloqueadas || [];
+
             Swal.fire({
                 title: 'Sucesso!',
                 text: 'Item salvo com sucesso!',
                 icon: 'success',
                 confirmButtonText: 'Ok'
             }).then(() => {
+                // Armazena conquistas para exibir na home após redirect
+                if (novas.length > 0) {
+                    sessionStorage.setItem('conquistas_pendentes', JSON.stringify(novas));
+                }
                 window.location.href = '/home';
             });
         }
