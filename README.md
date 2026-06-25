@@ -4,6 +4,8 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-green)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6-6db33f)
 ![Chart.js](https://img.shields.io/badge/Frontend-Chart.js-FF6384)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Cloud-blue)
+![Groq](https://img.shields.io/badge/API-Groq_Cloud-orange)
 ![Render](https://img.shields.io/badge/Deploy-Render-black)
 ![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
@@ -18,18 +20,18 @@
 
 O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V6.0**) marca a maior evolução do sistema, transformando-o de um gerenciador pessoal em uma verdadeira **Rede Social de Colecionadores**, com perfis públicos, sistema de buscas e autenticação blindada com verificação de e-mail.
 
-### ✨ Destaques da Versão 6.0 (A Atualização Social)
-* 🌐 **Perfis Públicos & Identidade:** Todo usuário agora possui um `@username` único (`socialUsername`). A plataforma gera dinamicamente uma URL de perfil público (`/u/seu_arroba`) no formato Read-Only para exibição do acervo e métricas para amigos.
-* 🔍 **Busca Social Inteligente:** Nova barra de pesquisa no cabeçalho com requisições assíncronas em tempo real. Utiliza a técnica de *Debounce* no JavaScript para poupar requisições ao banco de dados e conta com uma UI adaptativa (botão circular flutuante) desenhada para uma experiência Mobile-First.
-* 📧 **Autenticação Avançada & E-mail:** Fluxo de cadastro seguro com geração de *tokens* temporários (`EmailVerificationToken`) e envio de e-mails de confirmação utilizando a API do **Brevo**.
-* 🛡️ **Defesa Anti-Spam:** Implementação de `RateLimitService` para proteger os endpoints de registro e reenvio de e-mails contra abusos e requisições em massa.
+### ✨ Destaques da Versão 7.0 (Inteligência Artificial & Gamificação)
+* 🤖 **Dual-Engine AI (Mecanismo de Failover):** Sistema de recomendação inteligente integrado nativamente via chamadas REST HTTP puras. Utiliza o **Google Gemini 2.5 Flash** como motor principal e conta com uma arquitetura de contingência (*Failover redundante*) direcionada para a infraestrutura da **Groq Cloud (Meta Llama 3.1)** caso o servidor principal sofra instabilidades (erros 503/429), garantindo disponibilidade contínua de forma 100% transparente para o usuário.
+* 🏆 **Sistema de Conquistas & Gamificação:** Motor de engajamento assíncrono utilizando `@Async` do Spring para computar o progresso do usuário sem travar a thread principal de renderização. O sistema conta com um catálogo inicial de **15 Conquistas/Badges** dinâmicas (computando itens adicionados, mídias concluídas, consistência de maratonas, notas e uso de IA) e uma curva de progressão geométrica de níveis baseada em XP acumulado.
+* 📜 **Parser Customizado de Markdown:** Implementação de um decodificador baseado em expressões regulares (Regex) nativo no JavaScript para ler as respostas ricas em Markdown enviadas pelas IAs e convertê-las em blocos estruturados de HTML (`<strong>`, `<ul>`), renderizados dinamicamente através de um efeito máquina de escrever.
+* 💻 **Premium UI/UX Adaptativa:** Redesenho completo do fluxo de ações. No desktop, os recursos de IA ficam abrigados em um *Popover flutuante balão* isolado para não poluir o cabeçalho. No mobile, o botão é omitido de forma cirúrgica e as opções de IA são centralizadas na base da *Bottom Sheet (Gaveta)* nativa do smartphone.
 
 ### 🌟 Funcionalidades Consolidadas
-* 📄 **Exportação de Relatórios (V5.0):** Geração de relatórios gerenciais em PDF (layout para impressão) e Excel (planilha para análise), com processamento 100% em memória RAM via `ByteArrayOutputStream`.
-* 📊 **Dashboard de BI:** Gráficos interativos (Chart.js) com distribuição de acervo, status de progresso e histograma de notas.
-* 🎬 **Integração TMDB:** Busca automática de capas, sinopses e metadados de filmes/séries.
-* 🌐 **Modo Share:** Links públicos temporários para compartilhar listas específicas.
-* 🔍 **Filtros Avançados:** "Gaveta" de filtros com ordenação por nota, tipo e status.
+* 🌐 **Rede Social (V6.0):** Perfis públicos compartilháveis (`/u/username`) no formato Read-Only e busca social com técnica de *Debounce* no JavaScript.
+* 📧 **Segurança de Cadastro (V6.0):** Fluxo com geração de tokens temporários (`EmailVerificationToken`) para validação de contas via API do **Brevo** e proteção contra abusos usando `RateLimitService`.
+* 📄 **Exportação de Relatórios (V5.0):** Geração em tempo real de arquivos em PDF (via OpenPDF) e planilhas Excel (via Apache POI) com processamento feito 100% em memória RAM via `ByteArrayOutputStream`.
+* 📊 **Dashboard de BI (V4.0):** Gráficos analíticos interativos usando Chart.js para distribuição de acervo, status e notas.
+* 🎬 **Busca Automática de Capas (V3.0):** Integração com a API do **TMDB** para carregamento automático de pôsteres e metadados.
 
 ---
 
@@ -103,14 +105,14 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 - [x] V4.0: Dashboard de Estatísticas (Chart.js + DTOs).
 - [x] V5.0: Exportação de Relatórios (Gerar PDF/Excel da coleção).
 - [x] V6.0: Rede Social (Busca dinâmica, Perfis com @ e Verificação de E-mail).
-- [ ] **V7.0: Sistema com IA e Conquistas**
+- [x] V7.0: Motores de IA com Failover Resiliente e Sistema Completo de Conquistas e Níveis.
 
 ---
 
 ## 🤝 Autor
 
 Desenvolvido com 🤍 e ☕ por **Luiz Augusto**.  
-*Técnico em Informática*  
-*Engenharia de Software | Graduando na Universidade Federal de Lavras (UFLA)*
+*Técnico em Informática (SENAC) - Full Stack Developer & IT Technician*  
+*Engenharia de Software | Graduando na Universidade Federal de Lavras (UFLA) - São Sebastião do Paraíso - MG*
 
 ---
