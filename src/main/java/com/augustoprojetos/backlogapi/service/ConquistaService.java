@@ -32,6 +32,11 @@ public class ConquistaService {
     private static final int XP_SERIADO          = 75;
     private static final int XP_CRITICO_GERAL    = 150;
     private static final int XP_MARATONISTA      = 200;
+    private static final int XP_MENTE_EXPANDIDA  = 50;
+    private static final int XP_DESIGNER_VISUAL  = 40;
+    private static final int XP_REDE_CONTATOS    = 50;
+    private static final int XP_DONO_DO_TEMPO    = 250;
+    private static final int XP_PERFECCIONISTA   = 100;
 
     @Autowired private ConquistaRepository conquistaRepository;
     @Autowired private UserConquistaRepository userConquistaRepository;
@@ -51,6 +56,11 @@ public class ConquistaService {
         upsertConquista("SERIADO",          "Seriado",                "Assistiu 10 séries.",                                         "📺", XP_SERIADO);
         upsertConquista("CRITICO_GERAL",    "Crítico Geral",          "Deu nota 10 para 10 itens de qualquer tipo.",                 "⭐", XP_CRITICO_GERAL);
         upsertConquista("MARATONISTA",      "Maratonista",            "Concluiu 25 itens no total.",                                 "🏃", XP_MARATONISTA);
+        upsertConquista("MENTE_EXPANDIDA", "Mente Expandida",        "Pediu sua primeira recomendação personalizada para a IA.",   "🤖", XP_MENTE_EXPANDIDA);
+        upsertConquista("DESIGNER_VISUAL", "Designer Visual",        "Buscou e selecionou uma capa oficial via TMDB para o acervo.", "🖼️", XP_DESIGNER_VISUAL);
+        upsertConquista("REDE_CONTATOS",   "Influenciador de Backlog", "Gerou seu primeiro link de compartilhamento para os amigos.",  "🔗", XP_REDE_CONTATOS);
+        upsertConquista("DONO_DO_TEMPO",   "Dono do Tempo",           "Concluiu 50 mídias de qualquer tipo no aplicativo.",          "👑", XP_DONO_DO_TEMPO);
+        upsertConquista("PERFECCIONISTA",   "Perfeccionista",          "Deu nota 10 para pelo menos 3 jogos (Zerados com maestria).", "🏅", XP_PERFECCIONISTA);
     }
 
     private void upsertConquista(String chave, String nome, String descricao, String icone, int xp) {
@@ -150,6 +160,39 @@ public class ConquistaService {
                 concluidosDeTipo(user, e.getKey()) >= 2);
         if (guerreiro) {
             desbloquear(user, "GUERREIRO_FDSEM", novas);
+        }
+
+        // 👑 Dono do Tempo: 50 itens concluídos no total
+        if (totalConcluidos >= 50) {
+            desbloquear(user, "DONO_DO_TEMPO", novas);
+        }
+
+        // 🏅 Perfeccionista: Nota 10 em pelo menos 3 Jogos
+        long jogosNota10 = itemRepository.countByUserAndTipoAndNota(user, "Jogo", 10.0);
+        if (jogosNota10 >= 3) {
+            desbloquear(user, "PERFECCIONISTA", novas);
+        }
+
+        // 🖼️ Designer Visual: Se o usuário tem itens com capa vindos da TMDB
+        long itensComCapaTmdb = itemRepository.findByUser(user).stream()
+            .filter(item -> item.getImagemUrl() != null && item.getImagemUrl().contains("themoviedb.org"))
+            .count();
+        if (itensComCapaTmdb >= 1) {
+            desbloquear(user, "DESIGNER_VISUAL", novas);
+        }
+
+        // Verifica se o usuário já tem o link salvo para dar a conquista de Influenciador
+        boolean jaGerouLink = !userConquistaRepository.existsByUserAndConquista_Chave(user, "REDE_CONTATOS");
+        // Se a ação veio do ShareTokenService, a chamada vai bater aqui e validar
+        if (jaGerouLink) {
+             desbloquear(user, "REDE_CONTATOS", novas);
+        }
+
+        // Verifica se o usuário já usou a IA para dar a conquista de Mente Expandida
+        boolean jaUsouIA = !userConquistaRepository.existsByUserAndConquista_Chave(user, "MENTE_EXPANDIDA");
+        // Se a ação veio do RecomendacaoService, a chamada vai bater aqui e validar
+        if (jaUsouIA) {
+             desbloquear(user, "MENTE_EXPANDIDA", novas);
         }
 
         return java.util.concurrent.CompletableFuture.completedFuture(novas);
