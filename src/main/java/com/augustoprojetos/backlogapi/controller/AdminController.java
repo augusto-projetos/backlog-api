@@ -1,0 +1,149 @@
+package com.augustoprojetos.backlogapi.controller;
+
+import com.augustoprojetos.backlogapi.entity.Conquista;
+import com.augustoprojetos.backlogapi.service.AdminService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@Controller
+@RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminController {
+
+    @Autowired
+    private AdminService adminService;
+
+    // --- PAINEL PRINCIPAL ---
+
+    @GetMapping({"", "/"})
+    public String painelAdmin(Model model) {
+        model.addAttribute("stats", adminService.calcularEstatisticasGlobais());
+        model.addAttribute("usuarios", adminService.listarUsuariosAtivos());
+        model.addAttribute("pendentes", adminService.listarUsuariosPendentes());
+        model.addAttribute("conquistas", adminService.listarConquistas());
+        return "admin/painel";
+    }
+
+    // --- API ESTATÍSTICAS ---
+
+    @GetMapping("/api/stats")
+    @ResponseBody
+    public ResponseEntity<?> getStats() {
+        return ResponseEntity.ok(adminService.calcularEstatisticasGlobais());
+    }
+
+    // --- USUÁRIOS ---
+
+    @GetMapping("/api/usuario/{id}/itens")
+    @ResponseBody
+    public ResponseEntity<?> getItensUsuario(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.listarItensPorUsuario(id));
+    }
+
+    @PostMapping("/usuario/{id}/editar")
+    @ResponseBody
+    public ResponseEntity<?> editarUsuario(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        try {
+            adminService.editarUsuario(id, body.get("login"), body.get("socialUsername"), body.get("email"));
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/usuario/{id}/senha")
+    @ResponseBody
+    public ResponseEntity<?> redefinirSenha(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        try {
+            adminService.redefinirSenhaUsuario(id, body.get("novaSenha"));
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/usuario/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deletarUsuario(@PathVariable Long id) {
+        try {
+            adminService.deletarUsuario(id);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // --- ITENS ---
+
+    @PostMapping("/item/{id}/editar")
+    @ResponseBody
+    public ResponseEntity<?> editarItem(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        try {
+            String status  = (String) body.get("status");
+            Double nota    = body.get("nota") != null ? ((Number) body.get("nota")).doubleValue() : null;
+            String resenha = (String) body.get("resenha");
+            adminService.editarItem(id, status, nota, resenha);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/item/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deletarItem(@PathVariable Long id) {
+        try {
+            adminService.deletarItem(id);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // --- CONQUISTAS ---
+
+    @PostMapping("/conquista/criar")
+    @ResponseBody
+    public ResponseEntity<?> criarConquista(@RequestBody Conquista conquista) {
+        try {
+            adminService.criarConquista(conquista);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/conquista/{id}/editar")
+    @ResponseBody
+    public ResponseEntity<?> editarConquista(@PathVariable Long id, @RequestBody Conquista dados) {
+        try {
+            adminService.editarConquista(id, dados);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/conquista/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deletarConquista(@PathVariable Long id) {
+        try {
+            adminService.deletarConquista(id);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+}

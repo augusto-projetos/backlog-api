@@ -1,0 +1,248 @@
+package com.augustoprojetos.backlogapi.service;
+
+import com.augustoprojetos.backlogapi.dto.admin.AdminUserDTO;
+import com.augustoprojetos.backlogapi.dto.admin.AdminGlobalStatsDTO;
+import com.augustoprojetos.backlogapi.entity.Conquista;
+import com.augustoprojetos.backlogapi.entity.Item;
+import com.augustoprojetos.backlogapi.entity.User;
+import com.augustoprojetos.backlogapi.repository.ConquistaRepository;
+import com.augustoprojetos.backlogapi.repository.EmailVerificationTokenRepository;
+import com.augustoprojetos.backlogapi.repository.ItemRepository;
+import com.augustoprojetos.backlogapi.repository.UserConquistaRepository;
+import com.augustoprojetos.backlogapi.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+public class AdminService {
+
+    @Autowired private UserRepository userRepository;
+    @Autowired private ItemRepository itemRepository;
+    @Autowired private ConquistaRepository conquistaRepository;
+    @Autowired private UserConquistaRepository userConquistaRepository;
+    @Autowired private EmailVerificationTokenRepository emailVerificationTokenRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
+
+    @Value("${admin.email}")
+    private String adminEmail;
+
+    // --- USUÁRIOS ---
+
+    // Lista todos os usuários verificados (exceto o próprio admin)
+    public List<AdminUserDTO> listarUsuariosAtivos() {
+        return userRepository.findAll().stream()
+                .filter(u -> u.isEmailVerified() && !adminEmail.equalsIgnoreCase(u.getEmail()))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lista usuários aguardando verificação de e-mail
+    public List<AdminUserDTO> listarUsuariosPendentes() {
+        return userRepository.findAll().stream()
+                .filter(u -> !u.isEmailVerified() && !adminEmail.equalsIgnoreCase(u.getEmail()))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public AdminUserDTO buscarUsuarioPorId(Long id) {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return toDTO(u);
+    }
+
+    // Edita nome, @ e email de um usuário
+    public void editarUsuario(Long id, String novoLogin, String novoSocial, String novoEmail) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (adminEmail.equalsIgnoreCase(user.getEmail())) {
+            throw new RuntimeException("Não é possível editar a conta de administrador por aqui.");
+        }
+
+        // Valida duplicidade de social, exceto o próprio usuário
+        userRepository.findBySocialUsername(novoSocial)
+                .filter(found -> !found.getId().equals(id))
+                .ifPresent(found -> { throw new RuntimeException("@ já em uso"); });
+
+        userRepository.findByEmail(novoEmail)
+                .filter(found -> !found.getId().equals(id))
+                .ifPresent(found -> { throw new RuntimeException("E-mail já em uso"); });
+
+        user.setLogin(novoLogin);
+        user.setSocialUsername(novoSocial);
+        user.setEmail(novoEmail);
+        userRepository.save(user);
+    }
+
+    // Redefine senha de um usuário sem pedir a antiga
+    public void redefinirSenhaUsuario(Long id, String novaSenha) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (adminEmail.equalsIgnoreCase(user.getEmail())) {
+            throw new RuntimeException("Não é possível alterar a senha do administrador por aqui.");
+        }
+
+        user.setPassword(passwordEncoder.encode(novaSenha));
+        userRepository.save(user);
+    }
+
+    // Remove usuário e todos os dados relacionados
+    @Transactional
+    public void deletarUsuario(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (adminEmail.equalsIgnoreCase(user.getEmail())) {
+            throw new RuntimeException("Não é possível deletar a conta de administrador.");
+        }
+
+        userConquistaRepository.deleteByUser(user);
+        itemRepository.deleteByUser(user);
+        emailVerificationTokenRepository.findByUser_Id(id).ifPresent(emailVerificationTokenRepository::delete);
+        userRepository.delete(user);
+    }
+
+    // Lista itens do backlog de um usuário específico
+    public List<Item> listarItensPorUsuario(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return itemRepository.findByUser(user);
+    }
+
+    // Edita status, nota e resenha de qualquer item (acesso admin)
+    public void editarItem(Long itemId, String status, Double nota, String resenha) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+        if (status != null && !status.isBlank()) item.setStatus(status);
+        if (nota != null) item.setNota(nota);
+        item.setResenha(resenha);
+        itemRepository.save(item);
+    }
+
+    // Remove um item específico do backlog de qualquer usuário
+    @Transactional
+    public void deletarItem(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+        itemRepository.delete(item);
+    }
+
+    // --- ESTATÍSTICAS GLOBAIS ---
+
+    public AdminGlobalStatsDTO calcularEstatisticasGlobais() {
+        AdminGlobalStatsDTO stats = new AdminGlobalStatsDTO();
+
+        long totalUsuarios = userRepository.findAll().stream()
+                .filter(u -> !adminEmail.equalsIgnoreCase(u.getEmail()))
+                .filter(User::isEmailVerified)
+                .count();
+
+        long totalPendentes = userRepository.findAll().stream()
+                .filter(u -> !adminEmail.equalsIgnoreCase(u.getEmail()))
+                .filter(u -> !u.isEmailVerified())
+                .count();
+
+        List<Item> todosItens = itemRepository.findAll();
+
+        long totalFilmes = todosItens.stream().filter(i -> "Filme".equalsIgnoreCase(i.getTipo())).count();
+        long totalSeries = todosItens.stream().filter(i -> "Série".equalsIgnoreCase(i.getTipo())).count();
+        long totalJogos  = todosItens.stream().filter(i -> "Jogo".equalsIgnoreCase(i.getTipo())).count();
+
+        long totalAssistidos = todosItens.stream()
+                .filter(i -> i.getStatus().contains("Assistido") || i.getStatus().contains("Zerado")).count();
+        long totalAssistindo = todosItens.stream()
+                .filter(i -> i.getStatus().contains("Assistindo") || i.getStatus().contains("Jogando")).count();
+        long totalBacklog = todosItens.stream().filter(i -> i.getStatus().contains("Backlog")).count();
+        long totalDropados = todosItens.stream().filter(i -> i.getStatus().contains("Dropado")).count();
+
+        // Distribuição de notas global
+        Map<String, Long> distribNotas = new LinkedHashMap<>();
+        todosItens.stream()
+                .filter(i -> i.getNota() != null && i.getNota() > 0)
+                .collect(Collectors.groupingBy(i -> {
+                    double n = i.getNota();
+                    return (n % 1 == 0) ? String.valueOf((int) n) : String.valueOf(n);
+                }, Collectors.counting()))
+                .entrySet().stream()
+                .sorted((a, b) -> Double.compare(
+                        Double.parseDouble(b.getKey()), Double.parseDouble(a.getKey())))
+                .forEach(e -> distribNotas.put(e.getKey(), e.getValue()));
+
+        stats.setTotalUsuarios(totalUsuarios);
+        stats.setTotalPendentes(totalPendentes);
+        stats.setTotalFilmes(totalFilmes);
+        stats.setTotalSeries(totalSeries);
+        stats.setTotalJogos(totalJogos);
+        stats.setTotalItens(todosItens.size());
+        stats.setTotalAssistidos(totalAssistidos);
+        stats.setTotalAssistindo(totalAssistindo);
+        stats.setTotalBacklog(totalBacklog);
+        stats.setTotalDropados(totalDropados);
+        stats.setDistribNotas(distribNotas);
+
+        return stats;
+    }
+
+    // --- CONQUISTAS ---
+
+    public List<Conquista> listarConquistas() {
+        return conquistaRepository.findAll();
+    }
+
+    public Conquista buscarConquistaPorId(Long id) {
+        return conquistaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Conquista não encontrada"));
+    }
+
+    public void criarConquista(Conquista conquista) {
+        if (conquistaRepository.findByChave(conquista.getChave()).isPresent()) {
+            throw new RuntimeException("Chave já existe: " + conquista.getChave());
+        }
+        conquistaRepository.save(conquista);
+    }
+
+    public void editarConquista(Long id, Conquista dados) {
+        Conquista existente = buscarConquistaPorId(id);
+        // Valida chave única exceto a própria conquista
+        conquistaRepository.findByChave(dados.getChave())
+                .filter(found -> !found.getId().equals(id))
+                .ifPresent(found -> { throw new RuntimeException("Chave já em uso"); });
+
+        existente.setChave(dados.getChave());
+        existente.setNome(dados.getNome());
+        existente.setDescricao(dados.getDescricao());
+        existente.setIcone(dados.getIcone());
+        existente.setXp(dados.getXp());
+        conquistaRepository.save(existente);
+    }
+
+    @Transactional
+    public void deletarConquista(Long id) {
+        Conquista c = buscarConquistaPorId(id);
+        userConquistaRepository.deleteByConquista(c);
+        conquistaRepository.delete(c);
+    }
+
+    // --- HELPERS ---
+
+    private AdminUserDTO toDTO(User u) {
+        AdminUserDTO dto = new AdminUserDTO();
+        dto.setId(u.getId());
+        dto.setLogin(u.getLogin());
+        dto.setEmail(u.getEmail());
+        dto.setSocialUsername(u.getSocialUsername());
+        dto.setEmailVerified(u.isEmailVerified());
+        dto.setPublic(u.isPublic());
+        dto.setTotalItens(itemRepository.findByUser(u).size());
+        return dto;
+    }
+}

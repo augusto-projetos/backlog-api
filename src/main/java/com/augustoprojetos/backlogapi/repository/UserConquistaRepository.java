@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.repository;
 
+import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.entity.UserConquista;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,5 @@ public interface UserConquistaRepository extends JpaRepository<UserConquista, Lo
     int sumXpByUserId(@Param("userId") Long userId);
 
     void deleteByUser(User user);
+    void deleteByConquista(Conquista conquista);
 }
