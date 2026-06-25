@@ -15,6 +15,7 @@
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
         <link rel="stylesheet" th:href="@{/css/style.css}">
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+        <link rel="stylesheet" th:href="@{/css/conquistas.css}">
     </head>
 
     <body>
@@ -30,6 +31,16 @@
                         <span style="font-size: 1.1em; vertical-align: middle; margin-left: 5px;">⚙️</span>
                     </a>
                 </p>
+                <!-- Barra de XP / Nível -->
+                <div id="xp-bar-container" class="xp-bar-container" style="display:none;">
+                    <div class="xp-nivel-info">
+                        <span class="xp-nivel-label">Nível <strong id="xp-nivel-num">?</strong></span>
+                        <span class="xp-total-label" id="xp-total-display">0 XP</span>
+                    </div>
+                    <div class="xp-bar-track">
+                        <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="header-actions">
@@ -180,11 +191,25 @@
             </div>
         </footer>
 
+        <!-- Toast de Conquistas -->
+        <div id="conquista-toast" class="conquista-toast" style="display:none;">
+            <div class="conquista-toast-inner">
+                <span class="conquista-toast-icone" id="ct-icone">🏆</span>
+                <div class="conquista-toast-texto">
+                    <small>🎉 Conquista Desbloqueada!</small>
+                    <strong id="ct-nome">Nome</strong>
+                    <small id="ct-desc">Descrição</small>
+                    <small class="ct-xp" id="ct-xp">+0 XP</small>
+                </div>
+            </div>
+        </div>
+
         <script th:src="@{/js/script.js}"></script>
         <script th:src="@{/js/search-scroll.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
         <script th:src="@{/js/rating-toggle.js}"></script>
         <script th:src="@{/js/busca-social.js}"></script>
+        <script th:src="@{/js/conquistas.js}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <!-- MODAL QUE EXIBE O TEXTO COMPLETO DIGITADO PELA IA -->
