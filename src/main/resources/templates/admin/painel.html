@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 Painel ADM — Meus Backlog</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👑</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<!-- ─── HEADER ─────────────────────────────────────────── -->
+<header class="app-header adm-header">
+    <div class="header-info">
+        <h2>👑 Painel de Controle</h2>
+        <p class="user-greeting">Bem-vindo, <span class="user-name">Administrador</span></p>
+    </div>
+    <div class="header-actions">
+        <button id="theme-toggle" class="btn-theme" title="Modo Escuro/Claro">
+            <span id="theme-icon">🌙</span>
+        </button>
+        <!-- FIX: logout via POST (Spring Security exige POST para /logout) -->
+        <form th:action="@{/logout}" method="post" style="margin:0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" class="btn-logout">
+                <i class="fa fa-sign-out-alt"></i> Sair
+            </button>
+        </form>
+    </div>
+</header>
+
+<main class="adm-main">
+
+    <!-- ─── ABAS: scroll horizontal no mobile ───────────── -->
+    <div class="adm-tabs-wrapper">
+        <nav class="adm-tabs">
+            <button class="adm-tab active" data-tab="visao-geral">📊 Visão Geral</button>
+            <button class="adm-tab" data-tab="usuarios">👥 Usuários (<span th:text="${#lists.size(usuarios)}">0</span>)</button>
+            <button class="adm-tab" data-tab="pendentes">⏳ Pendentes (<span th:text="${#lists.size(pendentes)}">0</span>)</button>
+            <button class="adm-tab" data-tab="conquistas">🏆 Conquistas</button>
+        </nav>
+    </div>
+
+    <!-- ─── ABA: VISÃO GERAL ─────────────────────────────── -->
+    <section id="tab-visao-geral" class="adm-section active">
+        <div class="metric-grid">
+            <div class="metric-card azul">
+                <div class="metric-icon">👤</div>
+                <div class="metric-info">
+                    <span class="metric-num" th:text="${stats.totalUsuarios}">0</span>
+                    <span class="metric-label">Usuários Ativos</span>
+                </div>
+            </div>
+            <div class="metric-card amarelo">
+                <div class="metric-icon">⏳</div>
+                <div class="metric-info">
+                    <span class="metric-num" th:text="${stats.totalPendentes}">0</span>
+                    <span class="metric-label">Pendentes</span>
+                </div>
+            </div>
+            <div class="metric-card rosa">
+                <div class="metric-icon">🎬</div>
+                <div class="metric-info">
+                    <span class="metric-num" th:text="${stats.totalFilmes}">0</span>
+                    <span class="metric-label">Filmes</span>
+                </div>
+            </div>
+            <div class="metric-card verde">
+                <div class="metric-icon">📺</div>
+                <div class="metric-info">
+                    <span class="metric-num" th:text="${stats.totalSeries}">0</span>
+                    <span class="metric-label">Séries</span>
+                </div>
+            </div>
+            <div class="metric-card roxo">
+                <div class="metric-icon">🎮</div>
+                <div class="metric-info">
+                    <span class="metric-num" th:text="${stats.totalJogos}">0</span>
+                    <span class="metric-label">Jogos</span>
+                </div>
+            </div>
+            <div class="metric-card cinza">
+                <div class="metric-icon">📋</div>
+                <div class="metric-info">
+                    <span class="metric-num" th:text="${stats.totalItens}">0</span>
+                    <span class="metric-label">Total de Itens</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3 class="chart-title">Acervo por Tipo</h3>
+                <div class="canvas-container"><canvas id="graficoTipo"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">Status Global dos Itens</h3>
+                <div class="canvas-container"><canvas id="graficoStatus"></canvas></div>
+            </div>
+            <div class="chart-card chart-full">
+                <h3 class="chart-title">Distribuição Global de Notas</h3>
+                <div class="canvas-container"><canvas id="graficoNotas"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── ABA: USUÁRIOS ATIVOS ─────────────────────────── -->
+    <section id="tab-usuarios" class="adm-section">
+        <div class="section-header">
+            <h3>Usuários Cadastrados</h3>
+            <input type="text" id="busca-usuarios" class="adm-input busca-input" placeholder="🔍 Buscar por nome, @ ou email...">
+        </div>
+        <div class="adm-table-wrap">
+            <table class="adm-table" id="tabela-usuarios">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nome</th>
+                        <th>@</th>
+                        <th>E-mail</th>
+                        <th>Itens</th>
+                        <th>Público</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${usuarios}" th:data-id="${u.id}">
+                        <td th:text="${u.id}"></td>
+                        <td th:text="${u.login}"></td>
+                        <td><span class="badge-social">@<span th:text="${u.socialUsername}"></span></span></td>
+                        <td th:text="${u.email}"></td>
+                        <td><span class="badge-itens" th:text="${u.totalItens}"></span></td>
+                        <td>
+                            <span th:if="${u.isPublic}" class="badge verde-sm">Sim</span>
+                            <span th:unless="${u.isPublic}" class="badge cinza-sm">Não</span>
+                        </td>
+                        <td class="acoes-td">
+                            <button class="btn-adm-sm btn-ver-itens" th:data-id="${u.id}" th:data-nome="${u.login}" title="Ver backlog">
+                                <i class="fa fa-list"></i>
+                            </button>
+                            <button class="btn-adm-sm btn-editar-usuario"
+                                    th:data-id="${u.id}"
+                                    th:data-login="${u.login}"
+                                    th:data-social="${u.socialUsername}"
+                                    th:data-email="${u.email}"
+                                    title="Editar dados">
+                                <i class="fa fa-pen"></i>
+                            </button>
+                            <button class="btn-adm-sm btn-senha-usuario" th:data-id="${u.id}" th:data-nome="${u.login}" title="Redefinir senha">
+                                <i class="fa fa-key"></i>
+                            </button>
+                            <button class="btn-adm-sm btn-danger btn-deletar-usuario" th:data-id="${u.id}" th:data-nome="${u.login}" title="Deletar usuário">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(usuarios)}">
+                        <td colspan="7" class="empty-row">Nenhum usuário ativo ainda.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ─── ABA: PENDENTES ───────────────────────────────── -->
+    <section id="tab-pendentes" class="adm-section">
+        <div class="section-header">
+            <h3>Aguardando Verificação de E-mail</h3>
+        </div>
+        <div class="adm-table-wrap">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nome</th>
+                        <th>@</th>
+                        <th>E-mail</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${pendentes}" th:data-id="${u.id}">
+                        <td th:text="${u.id}"></td>
+                        <td th:text="${u.login}"></td>
+                        <td><span class="badge-social">@<span th:text="${u.socialUsername}"></span></span></td>
+                        <td th:text="${u.email}"></td>
+                        <td class="acoes-td">
+                            <button class="btn-adm-sm btn-danger btn-deletar-usuario" th:data-id="${u.id}" th:data-nome="${u.login}" title="Deletar conta pendente">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pendentes)}">
+                        <td colspan="5" class="empty-row">Nenhuma conta pendente. ✅</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ─── ABA: CONQUISTAS ──────────────────────────────── -->
+    <section id="tab-conquistas" class="adm-section">
+        <div class="section-header">
+            <h3>Gerenciar Conquistas</h3>
+            <button id="btn-nova-conquista" class="btn-adm-primary">
+                <i class="fa fa-plus"></i> Nova Conquista
+            </button>
+        </div>
+        <div class="adm-table-wrap">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th>Ícone</th>
+                        <th>Chave</th>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>XP</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${conquistas}" th:data-id="${c.id}">
+                        <td style="font-size:1.5rem; text-align:center" th:text="${c.icone}"></td>
+                        <td><code th:text="${c.chave}"></code></td>
+                        <td th:text="${c.nome}"></td>
+                        <td class="desc-td" th:text="${c.descricao}"></td>
+                        <td><span class="badge-xp" th:text="${c.xp} + ' XP'"></span></td>
+                        <td class="acoes-td">
+                            <button class="btn-adm-sm btn-editar-conquista"
+                                    th:data-id="${c.id}"
+                                    th:data-chave="${c.chave}"
+                                    th:data-nome="${c.nome}"
+                                    th:data-descricao="${c.descricao}"
+                                    th:data-icone="${c.icone}"
+                                    th:data-xp="${c.xp}"
+                                    title="Editar">
+                                <i class="fa fa-pen"></i>
+                            </button>
+                            <button class="btn-adm-sm btn-danger btn-deletar-conquista" th:data-id="${c.id}" th:data-nome="${c.nome}" title="Deletar">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(conquistas)}">
+                        <td colspan="6" class="empty-row">Nenhuma conquista cadastrada ainda.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<!-- ─── MODAL: BACKLOG DO USUÁRIO ───────────────────────── -->
+<div id="modal-itens" class="adm-modal hidden">
+    <div class="adm-modal-box large">
+        <div class="modal-header">
+            <h3 id="modal-itens-titulo">Backlog de ...</h3>
+            <button class="modal-close" data-modal="modal-itens"><i class="fa fa-times"></i></button>
+        </div>
+        <div id="modal-itens-corpo" class="modal-body"></div>
+    </div>
+</div>
+
+<!-- ─── DADOS PARA CHART.JS ─────────────────────────────── -->
+<script th:inline="javascript">
+    const STATS = {
+        filmes:      /*[[${stats.totalFilmes}]]*/ 0,
+        series:      /*[[${stats.totalSeries}]]*/ 0,
+        jogos:       /*[[${stats.totalJogos}]]*/ 0,
+        assistidos:  /*[[${stats.totalAssistidos}]]*/ 0,
+        assistindo:  /*[[${stats.totalAssistindo}]]*/ 0,
+        backlog:     /*[[${stats.totalBacklog}]]*/ 0,
+        dropados:    /*[[${stats.totalDropados}]]*/ 0,
+        notasLabels: /*[[${stats.distribNotas.keySet()}]]*/ [],
+        notasValues: /*[[${stats.distribNotas.values()}]]*/ []
+    };
+</script>
+<script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/admin.js}"></script>
+
+</body>
+</html>
