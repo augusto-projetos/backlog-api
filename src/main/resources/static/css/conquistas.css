@@ -1,3 +1,14 @@
+/* --- Variáveis de tema para a barra de XP --- */
+:root {
+    /* Modo claro: cinza médio visível sobre fundo branco */
+    --xp-track-bg: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] {
+    /* Modo escuro: branco translúcido como antes */
+    --xp-track-bg: rgba(255, 255, 255, 0.15);
+}
+
 /* --- Barra de XP no Header (home.html) --- */
 .xp-bar-container {
     margin-top: 6px;
@@ -22,7 +33,7 @@
 }
 
 .xp-bar-track {
-    background: rgba(255,255,255,0.12);
+    background: var(--xp-track-bg);
     border-radius: 20px;
     height: 8px;
     overflow: hidden;
