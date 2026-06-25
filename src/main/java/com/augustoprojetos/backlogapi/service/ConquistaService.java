@@ -81,12 +81,15 @@ public class ConquistaService {
 
         long totalItens      = countTipo.values().stream().mapToLong(Long::longValue).sum();
         long totalConcluidos = countStatus.getOrDefault("Zerado / Assistido", 0L)
-                             + countStatus.getOrDefault("concluido", 0L);
+                             + countStatus.getOrDefault("concluido", 0L)
+                             + countStatus.getOrDefault("Zerado", 0L)
+                             + countStatus.getOrDefault("Assistido", 0L);
         long totalDropados   = countStatus.getOrDefault("Dropado", 0L)
                              + countStatus.getOrDefault("dropado", 0L);
-        long jogosZerados    = concluidosPorTipo(countTipo, countStatus, "Jogo");
-        long filmesAssistidos= concluidosPorTipo(countTipo, countStatus, "Filme");
-        long seriesAssistidas= concluidosPorTipo(countTipo, countStatus, "Série");
+                             
+        long jogosZerados    = concluidosDeTipo(user, "Jogo");
+        long filmesAssistidos= concluidosDeTipo(user, "Filme");
+        long seriesAssistidas= concluidosDeTipo(user, "Série");
 
         // Conta quantos itens têm nota 10
         long nota10Total = countNota.getOrDefault(10.0, 0L);
@@ -176,11 +179,6 @@ public class ConquistaService {
             r -> (Double) r[0],
             r -> (Long) r[1]
         ));
-    }
-
-    private long concluidosPorTipo(Map<String, Long> countTipo, Map<String, Long> countStatus, String tipo) {
-        // Verifica quantos itens daquele tipo têm status concluído
-        return 0L; // calculado por concluidosDeTipo abaixo
     }
 
     private long concluidosDeTipo(User user, String tipo) {
