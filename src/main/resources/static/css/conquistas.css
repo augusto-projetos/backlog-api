@@ -227,6 +227,37 @@
     font-weight: 400;
 }
 
+/* --- Conquista Bloqueada --- */
+.conquista-badge.conquista-bloqueada {
+    opacity: 0.45;
+    filter: grayscale(70%);
+    border-color: rgba(255,255,255,0.08);
+    position: relative;
+}
+
+.conquista-badge.conquista-bloqueada:hover {
+    opacity: 0.62;
+    transform: none;
+    border-color: rgba(255,255,255,0.15);
+}
+
+.conquista-badge.conquista-bloqueada .conquista-badge-icone {
+    filter: grayscale(80%);
+}
+
+.conquista-cadeado {
+    margin-left: auto;
+    font-size: 0.85rem;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.ct-xp-bloqueado {
+    color: var(--text-muted, #aaa) !important;
+    font-size: 0.72rem;
+    margin-top: 2px;
+}
+
 /* --- Responsividade --- */
 @media (max-width: 600px) {
     .conquista-toast {

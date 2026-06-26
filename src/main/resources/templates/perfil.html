@@ -149,20 +149,23 @@
                 </small>
             </div>
 
-            <!-- Grid de badges -->
+            <!-- Grid de badges (desbloqueadas + bloqueadas) -->
             <div class="conquistas-grid">
-                <div class="conquista-badge"
-                     th:each="uc : ${conquistas}">
-                    <span class="conquista-badge-icone" th:text="${uc.conquista.icone}">🏅</span>
+                <div th:each="item : ${conquistasView}"
+                     th:classappend="${item.desbloqueada} ? '' : 'conquista-bloqueada'"
+                     class="conquista-badge">
+                    <span class="conquista-badge-icone" th:text="${item.conquista.icone}">🏅</span>
                     <div class="conquista-badge-info">
-                        <strong th:text="${uc.conquista.nome}">Nome</strong>
-                        <small th:text="${uc.conquista.descricao}">Descrição</small>
-                        <small class="ct-xp" th:text="'+' + ${uc.conquista.xp} + ' XP'">+0 XP</small>
+                        <strong th:text="${item.conquista.nome}">Nome</strong>
+                        <small th:text="${item.conquista.descricao}">Descrição</small>
+                        <small th:classappend="${item.desbloqueada} ? 'ct-xp' : 'ct-xp-bloqueado'"
+                               th:text="${item.desbloqueada} ? ('+' + ${item.conquista.xp} + ' XP') : (${item.conquista.xp} + ' XP')">+0 XP</small>
                     </div>
+                    <span th:if="${!item.desbloqueada}" class="conquista-cadeado" title="Bloqueada">🔒</span>
                 </div>
 
-                <div th:if="${conquistas.isEmpty()}" class="conquistas-vazio">
-                    <p>😴 Nenhuma conquista ainda. Adicione itens ao backlog para começar!</p>
+                <div th:if="${conquistasView.isEmpty()}" class="conquistas-vazio">
+                    <p>😴 Nenhuma conquista cadastrada ainda.</p>
                 </div>
             </div>
 
