@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════════
-//  PAINEL ADM — admin.js
-// ═══════════════════════════════════════════════════════
-
 document.addEventListener("DOMContentLoaded", () => {
     initTabs();
     initGraficos();
@@ -11,8 +7,20 @@ document.addEventListener("DOMContentLoaded", () => {
     initFechamentoModal();
 });
 
-// ─── ABAS ─────────────────────────────────────────────
+// Função auxiliar para coletar os tokens CSRF das metatags
+function getCsrfHeaders() {
+    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+    if (!tokenMeta || !headerMeta) {
+        return { 'Content-Type': 'application/json' };
+    }
+    return {
+        'Content-Type': 'application/json',
+        [headerMeta.getAttribute('content')]: tokenMeta.getAttribute('content')
+    };
+}
 
+// --- ABAS ---
 function initTabs() {
     const tabs = document.querySelectorAll(".adm-tab");
     tabs.forEach(tab => {
@@ -25,10 +33,9 @@ function initTabs() {
     });
 }
 
-// ─── GRÁFICOS ─────────────────────────────────────────
-
+// --- GRÁFICOS ---
 function initGraficos() {
-    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const isDark = isDarkMode();
     const textColor = isDark ? "#e0e0e0" : "#2c3e50";
     const gridColor = isDark ? "#333" : "#eee";
 
@@ -92,8 +99,7 @@ function initGraficos() {
     }
 }
 
-// ─── BUSCA DE USUÁRIOS ────────────────────────────────
-
+// --- BUSCA DE USUÁRIOS ---
 function initBuscaUsuarios() {
     const input = document.getElementById("busca-usuarios");
     if (!input) return;
@@ -105,20 +111,20 @@ function initBuscaUsuarios() {
     });
 }
 
-// ─── AÇÕES DE USUÁRIOS ────────────────────────────────
-
+// --- AÇÕES DE USUÁRIOS ---
 function initAcoesUsuarios() {
-    document.querySelectorAll(".btn-ver-itens").forEach(btn =>
-        btn.addEventListener("click", () => abrirBacklogUsuario(btn.dataset.id, btn.dataset.nome)));
+    // Usando delegação de eventos para garantir o mapeamento estável pós-renderização do Thymeleaf
+    document.addEventListener("click", (e) => {
+        const btnVer = e.target.closest(".btn-ver-itens");
+        const btnEdit = e.target.closest(".btn-editar-usuario");
+        const btnSenha = e.target.closest(".btn-senha-usuario");
+        const btnDel = e.target.closest(".btn-deletar-usuario");
 
-    document.querySelectorAll(".btn-editar-usuario").forEach(btn =>
-        btn.addEventListener("click", () => editarUsuario(btn.dataset)));
-
-    document.querySelectorAll(".btn-senha-usuario").forEach(btn =>
-        btn.addEventListener("click", () => redefinirSenha(btn.dataset.id, btn.dataset.nome)));
-
-    document.querySelectorAll(".btn-deletar-usuario").forEach(btn =>
-        btn.addEventListener("click", () => deletarUsuario(btn.dataset.id, btn.dataset.nome)));
+        if (btnVer) abrirBacklogUsuario(btnVer.dataset.id, btnVer.dataset.nome);
+        if (btnEdit) editarUsuario(btnEdit.dataset);
+        if (btnSenha) redefinirSenha(btnSenha.dataset.id, btnSenha.dataset.nome);
+        if (btnDel) deletarUsuario(btnDel.dataset.id, btnDel.dataset.nome);
+    });
 }
 
 async function abrirBacklogUsuario(userId, nome) {
@@ -173,7 +179,6 @@ async function abrirBacklogUsuario(userId, nome) {
     }
 }
 
-// FIX: editar item do backlog de outro usuário
 async function editarItemAdmin(itemId, titulo, statusAtual, notaAtual, resenhaAtual) {
     const isDark = isDarkMode();
     const statusOptions = ["Backlog", "Assistindo", "Jogando", "Assistido", "Zerado", "Dropado"];
@@ -226,14 +231,13 @@ async function editarItemAdmin(itemId, titulo, statusAtual, notaAtual, resenhaAt
 
     const resp = await fetch(`/admin/item/${itemId}/editar`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getCsrfHeaders(),
         body: JSON.stringify(resultado)
     });
     const data = await resp.json();
 
     if (data.sucesso) {
         toastSucesso("Item atualizado!");
-        // Atualiza as tags inline sem recarregar o modal
         const row = document.getElementById(`item-row-${itemId}`);
         if (row) {
             row.querySelector(".tag-status").textContent = resultado.status;
@@ -261,7 +265,10 @@ async function deletarItemAdmin(itemId) {
 
     if (!confirm.isConfirmed) return;
 
-    const resp = await fetch(`/admin/item/${itemId}`, { method: "DELETE" });
+    const resp = await fetch(`/admin/item/${itemId}`, { 
+        method: "DELETE",
+        headers: getCsrfHeaders()
+    });
     const data = await resp.json();
 
     if (data.sucesso) {
@@ -310,9 +317,10 @@ function editarUsuario(dataset) {
         }
     }).then(async result => {
         if (!result.isConfirmed) return;
+        
         const resp = await fetch(`/admin/usuario/${dataset.id}/editar`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getCsrfHeaders(),
             body: JSON.stringify(result.value)
         });
         const data = await resp.json();
@@ -323,19 +331,38 @@ function editarUsuario(dataset) {
 
 function redefinirSenha(userId, nome) {
     const isDark = isDarkMode();
+    
     Swal.fire({
         title: `🔑 Nova senha para ${escapeHtml(nome)}`,
+        width: "460px",
         html: `
-            <div style="display:flex;flex-direction:column;gap:12px;text-align:left">
+            <div style="display:flex;flex-direction:column;gap:14px;text-align:left; max-width:100%;">
                 <div>
                     <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">NOVA SENHA</label>
-                    <input id="swal-nova-senha" class="swal2-input" type="password" placeholder="Nova senha" style="margin-top:6px">
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input id="swal-nova-senha" class="swal2-input senha-verifica" type="password" placeholder="Nova senha" style="margin:6px 0 0 0; width:100%; padding-right:40px;">
+                        <button type="button" onclick="togglePasswordAdmin(this)" style="position:absolute; right:10px; top:65%; transform:translateY(-50%); background:none; border:none; color:#7f8c8d; cursor:pointer;">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
+                
                 <div>
                     <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">CONFIRMAR</label>
-                    <input id="swal-confirma-senha" class="swal2-input" type="password" placeholder="Confirmar nova senha" style="margin-top:6px">
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input id="swal-confirma-senha" class="swal2-input" type="password" placeholder="Confirmar nova senha" style="margin:6px 0 0 0; width:100%; padding-right:40px;">
+                        <button type="button" onclick="togglePasswordAdmin(this)" style="position:absolute; right:10px; top:65%; transform:translateY(-50%); background:none; border:none; color:#7f8c8d; cursor:pointer;">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <p style="font-size:0.78rem;color:#7f8c8d;margin:0">A senha será redefinida sem confirmação do usuário.</p>
+
+                <div id="box-requisitos" class="box-requisitos-adm" style="background:rgba(0,0,0,0.1); padding:10px; border-radius:8px; font-size:0.8rem; border:1px solid var(--border-color);">
+                    <div id="req-tamanho" class="invalido" style="color:#e74c3c; margin-bottom:4px;"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</div>
+                    <div id="req-maiuscula" class="invalido" style="color:#e74c3c; margin-bottom:4px;"><i class="fa-solid fa-circle-check"></i> Uma letra maiúscula</div>
+                    <div id="req-numero" class="invalido" style="color:#e74c3c; margin-bottom:4px;"><i class="fa-solid fa-circle-xmark"></i> Um número</div>
+                    <div id="req-especial" class="invalido" style="color:#e74c3c;"><i class="fa-solid fa-circle-xmark"></i> Um caractere especial (!@#$%^&*)</div>
+                </div>
             </div>
         `,
         showCancelButton: true,
@@ -344,18 +371,41 @@ function redefinirSenha(userId, nome) {
         confirmButtonColor: "#f59e0b",
         background: isDark ? "#1e1e1e" : "#fff",
         color: isDark ? "#e0e0e0" : "#2c3e50",
+        didOpen: () => {
+            const inputSenha = document.getElementById('swal-nova-senha');
+            const reqTamanho = document.getElementById('req-tamanho');
+            const reqMaiuscula = document.getElementById('req-maiuscula');
+            const reqNumero = document.getElementById('req-numero');
+            const reqEspecial = document.getElementById('req-especial');
+
+            inputSenha.addEventListener('input', () => {
+                const valor = inputSenha.value;
+                validarItemLinha(reqTamanho, valor.length >= 8);
+                validarItemLinha(reqMaiuscula, /[A-Z]/.test(valor));
+                validarItemLinha(reqNumero, /[0-9]/.test(valor));
+                validarItemLinha(reqEspecial, /[!@#$%^&*(),.?":{}|<>]/.test(valor)); // Regex de símbolo especial
+            });
+        },
         preConfirm: () => {
             const nova = document.getElementById("swal-nova-senha").value;
             const confirma = document.getElementById("swal-confirma-senha").value;
-            if (!nova || nova.length < 6) { Swal.showValidationMessage("Mínimo 6 caracteres."); return false; }
-            if (nova !== confirma) { Swal.showValidationMessage("As senhas não coincidem."); return false; }
+
+            if (nova.length < 8 || !/[A-Z]/.test(nova) || !/[0-9]/.test(nova) || !/[!@#$%^&*(),.?":{}|<>]/.test(nova)) {
+                Swal.showValidationMessage("A senha não atende aos requisitos mínimos.");
+                return false;
+            }
+            if (nova !== confirma) {
+                Swal.showValidationMessage("As senhas não coincidem.");
+                return false;
+            }
             return nova;
         }
     }).then(async result => {
         if (!result.isConfirmed) return;
+        
         const resp = await fetch(`/admin/usuario/${userId}/senha`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getCsrfHeaders(),
             body: JSON.stringify({ novaSenha: result.value })
         });
         const data = await resp.json();
@@ -380,7 +430,11 @@ function deletarUsuario(userId, nome) {
         color: isDark ? "#e0e0e0" : "#2c3e50",
     }).then(async result => {
         if (!result.isConfirmed) return;
-        const resp = await fetch(`/admin/usuario/${userId}`, { method: "DELETE" });
+        
+        const resp = await fetch(`/admin/usuario/${userId}`, { 
+            method: "DELETE",
+            headers: getCsrfHeaders()
+        });
         const data = await resp.json();
         if (data.sucesso) {
             toastSucesso("Usuário deletado!");
@@ -389,17 +443,20 @@ function deletarUsuario(userId, nome) {
     });
 }
 
-// ─── AÇÕES DE CONQUISTAS ──────────────────────────────
-
+// --- AÇÕES DE CONQUISTAS ---
 function initAcoesConquistas() {
     document.getElementById("btn-nova-conquista")?.addEventListener("click", () => abrirFormConquista(null));
-    document.querySelectorAll(".btn-editar-conquista").forEach(btn =>
-        btn.addEventListener("click", () => abrirFormConquista(btn.dataset)));
-    document.querySelectorAll(".btn-deletar-conquista").forEach(btn =>
-        btn.addEventListener("click", () => deletarConquista(btn.dataset.id, btn.dataset.nome)));
+    
+    // Delegação de eventos estável para os botões da lista de conquistas
+    document.addEventListener("click", (e) => {
+        const btnEditConq = e.target.closest(".btn-editar-conquista");
+        const btnDelConq = e.target.closest(".btn-deletar-conquista");
+
+        if (btnEditConq) abrirFormConquista(btnEditConq.dataset);
+        if (btnDelConq) deletarConquista(btnDelConq.dataset.id, btnDelConq.dataset.nome);
+    });
 }
 
-// FIX: modal de conquista com mais espaço e campos bem separados
 function abrirFormConquista(dados) {
     const isEdicao = !!dados;
     const isDark = isDarkMode();
@@ -409,41 +466,28 @@ function abrirFormConquista(dados) {
         width: "520px",
         html: `
             <div style="display:flex;flex-direction:column;gap:18px;text-align:left;padding:4px 0">
-
                 <div style="display:grid;grid-template-columns:90px 1fr;gap:14px">
                     <div>
                         <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">ÍCONE</label>
-                        <input id="sc-icone" class="swal2-input" value="${isEdicao ? escapeHtml(dados.icone) : "🏆"}"
-                               placeholder="🏆" maxlength="5"
-                               style="text-align:center;font-size:1.6rem;padding:8px;height:52px;margin:0;width:100%">
+                        <input id="sc-icone" class="swal2-input" value="${isEdicao ? escapeHtml(dados.icone) : "🏆"}" maxlength="5" style="text-align:center;font-size:1.6rem;padding:8px;height:52px;margin:0;width:100%">
                     </div>
                     <div>
                         <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">XP GANHO</label>
-                        <input id="sc-xp" class="swal2-input" type="number" value="${isEdicao ? dados.xp : "50"}"
-                               min="1" placeholder="50"
-                               style="margin:0;width:100%;height:52px">
+                        <input id="sc-xp" class="swal2-input" type="number" value="${isEdicao ? dados.xp : "50"}" min="1" placeholder="50" style="margin:0;width:100%;height:52px">
                     </div>
                 </div>
-
                 <div>
                     <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">CHAVE ÚNICA</label>
-                    <input id="sc-chave" class="swal2-input" value="${isEdicao ? escapeHtml(dados.chave) : ""}"
-                           placeholder="Ex: PRIMEIRO_FILME" style="text-transform:uppercase;margin:0;width:100%">
+                    <input id="sc-chave" class="swal2-input" value="${isEdicao ? escapeHtml(dados.chave) : ""}" placeholder="Ex: PRIMEIRO_FILME" style="text-transform:uppercase;margin:0;width:100%">
                 </div>
-
                 <div>
                     <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">NOME</label>
-                    <input id="sc-nome" class="swal2-input" value="${isEdicao ? escapeHtml(dados.nome) : ""}"
-                           placeholder="Nome da conquista" style="margin:0;width:100%">
+                    <input id="sc-nome" class="swal2-input" value="${isEdicao ? escapeHtml(dados.nome) : ""}" placeholder="Nome da conquista" style="margin:0;width:100%">
                 </div>
-
                 <div>
                     <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">DESCRIÇÃO</label>
-                    <textarea id="sc-desc" class="swal2-textarea"
-                              placeholder="Descrição exibida ao usuário"
-                              style="margin:0;width:100%;min-height:80px;resize:vertical;box-sizing:border-box">${isEdicao ? escapeHtml(dados.descricao) : ""}</textarea>
+                    <textarea id="sc-desc" class="swal2-textarea" placeholder="Descrição exibida ao usuário" style="margin:0;width:100%;min-height:80px;resize:vertical;box-sizing:border-box">${isEdicao ? escapeHtml(dados.descricao) : ""}</textarea>
                 </div>
-
             </div>
         `,
         showCancelButton: true,
@@ -467,9 +511,10 @@ function abrirFormConquista(dados) {
     }).then(async result => {
         if (!result.isConfirmed) return;
         const url = isEdicao ? `/admin/conquista/${dados.id}/editar` : `/admin/conquista/criar`;
+        
         const resp = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getCsrfHeaders(),
             body: JSON.stringify(result.value)
         });
         const data = await resp.json();
@@ -495,15 +540,18 @@ function deletarConquista(id, nome) {
         color: isDark ? "#e0e0e0" : "#2c3e50",
     }).then(async result => {
         if (!result.isConfirmed) return;
-        const resp = await fetch(`/admin/conquista/${id}`, { method: "DELETE" });
+        
+        const resp = await fetch(`/admin/conquista/${id}`, { 
+            method: "DELETE",
+            headers: getCsrfHeaders()
+        });
         const data = await resp.json();
         if (data.sucesso) { toastSucesso("Conquista deletada!"); setTimeout(() => location.reload(), 1200); }
         else toastErro(data.erro || "Erro ao deletar conquista.");
     });
 }
 
-// ─── MODAL FECHAR ─────────────────────────────────────
-
+// --- MODAL FECHAR ---
 function initFechamentoModal() {
     document.querySelectorAll(".modal-close").forEach(btn => {
         btn.addEventListener("click", () =>
@@ -516,8 +564,7 @@ function initFechamentoModal() {
     });
 }
 
-// ─── UTILITÁRIOS ─────────────────────────────────────
-
+// --- UTILITÁRIOS ---
 function isDarkMode() {
     return document.documentElement.getAttribute("data-theme") === "dark";
 }
@@ -525,6 +572,8 @@ function isDarkMode() {
 function toastSucesso(msg) {
     Swal.fire({ toast: true, position: "bottom-end", icon: "success", title: msg, showConfirmButton: false, timer: 2500, timerProgressBar: true });
 }
+
+function togglePassword(btn) {} // mantendo coerência com assinatura do front
 
 function toastErro(msg) {
     Swal.fire({ toast: true, position: "bottom-end", icon: "error", title: msg, showConfirmButton: false, timer: 3000 });
@@ -535,4 +584,28 @@ function escapeHtml(text) {
     return String(text)
         .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/`/g, "&#96;");
+}
+
+function togglePasswordAdmin(botao) {
+    const input = botao.previousElementSibling;
+    const icone = botao.querySelector('i');
+    if (input.type === "password") {
+        input.type = "text";
+        icone.className = 'fa-solid fa-eye-slash';
+    } else {
+        input.type = "password";
+        icone.className = 'fa-solid fa-eye';
+    }
+}
+
+function validarItemLinha(elemento, valido) {
+    if (!elemento) return;
+    const icone = elemento.querySelector('i');
+    if (valido) {
+        elemento.style.color = "#2ecc71";
+        icone.className = 'fa-solid fa-circle-check';
+    } else {
+        elemento.style.color = "#e74c3c";
+        icone.className = 'fa-solid fa-circle-xmark';
+    }
 }
