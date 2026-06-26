@@ -161,6 +161,11 @@
                                         title="Ver backlog">
                                     <i class="fa fa-list"></i>
                                 </button>
+                                <button class="btn-adm-sm b-purple btn-conceder-conquista"
+                                        th:data-id="${u.id}" th:data-nome="${u.login}"
+                                        title="Conceder conquista">
+                                    <i class="fa fa-trophy"></i>
+                                </button>
                                 <button class="btn-adm-sm btn-editar-usuario"
                                         th:data-id="${u.id}"
                                         th:data-login="${u.login}"
@@ -252,6 +257,7 @@
                             <th>Nome</th>
                             <th>Descrição</th>
                             <th>XP</th>
+                            <th>Critério</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -262,6 +268,19 @@
                             <td style="font-weight:600" th:text="${c.nome}"></td>
                             <td class="desc-td" th:text="${c.descricao}"></td>
                             <td><span class="badge-xp" th:text="${c.xp} + ' XP'"></span></td>
+                            <td style="font-size:0.8rem;color:var(--text-muted)">
+                                <span th:if="${c.criterioTipo != null
+                                              and c.criterioTipo != 'MANUAL'
+                                              and c.criterioTipo != 'AI_USADA'
+                                              and c.criterioTipo != 'TMDB_CAPA'
+                                              and c.criterioTipo != 'SHARE_LINK_CRIADO'}"
+                                      th:text="${c.criterioTipo} + ' ≥ ' + ${c.criterioValor}"></span>
+                                <span th:if="${c.criterioTipo == 'AI_USADA'}"    style="color:#7c3aed">Evento: IA</span>
+                                <span th:if="${c.criterioTipo == 'TMDB_CAPA'}"   style="color:#7c3aed">Evento: TMDB</span>
+                                <span th:if="${c.criterioTipo == 'SHARE_LINK_CRIADO'}" style="color:#7c3aed">Evento: Share</span>
+                                <span th:if="${c.criterioTipo == null or c.criterioTipo == 'MANUAL'}"
+                                      style="opacity:.5">Manual</span>
+                            </td>
                             <td class="acoes-td">
                                 <button class="btn-adm-sm btn-editar-conquista"
                                         th:data-id="${c.id}"
@@ -270,6 +289,8 @@
                                         th:data-descricao="${c.descricao}"
                                         th:data-icone="${c.icone}"
                                         th:data-xp="${c.xp}"
+                                        th:data-criteriotipo="${c.criterioTipo}"
+                                        th:data-criteriovalor="${c.criterioValor}"
                                         title="Editar conquista">
                                     <i class="fa fa-pen"></i>
                                 </button>
@@ -281,7 +302,7 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(conquistas)}">
-                            <td colspan="6" class="empty-row">
+                            <td colspan="7" class="empty-row">
                                 <i class="fa fa-trophy" style="font-size:2rem;opacity:.2;display:block;margin-bottom:8px"></i>
                                 Nenhuma conquista cadastrada ainda.
                             </td>

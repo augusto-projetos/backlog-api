@@ -576,8 +576,8 @@ body {
 }
 
 /* Ver backlog: roxo */
-.btn-adm-sm:not(.btn-danger):not(.b-orange):hover,
-.btn-icon:not(.btn-danger):not(.b-orange):not(.b-red):hover {
+.btn-adm-sm:not(.btn-danger):not(.b-orange):not(.b-red):not(.b-purple):hover,
+.btn-icon:not(.btn-danger):not(.b-orange):not(.b-red):not(.b-purple):hover {
     background: linear-gradient(135deg, var(--adm-purple), #5b21b6);
     border-color: var(--adm-purple);
     color: #fff;
@@ -592,6 +592,16 @@ body {
     border-color: var(--adm-amber) !important;
     color: #fff !important;
     box-shadow: 0 0 12px rgba(245,158,11,0.45);
+    transform: scale(1.08);
+}
+
+/* Roxo: conceder conquista */
+.b-purple { color: #a78bfa; border-color: rgba(124,58,237,0.2); }
+.b-purple:hover {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    border-color: #7c3aed !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px rgba(124,58,237,0.45);
     transform: scale(1.08);
 }
 

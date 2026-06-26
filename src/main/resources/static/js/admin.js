@@ -115,15 +115,83 @@ function initBuscaUsuarios() {
 function initAcoesUsuarios() {
     // Usando delegação de eventos para garantir o mapeamento estável pós-renderização do Thymeleaf
     document.addEventListener("click", (e) => {
-        const btnVer = e.target.closest(".btn-ver-itens");
-        const btnEdit = e.target.closest(".btn-editar-usuario");
-        const btnSenha = e.target.closest(".btn-senha-usuario");
-        const btnDel = e.target.closest(".btn-deletar-usuario");
+        const btnVer       = e.target.closest(".btn-ver-itens");
+        const btnEdit      = e.target.closest(".btn-editar-usuario");
+        const btnSenha     = e.target.closest(".btn-senha-usuario");
+        const btnDel       = e.target.closest(".btn-deletar-usuario");
+        const btnConquista = e.target.closest(".btn-conceder-conquista");
 
-        if (btnVer) abrirBacklogUsuario(btnVer.dataset.id, btnVer.dataset.nome);
-        if (btnEdit) editarUsuario(btnEdit.dataset);
-        if (btnSenha) redefinirSenha(btnSenha.dataset.id, btnSenha.dataset.nome);
-        if (btnDel) deletarUsuario(btnDel.dataset.id, btnDel.dataset.nome);
+        if (btnVer)       abrirBacklogUsuario(btnVer.dataset.id, btnVer.dataset.nome);
+        if (btnEdit)      editarUsuario(btnEdit.dataset);
+        if (btnSenha)     redefinirSenha(btnSenha.dataset.id, btnSenha.dataset.nome);
+        if (btnDel)       deletarUsuario(btnDel.dataset.id, btnDel.dataset.nome);
+        if (btnConquista) abrirConcederConquista(btnConquista.dataset.id, btnConquista.dataset.nome);
+    });
+}
+
+async function abrirConcederConquista(userId, nomeUsuario) {
+    const isDark = isDarkMode();
+
+    // Busca a lista de conquistas do servidor
+    let conquistas = [];
+    try {
+        const resp = await fetch("/admin/api/conquistas");
+        conquistas = await resp.json();
+    } catch (e) {
+        toastErro("Erro ao carregar conquistas.");
+        return;
+    }
+
+    if (!conquistas.length) {
+        toastErro("Nenhuma conquista cadastrada.");
+        return;
+    }
+
+    const optionsHtml = conquistas.map(c =>
+        `<option value="${c.id}">${escapeHtml(c.icone)} ${escapeHtml(c.nome)} (${c.xp} XP)</option>`
+    ).join("");
+
+    Swal.fire({
+        title: `🏆 Conceder Conquista`,
+        html: `
+            <p style="font-size:0.88rem;margin-bottom:14px;color:var(--text-muted,#aaa)">
+                Usuário: <strong>${escapeHtml(nomeUsuario)}</strong>
+            </p>
+            <div style="text-align:left">
+                <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+                    CONQUISTA
+                </label>
+                <select id="sg-conquista" class="swal2-select" style="margin:0;width:100%;height:44px;border-radius:8px">
+                    ${optionsHtml}
+                </select>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Conceder",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#7c3aed",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+        preConfirm: () => {
+            const val = document.getElementById("sg-conquista").value;
+            if (!val) { Swal.showValidationMessage("Selecione uma conquista."); return false; }
+            return val;
+        }
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+        const conquistaId = result.value;
+        const resp = await fetch(`/admin/usuario/${userId}/conceder-conquista/${conquistaId}`, {
+            method: "POST",
+            headers: getCsrfHeaders()
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            toastSucesso(data.mensagem || "Conquista concedida!");
+        } else if (data.mensagem) {
+            toastErro(data.mensagem); // "Usuário já possui essa conquista."
+        } else {
+            toastErro(data.erro || "Erro ao conceder conquista.");
+        }
     });
 }
 
@@ -452,7 +520,11 @@ function initAcoesConquistas() {
         const btnEditConq = e.target.closest(".btn-editar-conquista");
         const btnDelConq = e.target.closest(".btn-deletar-conquista");
 
-        if (btnEditConq) abrirFormConquista(btnEditConq.dataset);
+        if (btnEditConq) abrirFormConquista({
+            ...btnEditConq.dataset,
+            criterioTipo:  btnEditConq.dataset.criteriotipo  || "MANUAL",
+            criterioValor: btnEditConq.dataset.criteriovalor || ""
+        });
         if (btnDelConq) deletarConquista(btnDelConq.dataset.id, btnDelConq.dataset.nome);
     });
 }
@@ -461,32 +533,70 @@ function abrirFormConquista(dados) {
     const isEdicao = !!dados;
     const isDark = isDarkMode();
 
+    const CRITERIOS = [
+        { value: "MANUAL",           label: "Manual (concedida pelo admin)" },
+        { value: "TOTAL_ITENS",      label: "Total de itens cadastrados" },
+        { value: "TOTAL_CONCLUIDOS", label: "Total de itens concluídos" },
+        { value: "TOTAL_DROPADOS",   label: "Total de itens dropados" },
+        { value: "JOGOS_ZERADOS",    label: "Jogos zerados" },
+        { value: "FILMES_ASSISTIDOS",label: "Filmes assistidos" },
+        { value: "SERIES_ASSISTIDAS",label: "Séries assistidas" },
+        { value: "NOTA10_FILMES",    label: "Filmes com nota 10" },
+        { value: "NOTA10_JOGOS",     label: "Jogos com nota 10" },
+        { value: "NOTA10_TOTAL",     label: "Itens com nota 10 (qualquer tipo)" },
+        { value: "TMDB_CAPA",        label: "Cadastrou item com capa do TMDB" },
+        { value: "SHARE_LINK_CRIADO",label: "Criou link de compartilhamento" },
+        { value: "AI_USADA",         label: "Usou a IA pela primeira vez" },
+    ];
+
+    const criterioAtual = isEdicao ? (dados.criterioTipo || "MANUAL") : "MANUAL";
+    const valorAtual    = isEdicao ? (dados.criterioValor || "") : "";
+
+    const optionsHtml = CRITERIOS.map(c =>
+        `<option value="${c.value}"${criterioAtual === c.value ? " selected" : ""}>${c.label}</option>`
+    ).join("");
+
+    const labelStyle = "display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px";
+    const hintStyle  = "font-size:0.72rem;color:#7f8c8d;margin-top:4px";
+
     Swal.fire({
         title: isEdicao ? "✏️ Editar Conquista" : "🏆 Nova Conquista",
-        width: "520px",
+        width: "540px",
         html: `
             <div style="display:flex;flex-direction:column;gap:18px;text-align:left;padding:4px 0">
                 <div style="display:grid;grid-template-columns:90px 1fr;gap:14px">
                     <div>
-                        <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">ÍCONE</label>
+                        <label style="${labelStyle}">ÍCONE</label>
                         <input id="sc-icone" class="swal2-input" value="${isEdicao ? escapeHtml(dados.icone) : "🏆"}" maxlength="5" style="text-align:center;font-size:1.6rem;padding:8px;height:52px;margin:0;width:100%">
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">XP GANHO</label>
+                        <label style="${labelStyle}">XP GANHO</label>
                         <input id="sc-xp" class="swal2-input" type="number" value="${isEdicao ? dados.xp : "50"}" min="1" placeholder="50" style="margin:0;width:100%;height:52px">
                     </div>
                 </div>
                 <div>
-                    <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">CHAVE ÚNICA</label>
+                    <label style="${labelStyle}">CHAVE ÚNICA</label>
                     <input id="sc-chave" class="swal2-input" value="${isEdicao ? escapeHtml(dados.chave) : ""}" placeholder="Ex: PRIMEIRO_FILME" style="text-transform:uppercase;margin:0;width:100%">
                 </div>
                 <div>
-                    <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">NOME</label>
+                    <label style="${labelStyle}">NOME</label>
                     <input id="sc-nome" class="swal2-input" value="${isEdicao ? escapeHtml(dados.nome) : ""}" placeholder="Nome da conquista" style="margin:0;width:100%">
                 </div>
                 <div>
-                    <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">DESCRIÇÃO</label>
+                    <label style="${labelStyle}">DESCRIÇÃO</label>
                     <textarea id="sc-desc" class="swal2-textarea" placeholder="Descrição exibida ao usuário" style="margin:0;width:100%;min-height:80px;resize:vertical;box-sizing:border-box">${isEdicao ? escapeHtml(dados.descricao) : ""}</textarea>
+                </div>
+                <div style="border-top:1px solid rgba(127,140,141,0.2);padding-top:14px">
+                    <label style="${labelStyle}">🎯 CRITÉRIO DE DESBLOQUEIO</label>
+                    <select id="sc-criterio" class="swal2-select" style="margin:0;width:100%;height:44px;border-radius:8px">
+                        ${optionsHtml}
+                    </select>
+                    <p style="${hintStyle}">Define quando o sistema desbloqueia essa conquista automaticamente.</p>
+                </div>
+                <div id="sc-valor-wrap">
+                    <label style="${labelStyle}">QUANTIDADE MÍNIMA</label>
+                    <input id="sc-valor" class="swal2-input" type="number" value="${valorAtual}" min="1" placeholder="Ex: 10" style="margin:0;width:100%">
+                    <p style="${hintStyle}">Número de itens necessários para atingir o critério acima.</p>
                 </div>
             </div>
         `,
@@ -496,22 +606,39 @@ function abrirFormConquista(dados) {
         confirmButtonColor: "#7c3aed",
         background: isDark ? "#1e1e1e" : "#fff",
         color: isDark ? "#e0e0e0" : "#2c3e50",
+        didOpen: () => {
+            const sel  = document.getElementById("sc-criterio");
+            const wrap = document.getElementById("sc-valor-wrap");
+            const CRITERIOS_SEM_VALOR = new Set(["MANUAL", "AI_USADA", "TMDB_CAPA", "SHARE_LINK_CRIADO"]);
+            const toggle = () => { wrap.style.display = CRITERIOS_SEM_VALOR.has(sel.value) ? "none" : ""; };
+            toggle();
+            sel.addEventListener("change", toggle);
+        },
         preConfirm: () => {
-            const icone = document.getElementById("sc-icone").value.trim();
-            const chave = document.getElementById("sc-chave").value.trim().toUpperCase();
-            const nome  = document.getElementById("sc-nome").value.trim();
-            const desc  = document.getElementById("sc-desc").value.trim();
-            const xp    = parseInt(document.getElementById("sc-xp").value);
+            const icone      = document.getElementById("sc-icone").value.trim();
+            const chave      = document.getElementById("sc-chave").value.trim().toUpperCase();
+            const nome       = document.getElementById("sc-nome").value.trim();
+            const desc       = document.getElementById("sc-desc").value.trim();
+            const xp         = parseInt(document.getElementById("sc-xp").value);
+            const criterio   = document.getElementById("sc-criterio").value;
+            const valorRaw   = document.getElementById("sc-valor")?.value;
+            const criteriosSemValor = new Set(["MANUAL", "AI_USADA", "TMDB_CAPA", "SHARE_LINK_CRIADO"]);
+            const valor      = criteriosSemValor.has(criterio) ? null : parseInt(valorRaw);
+
             if (!icone || !chave || !nome || !desc || isNaN(xp) || xp < 1) {
                 Swal.showValidationMessage("Preencha todos os campos corretamente.");
                 return false;
             }
-            return { icone, chave, nome, descricao: desc, xp };
+            if (!criteriosSemValor.has(criterio) && (isNaN(valor) || valor < 1)) {
+                Swal.showValidationMessage("Informe a quantidade mínima para o critério escolhido.");
+                return false;
+            }
+            return { icone, chave, nome, descricao: desc, xp, criterioTipo: criterio, criterioValor: valor };
         }
     }).then(async result => {
         if (!result.isConfirmed) return;
         const url = isEdicao ? `/admin/conquista/${dados.id}/editar` : `/admin/conquista/criar`;
-        
+
         const resp = await fetch(url, {
             method: "POST",
             headers: getCsrfHeaders(),
