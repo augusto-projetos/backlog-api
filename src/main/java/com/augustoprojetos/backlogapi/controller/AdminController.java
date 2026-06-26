@@ -38,6 +38,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.calcularEstatisticasGlobais());
     }
 
+    @GetMapping("/api/conquistas")
+    @ResponseBody
+    public ResponseEntity<?> getConquistas() {
+        return ResponseEntity.ok(adminService.listarConquistas());
+    }
+
     // --- USUÁRIOS ---
 
     @GetMapping("/api/usuario/{id}/itens")
@@ -78,6 +84,23 @@ public class AdminController {
         try {
             adminService.deletarUsuario(id);
             return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/usuario/{userId}/conceder-conquista/{conquistaId}")
+    @ResponseBody
+    public ResponseEntity<?> concederConquista(
+            @PathVariable Long userId,
+            @PathVariable Long conquistaId) {
+        try {
+            boolean concedida = adminService.concederConquistaParaUsuario(userId, conquistaId);
+            if (concedida) {
+                return ResponseEntity.ok(Map.of("sucesso", true, "mensagem", "Conquista concedida com sucesso!"));
+            } else {
+                return ResponseEntity.ok(Map.of("sucesso", false, "mensagem", "Usuário já possui essa conquista."));
+            }
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }

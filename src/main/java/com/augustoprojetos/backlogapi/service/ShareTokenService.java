@@ -37,7 +37,7 @@ public class ShareTokenService {
         ShareToken token = new ShareToken(tokenString, user, expiracao);
 
         // GATILHO DA CONQUISTA: Como o link foi persistido, aciona a verificação
-        conquistaService.verificarConquistas(user);
+        conquistaService.desbloquearEvento(user, "REDE_CONTATOS");
         
         return shareTokenRepository.save(token);
     }

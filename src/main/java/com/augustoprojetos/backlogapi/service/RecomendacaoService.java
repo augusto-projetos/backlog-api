@@ -65,7 +65,7 @@ public class RecomendacaoService {
                 Map<?, ?> firstPart = (Map<?, ?>) parts.get(0);
 
                 // GATILHO DA CONQUISTA: Se a IA respondeu, dispara a checagem da chave
-                conquistaService.verificarConquistas(user);
+                conquistaService.desbloquearEvento(user, "MENTE_EXPANDIDA");
                 
                 return (String) firstPart.get("text");
             }
@@ -105,7 +105,7 @@ public class RecomendacaoService {
                 Map<?, ?> message = (Map<?, ?>) firstChoice.get("message");
 
                 // GATILHO DA CONQUISTA NO FALLBACK
-                conquistaService.verificarConquistas(user);
+                conquistaService.desbloquearEvento(user, "MENTE_EXPANDIDA");
                 
                 return (String) message.get("content");
             }

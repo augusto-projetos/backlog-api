@@ -35,4 +35,32 @@ public class Conquista {
     // Quantidade de XP concedida ao desbloquear
     @Column(nullable = false)
     private int xp;
+
+    // ---------------------------------------------------------------
+    // Critério de desbloqueio automático
+    // ---------------------------------------------------------------
+
+    /*
+     * Tipo de critério usado pelo ConquistaService para verificar automaticamente.
+     * Valores possíveis:
+     *   TOTAL_ITENS          - total de itens cadastrados >= criterioValor
+     *   TOTAL_CONCLUIDOS     - total de itens concluídos (qualquer tipo) >= criterioValor
+     *   TOTAL_DROPADOS       - total de itens dropados >= criterioValor
+     *   JOGOS_ZERADOS        - jogos zerados >= criterioValor
+     *   FILMES_ASSISTIDOS    - filmes assistidos >= criterioValor
+     *   SERIES_ASSISTIDAS    - séries assistidas >= criterioValor
+     *   NOTA10_FILMES        - filmes com nota 10 >= criterioValor
+     *   NOTA10_JOGOS         - jogos com nota 10 >= criterioValor
+     *   NOTA10_TOTAL         - itens com nota 10 (qualquer tipo) >= criterioValor
+     *   MANUAL               - concedida manualmente pelo admin (não verifica automaticamente)
+     */
+    @Column(length = 40)
+    private String criterioTipo;
+
+    /*
+     * Valor numérico do critério (ex: 10 para "10 filmes assistidos").
+     * Ignorado quando criterioTipo = MANUAL.
+     */
+    @Column
+    private Integer criterioValor;
 }

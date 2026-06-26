@@ -30,6 +30,7 @@ public class AdminService {
     @Autowired private UserConquistaRepository userConquistaRepository;
     @Autowired private EmailVerificationTokenRepository emailVerificationTokenRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private ConquistaService conquistaService;
 
     @Value("${admin.email}")
     private String adminEmail;
@@ -222,7 +223,16 @@ public class AdminService {
         existente.setDescricao(dados.getDescricao());
         existente.setIcone(dados.getIcone());
         existente.setXp(dados.getXp());
+        existente.setCriterioTipo(dados.getCriterioTipo());
+        existente.setCriterioValor(dados.getCriterioValor());
         conquistaRepository.save(existente);
+    }
+
+    // Concede uma conquista específica a um usuário (ação administrativa)
+    public boolean concederConquistaParaUsuario(Long userId, Long conquistaId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return conquistaService.concederConquistaAdmin(user, conquistaId);
     }
 
     @Transactional

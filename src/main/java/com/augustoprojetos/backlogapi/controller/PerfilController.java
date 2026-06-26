@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.controller;
 
+import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.entity.UserConquista;
 import com.augustoprojetos.backlogapi.service.ConquistaService;
@@ -16,8 +17,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/perfil")
@@ -32,16 +36,44 @@ public class PerfilController {
     // Mostrar a página - injeta dados de conquistas
     @GetMapping
     public String paginaPerfil(@AuthenticationPrincipal User user, Model model) {
-        List<UserConquista> conquistas = conquistaService.listarConquistasDoUsuario(user);
-        int xpTotal  = conquistaService.calcularXpTotal(user);
-        int nivel    = conquistaService.calcularNivel(xpTotal);
+        // Conquistas desbloqueadas pelo usuário
+        List<UserConquista> conquistasDesbloqueadas = conquistaService.listarConquistasDoUsuario(user);
+        Set<String> chavesDesbloqueadas = conquistasDesbloqueadas.stream()
+                .map(uc -> uc.getConquista().getChave())
+                .collect(Collectors.toSet());
+
+        // Todas as conquistas para exibir as bloqueadas também
+        List<Conquista> todasConquistas = conquistaService.listarTodasConquistas();
+
+        // Lista ordenada: desbloqueadas primeiro, depois bloqueadas
+        List<Map<String, Object>> conquistasView = new java.util.ArrayList<>();
+        // 1. Desbloqueadas
+        for (UserConquista uc : conquistasDesbloqueadas) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("conquista", uc.getConquista());
+            item.put("desbloqueada", true);
+            conquistasView.add(item);
+        }
+        // 2. Bloqueadas
+        for (Conquista c : todasConquistas) {
+            if (!chavesDesbloqueadas.contains(c.getChave())) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("conquista", c);
+                item.put("desbloqueada", false);
+                conquistasView.add(item);
+            }
+        }
+
+        int xpTotal   = conquistaService.calcularXpTotal(user);
+        int nivel     = conquistaService.calcularNivel(xpTotal);
         int progresso = (int) (((xpTotal % 100) / 100.0) * 100);
 
-        model.addAttribute("usuario",    user);
-        model.addAttribute("conquistas", conquistas);
-        model.addAttribute("xpTotal",    xpTotal);
-        model.addAttribute("nivel",      nivel);
-        model.addAttribute("progresso",  progresso);
+        model.addAttribute("usuario",        user);
+        model.addAttribute("conquistasView", conquistasView);
+        model.addAttribute("xpTotal",        xpTotal);
+        model.addAttribute("nivel",          nivel);
+        model.addAttribute("progresso",      progresso);
+        model.addAttribute("conquistas",     conquistasDesbloqueadas);
         return "perfil";
     }
 
@@ -62,7 +94,7 @@ public class PerfilController {
     @PutMapping("/senha")
     public ResponseEntity<?> atualizarSenha(@AuthenticationPrincipal User user, @RequestBody Map<String, String> dados) {
         try {
-            // Agora o UserService lança exceções com a mensagem exata do erro
+            // O UserService lança exceções com a mensagem exata do erro
             userService.trocarSenha(user, dados.get("senhaAntiga"), dados.get("novaSenha"));
             return ResponseEntity.ok().body("{\"message\": \"Senha alterada com sucesso!\"}");
 
@@ -71,15 +103,14 @@ public class PerfilController {
             return ResponseEntity.badRequest().body("{\"message\": \"" + e.getMessage() + "\"}");
         }
     }
-
+    
     // API para Deletar Conta
     @DeleteMapping
-    public ResponseEntity<?> deletarConta(@AuthenticationPrincipal User user, HttpServletRequest request, HttpServletResponse response) {
-
-        // 1. Apaga o usuário do banco (O "adeus" definitivo)
+    public ResponseEntity<?> deletarConta(@AuthenticationPrincipal User user,
+                                          HttpServletRequest request, HttpServletResponse response) {
         userService.deletarConta(user);
 
-        // 2. Mata a sessão agora mesmo (O "chute" pra fora)
+        // Mata a sessão agora mesmo
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
