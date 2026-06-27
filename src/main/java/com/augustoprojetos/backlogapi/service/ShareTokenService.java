@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.service;
 
+import com.augustoprojetos.backlogapi.dto.ConquistaDesbloqueadaDTO;
 import com.augustoprojetos.backlogapi.entity.ShareToken;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.ShareTokenRepository;
@@ -20,29 +21,28 @@ public class ShareTokenService {
     @Autowired
     private ConquistaService conquistaService;
 
+    public record GerarTokenResult(ShareToken token, ConquistaDesbloqueadaDTO conquistaDesbloqueada) {}
+
     /**
      * Gera um novo link de compartilhamento.
      * @param user O dono da lista.
      * @param horasValidade Quantas horas o link vai durar.
-     * @return O token gerado.
+     * @return O resultado com token e possível conquista desbloqueada.
      */
-    public ShareToken gerarToken(User user, int horasValidade) {
-        // Gera um código aleatório impossível de chutar
+    public GerarTokenResult gerarToken(User user, int horasValidade) {
         String tokenString = UUID.randomUUID().toString();
 
         // Calcula a data de expiração (Agora + Horas escolhidas)
         LocalDateTime expiracao = LocalDateTime.now().plusHours(horasValidade);
+        ShareToken token = shareTokenRepository.save(new ShareToken(tokenString, user, expiracao));
 
-        // Cria e Salva
-        ShareToken token = new ShareToken(tokenString, user, expiracao);
+        // GATILHO DA CONQUISTA: retorna o DTO se desbloqueou agora
+        ConquistaDesbloqueadaDTO conquista = conquistaService.desbloquearEvento(user, "REDE_CONTATOS");
 
-        // GATILHO DA CONQUISTA: Como o link foi persistido, aciona a verificação
-        conquistaService.desbloquearEvento(user, "REDE_CONTATOS");
-        
-        return shareTokenRepository.save(token);
+        return new GerarTokenResult(token, conquista);
     }
 
-    /**
+    /*
      * Busca um token e verifica se ele é válido (não expirou).
      */
     public Optional<ShareToken> obterTokenValido(String tokenString) {

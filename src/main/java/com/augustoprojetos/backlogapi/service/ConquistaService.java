@@ -50,7 +50,7 @@ public class ConquistaService {
     @PostConstruct
     public void seedConquistas() {
         upsertConquista("PRIMEIRO_PASSO",  "Primeiro Passo",               "Cadastrou seu primeiro item no backlog.",                      "🎯", 50,  "TOTAL_ITENS",       1);
-        upsertConquista("GUERREIRO_FDSEM", "Guerreiro de Final de Semana", "Zerou ou assistiu 2 itens consecutivos no mesmo tipo.",        "⚔️", 100, "TOTAL_CONCLUIDOS",  2);
+        upsertConquista("GUERREIRO_FDSEM", "Guerreiro de Final de Semana", "Zerou ou assistiu 2 itens no total.",                         "⚔️", 100, "TOTAL_CONCLUIDOS",  2);
         upsertConquista("CRITICO_CINEMA",  "Crítico de Cinema",            "Deu nota máxima (10) para 5 filmes.",                         "🎬", 75,  "NOTA10_FILMES",     5);
         upsertConquista("SEM_TEMPO_IRMAO", "Sem Tempo, Irmão",             "Marcou 10 itens como Dropado.",                               "💀", 75,  "TOTAL_DROPADOS",    10);
         upsertConquista("COLECIONADOR",    "Colecionador",                 "Cadastrou 50 itens no backlog.",                              "📦", 100, "TOTAL_ITENS",       50);
@@ -64,6 +64,14 @@ public class ConquistaService {
         upsertConquista("REDE_CONTATOS",   "Influenciador de Backlog",     "Gerou seu primeiro link de compartilhamento para os amigos.", "🔗", 50,  "SHARE_LINK_CRIADO", 1);
         upsertConquista("DONO_DO_TEMPO",   "Dono do Tempo",                "Concluiu 50 mídias de qualquer tipo no aplicativo.",          "👑", 250, "TOTAL_CONCLUIDOS",  50);
         upsertConquista("PERFECCIONISTA",  "Perfeccionista",               "Deu nota 10 para pelo menos 3 jogos (Zerados com maestria).", "🏅", 100, "NOTA10_JOGOS",      3);
+        upsertConquista("LENDA_VIVA",      "Lenda Viva",                   "Concluiu 100 mídias. Você é uma máquina!",                    "🦾", 500, "TOTAL_CONCLUIDOS",  100);
+        upsertConquista("ARQUIVO_MORTO",   "Arquivo Morto",                "Cadastrou 200 itens. Isso é um acervo sério.",                "🗄️", 300, "TOTAL_ITENS",       200);
+        upsertConquista("CINEFILO_ELITE",  "Cinéfilo de Elite",            "Assistiu 50 filmes. Hollywood te deve uma cadeira VIP.",      "🎞️", 300, "FILMES_ASSISTIDOS", 50);
+        upsertConquista("GAMER_HARDCORE",  "Gamer Hardcore",               "Zerou 30 jogos. Você não conhece a palavra parar.",           "🕹️", 300, "JOGOS_ZERADOS",     30);
+        upsertConquista("BINGE_MASTER",    "Binge Master",                 "Assistiu 30 séries. Sono? Nunca ouvi falar.",                 "🛋️", 300, "SERIES_ASSISTIDAS", 30);
+        upsertConquista("DUREZA_TOTAL",    "Dureza Total",                 "Dropou 30 itens. A vida é curta pra mídia ruim.",             "🗑️", 150, "TOTAL_DROPADOS",    30);
+        upsertConquista("ARBITRO_SUPREMO", "Árbitro Supremo",              "Deu nota 10 para 25 itens. Seu critério é impecável.",        "🎖️", 250, "NOTA10_TOTAL",      25);
+        upsertConquista("EXPANSAO_TOTAL",  "Expansão Total",               "Cadastrou 100 itens no backlog. O acervo cresce!",            "📚", 150, "TOTAL_ITENS",       100);
     }
 
     private void upsertConquista(String chave, String nome, String descricao,
@@ -251,8 +259,31 @@ public class ConquistaService {
         return userConquistaRepository.sumXpByUserId(user.getId());
     }
 
+    // XP necessário para completar o nível N: 100 * N
+    // Nível 1: 0–100 XP | Nível 2: 100–300 XP | Nível 3: 300–600 XP ...
     public int calcularNivel(int xpTotal) {
-        return (xpTotal / 100) + 1;
+        if (xpTotal <= 0) return 1;
+        int nivel = 1;
+        int xpAcumulado = 0;
+        while (true) {
+            int xpParaSubir = 100 * nivel;
+            if (xpTotal < xpAcumulado + xpParaSubir) break;
+            xpAcumulado += xpParaSubir;
+            nivel++;
+        }
+        return nivel;
+    }
+
+    // XP total necessário para CHEGAR ao início do nível N
+    public int xpBaseDoNivel(int nivel) {
+        int total = 0;
+        for (int n = 1; n < nivel; n++) total += 100 * n;
+        return total;
+    }
+
+    // XP necessário para avançar do nível atual para o próximo
+    public int xpParaProximoNivel(int nivel) {
+        return 100 * nivel;
     }
 
     public List<UserConquista> listarConquistasDoUsuario(User user) {
