@@ -23,9 +23,9 @@ public class AdminController {
 
     @GetMapping({"", "/"})
     public String painelAdmin(Model model) {
-        model.addAttribute("stats", adminService.calcularEstatisticasGlobais());
-        model.addAttribute("usuarios", adminService.listarUsuariosAtivos());
-        model.addAttribute("pendentes", adminService.listarUsuariosPendentes());
+        model.addAttribute("stats",      adminService.calcularEstatisticasGlobais());
+        model.addAttribute("usuarios",   adminService.listarUsuariosAtivos());
+        model.addAttribute("pendentes",  adminService.listarUsuariosPendentes());
         model.addAttribute("conquistas", adminService.listarConquistas());
         return "admin/painel";
     }
@@ -38,10 +38,29 @@ public class AdminController {
         return ResponseEntity.ok(adminService.calcularEstatisticasGlobais());
     }
 
+    // Lista todas as conquistas do sistema (para o dropdown de conceder)
     @GetMapping("/api/conquistas")
     @ResponseBody
     public ResponseEntity<?> getConquistas() {
         return ResponseEntity.ok(adminService.listarConquistas());
+    }
+
+    // Lista conquistas que um usuário específico já possui
+    @GetMapping("/api/usuario/{id}/conquistas")
+    @ResponseBody
+    public ResponseEntity<?> getConquistasDoUsuario(@PathVariable Long id) {
+        try {
+            var lista = adminService.listarConquistasDoUsuario(id).stream().map(uc -> Map.of(
+                "id",            uc.getConquista().getId(),
+                "nome",          uc.getConquista().getNome(),
+                "icone",         uc.getConquista().getIcone(),
+                "xp",            uc.getConquista().getXp(),
+                "desbloquedaEm", uc.getDesbloquedaEm() != null ? uc.getDesbloquedaEm().toString() : ""
+            )).toList();
+            return ResponseEntity.ok(lista);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
     }
 
     // --- USUÁRIOS ---
@@ -89,6 +108,7 @@ public class AdminController {
         }
     }
 
+    // Concede uma conquista a um usuário
     @PostMapping("/usuario/{userId}/conceder-conquista/{conquistaId}")
     @ResponseBody
     public ResponseEntity<?> concederConquista(
@@ -100,6 +120,34 @@ public class AdminController {
                 return ResponseEntity.ok(Map.of("sucesso", true, "mensagem", "Conquista concedida com sucesso!"));
             } else {
                 return ResponseEntity.ok(Map.of("sucesso", false, "mensagem", "Usuário já possui essa conquista."));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // Revoga uma conquista de um usuário (deduz o XP correspondente)
+    @DeleteMapping("/usuario/{userId}/revogar-conquista/{conquistaId}")
+    @ResponseBody
+    public ResponseEntity<?> revogarConquista(
+            @PathVariable Long userId,
+            @PathVariable Long conquistaId) {
+        try {
+            // Busca o ícone antes de revogar para incluir na resposta
+            String icone = adminService.listarConquistas().stream()
+                    .filter(c -> c.getId().equals(conquistaId))
+                    .map(c -> c.getIcone())
+                    .findFirst().orElse("");
+            int xpDeduzido = adminService.revogarConquistaDoUsuario(userId, conquistaId);
+            if (xpDeduzido >= 0) {
+                return ResponseEntity.ok(Map.of(
+                    "sucesso",    true,
+                    "xpDeduzido", xpDeduzido,
+                    "icone",      icone,
+                    "mensagem",   "Conquista revogada. -" + xpDeduzido + " XP descontados."
+                ));
+            } else {
+                return ResponseEntity.ok(Map.of("sucesso", false, "mensagem", "Usuário não possui essa conquista."));
             }
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));

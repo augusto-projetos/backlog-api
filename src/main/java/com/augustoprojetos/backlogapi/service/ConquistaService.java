@@ -175,7 +175,7 @@ public class ConquistaService {
         return java.util.concurrent.CompletableFuture.completedFuture(novas);
     }
 
-    /**
+    /*
      * Dispara o desbloqueio de uma conquista vinculada a um evento pontual.
      *
      * Retorna o DTO se a conquista foi desbloqueada agora, ou null se o usuário
@@ -206,9 +206,24 @@ public class ConquistaService {
         return true;
     }
 
-    // ---------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------
+    /*
+     * Revoga uma conquista de um usuário (ação administrativa).
+     * Remove o registro UserConquista e retorna o XP que foi deduzido,
+     * para que o admin veja o impacto no feedback.
+     * Retorna -1 se o usuário não possuía a conquista.
+     */
+    @Transactional
+    public int revogarConquistaAdmin(User user, Long conquistaId) {
+        return userConquistaRepository.findByUserAndConquista_Id(user, conquistaId)
+                .map(uc -> {
+                    int xpDeduzido = uc.getConquista().getXp();
+                    userConquistaRepository.delete(uc);
+                    return xpDeduzido;
+                })
+                .orElse(-1);
+    }
+
+    // --- Helpers ---
 
     private void registrarDesbloqueio(User user, Conquista c, List<ConquistaDesbloqueadaDTO> novas) {
         userConquistaRepository.save(new UserConquista(user, c));
@@ -230,9 +245,7 @@ public class ConquistaService {
         );
     }
 
-    // ---------------------------------------------------------------
-    // XP e Nível
-    // ---------------------------------------------------------------
+    // --- XP e Nível ---
 
     public int calcularXpTotal(User user) {
         return userConquistaRepository.sumXpByUserId(user.getId());

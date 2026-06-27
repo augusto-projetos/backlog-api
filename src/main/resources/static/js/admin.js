@@ -129,70 +129,306 @@ function initAcoesUsuarios() {
     });
 }
 
+// ---------------------------------------------------------------
+// Modal de gerenciamento de conquistas do usuário
+// Mostra: conquistas desbloqueadas (com botão de revogar) +
+//         conquistas bloqueadas (com botão de conceder)
+// ---------------------------------------------------------------
 async function abrirConcederConquista(userId, nomeUsuario) {
     const isDark = isDarkMode();
+    await renderModalConquistas(userId, nomeUsuario, isDark);
+}
 
-    // Busca a lista de conquistas do servidor
-    let conquistas = [];
+async function renderModalConquistas(userId, nomeUsuario, isDark) {
+    // Busca em paralelo: todas as conquistas do sistema + as do usuário
+    let todasConquistas = [], conquistasDoUsuario = [];
     try {
-        const resp = await fetch("/admin/api/conquistas");
-        conquistas = await resp.json();
+        [todasConquistas, conquistasDoUsuario] = await Promise.all([
+            fetch("/admin/api/conquistas").then(r => r.json()),
+            fetch(`/admin/api/usuario/${userId}/conquistas`).then(r => r.json())
+        ]);
     } catch (e) {
         toastErro("Erro ao carregar conquistas.");
         return;
     }
 
-    if (!conquistas.length) {
-        toastErro("Nenhuma conquista cadastrada.");
-        return;
-    }
+    // IDs das conquistas que o usuário já possui
+    const idsDoUsuario = new Set(conquistasDoUsuario.map(c => c.id));
 
-    const optionsHtml = conquistas.map(c =>
-        `<option value="${c.id}">${escapeHtml(c.icone)} ${escapeHtml(c.nome)} (${c.xp} XP)</option>`
-    ).join("");
+    const fmtData = iso => {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return d.toLocaleDateString("pt-BR") + " às " +
+               d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    };
+
+    // --- Estilos embutidos no HTML do modal ---
+    const styles = `
+        <style>
+            .gc-section-title {
+                font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+                letter-spacing: .6px; color: #7f8c8d; text-align: left;
+                margin: 16px 0 8px;
+            }
+            .gc-section-title:first-child { margin-top: 4px; }
+            .gc-list { max-height: 210px; overflow-y: auto; padding-right: 2px; }
+            .gc-row {
+                display: flex; align-items: center; gap: 10px;
+                padding: 9px 12px; border-radius: 9px; margin-bottom: 6px;
+                text-align: left; transition: opacity .2s;
+            }
+            .gc-row.desbloqueada {
+                background: rgba(124,58,237,0.08);
+                border: 1px solid rgba(124,58,237,0.2);
+            }
+            .gc-row.bloqueada {
+                background: rgba(255,255,255,0.03);
+                border: 1px solid rgba(255,255,255,0.07);
+                opacity: .75;
+            }
+            .gc-icone { font-size: 1.35rem; flex-shrink: 0; line-height: 1; }
+            .gc-row.bloqueada .gc-icone { filter: grayscale(80%); opacity: .6; }
+            .gc-info { flex: 1; min-width: 0; }
+            .gc-info strong {
+                display: block; font-size: 0.84rem; font-weight: 600;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .gc-info small { font-size: 0.72rem; color: #7f8c8d; }
+            .gc-btn {
+                flex-shrink: 0; font-size: 0.75rem; font-weight: 700;
+                padding: 5px 12px; border-radius: 7px; cursor: pointer;
+                border: 1px solid; display: flex; align-items: center;
+                gap: 5px; white-space: nowrap; transition: all .18s;
+            }
+            .gc-btn:disabled { opacity: .35; pointer-events: none; }
+            .gc-btn-revogar {
+                background: transparent; color: #e94560;
+                border-color: rgba(233,69,96,0.35);
+            }
+            .gc-btn-revogar:hover { background: #e94560; color: #fff; }
+            .gc-btn-conceder {
+                background: rgba(124,58,237,0.12); color: #a78bfa;
+                border-color: rgba(124,58,237,0.35);
+            }
+            .gc-btn-conceder:hover { background: #7c3aed; color: #fff; }
+            .gc-empty { font-size: 0.82rem; color: #7f8c8d; text-align: left; padding: 6px 2px; }
+        </style>
+    `;
+
+    // --- Seção: desbloqueadas ---
+    const desbloqueadasHtml = conquistasDoUsuario.length
+        ? conquistasDoUsuario.map(c => `
+            <div class="gc-row desbloqueada" id="gc-row-${c.id}">
+                <span class="gc-icone">${escapeHtml(c.icone)}</span>
+                <div class="gc-info">
+                    <strong>${escapeHtml(c.nome)}</strong>
+                    <small>+${c.xp} XP · ${fmtData(c.desbloquedaEm)}</small>
+                </div>
+                <button class="gc-btn gc-btn-revogar"
+                        onclick="gcRevogar(${userId}, ${c.id}, '${escapeHtml(c.nome)}', ${c.xp}, '${escapeHtml(c.icone)}', this)"
+                        title="Revogar conquista (deduz ${c.xp} XP)">
+                    <i class="fa fa-times"></i> Revogar
+                </button>
+            </div>`).join("")
+        : `<p class="gc-empty">Nenhuma conquista ainda.</p>`;
+
+    // --- Seção: bloqueadas ---
+    const bloqueadasHtml = todasConquistas.filter(c => !idsDoUsuario.has(c.id)).length
+        ? todasConquistas.filter(c => !idsDoUsuario.has(c.id)).map(c => `
+            <div class="gc-row bloqueada" id="gc-row-${c.id}">
+                <span class="gc-icone">${escapeHtml(c.icone)}</span>
+                <div class="gc-info">
+                    <strong>${escapeHtml(c.nome)}</strong>
+                    <small>+${c.xp} XP · ${escapeHtml(c.descricao || "")}</small>
+                </div>
+                <button class="gc-btn gc-btn-conceder"
+                        onclick="gcConceder(${userId}, ${c.id}, '${escapeHtml(c.nome)}', ${c.xp}, '${escapeHtml(c.icone)}', this)"
+                        title="Conceder conquista (+${c.xp} XP)">
+                    <i class="fa fa-plus"></i> Dar
+                </button>
+            </div>`).join("")
+        : `<p class="gc-empty">Usuário já possui todas as conquistas! 🏆</p>`;
+
+    const totalDesbloqueadas = conquistasDoUsuario.length;
+    const totalConquistas    = todasConquistas.length;
 
     Swal.fire({
-        title: `🏆 Conceder Conquista`,
+        title: "🏆 Conquistas do Usuário",
+        width: "540px",
         html: `
-            <p style="font-size:0.88rem;margin-bottom:14px;color:var(--text-muted,#aaa)">
-                Usuário: <strong>${escapeHtml(nomeUsuario)}</strong>
+            ${styles}
+            <p style="font-size:0.84rem;color:var(--text-muted,#aaa);margin-bottom:2px;text-align:left">
+                <strong style="color:inherit">${escapeHtml(nomeUsuario)}</strong>
+                &nbsp;·&nbsp;
+                <span id="gc-contador" style="color:#a78bfa;font-weight:600">
+                    ${totalDesbloqueadas} / ${totalConquistas} desbloqueadas
+                </span>
             </p>
-            <div style="text-align:left">
-                <label style="display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
-                    CONQUISTA
-                </label>
-                <select id="sg-conquista" class="swal2-select" style="margin:0;width:100%;height:44px;border-radius:8px">
-                    ${optionsHtml}
-                </select>
-            </div>
+
+            <p class="gc-section-title" id="gc-title-des">
+                ✅ Desbloqueadas (<span id="gc-count-des">${totalDesbloqueadas}</span>)
+            </p>
+            <div class="gc-list" id="gc-list-des">${desbloqueadasHtml}</div>
+
+            <p class="gc-section-title" id="gc-title-blo">
+                🔒 Bloqueadas (<span id="gc-count-blo">${totalConquistas - totalDesbloqueadas}</span>)
+            </p>
+            <div class="gc-list" id="gc-list-blo">${bloqueadasHtml}</div>
         `,
+        showConfirmButton: false,
         showCancelButton: true,
-        confirmButtonText: "Conceder",
-        cancelButtonText: "Cancelar",
-        confirmButtonColor: "#7c3aed",
+        cancelButtonText: "Fechar",
         background: isDark ? "#1e1e1e" : "#fff",
         color: isDark ? "#e0e0e0" : "#2c3e50",
-        preConfirm: () => {
-            const val = document.getElementById("sg-conquista").value;
-            if (!val) { Swal.showValidationMessage("Selecione uma conquista."); return false; }
-            return val;
+    });
+}
+
+// Chamado pelo botão "Revogar" dentro do modal
+async function gcRevogar(userId, conquistaId, nome, xp, icone, btn) {
+    const isDark = isDarkMode();
+    const confirm = await Swal.fire({
+        title: "Revogar conquista?",
+        html: `Deseja remover <strong>${escapeHtml(nome)}</strong> deste usuário?<br>
+               <small style="color:#e94560">−${xp} XP serão descontados do total.</small>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, revogar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#e94560",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+    });
+    if (!confirm.isConfirmed) return;
+
+    btn.disabled = true;
+    try {
+        const resp = await fetch(`/admin/usuario/${userId}/revogar-conquista/${conquistaId}`, {
+            method: "DELETE",
+            headers: getCsrfHeaders()
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            // Move a linha da seção "desbloqueadas" para "bloqueadas" sem fechar o modal
+            const row = document.getElementById(`gc-row-${conquistaId}`);
+            if (row) row.remove();
+
+            // Remove mensagem de vazio se existia
+            const listDes = document.getElementById("gc-list-des");
+            const listBlo = document.getElementById("gc-list-blo");
+
+            // Atualiza contadores
+            const cntDes = document.getElementById("gc-count-des");
+            const cntBlo = document.getElementById("gc-count-blo");
+            const ctGeral = document.getElementById("gc-contador");
+            const novasDes = (parseInt(cntDes?.textContent) || 1) - 1;
+            const novasBlo = (parseInt(cntBlo?.textContent) || 0) + 1;
+            if (cntDes) cntDes.textContent = novasDes;
+            if (cntBlo) cntBlo.textContent = novasBlo;
+            if (ctGeral) {
+                const total = novasDes + novasBlo;
+                ctGeral.textContent = `${novasDes} / ${total} desbloqueadas`;
+            }
+
+            // Se ficou vazio, mostra placeholder
+            if (listDes && !listDes.querySelector(".gc-row")) {
+                listDes.innerHTML = `<p class="gc-empty">Nenhuma conquista ainda.</p>`;
+            }
+
+            // Insere o card na seção bloqueadas
+            if (listBlo) {
+                listBlo.querySelector(".gc-empty")?.remove();
+                listBlo.insertAdjacentHTML("afterbegin", `
+                    <div class="gc-row bloqueada" id="gc-row-${conquistaId}">
+                        <span class="gc-icone" style="filter:grayscale(80%);opacity:.6">${escapeHtml(icone)}</span>
+                        <div class="gc-info">
+                            <strong>${escapeHtml(nome)}</strong>
+                            <small>+${xp} XP</small>
+                        </div>
+                        <button class="gc-btn gc-btn-conceder"
+                                onclick="gcConceder(${userId}, ${conquistaId}, '${escapeHtml(nome)}', ${xp}, '${escapeHtml(icone)}', this)"
+                                title="Conceder conquista (+${xp} XP)">
+                            <i class="fa fa-plus"></i> Dar
+                        </button>
+                    </div>`);
+            }
+
+            toastSucesso(`🗑 "${nome}" revogada. −${data.xpDeduzido || xp} XP descontados.`);
+        } else {
+            btn.disabled = false;
+            toastErro(data.mensagem || data.erro || "Erro ao revogar.");
         }
-    }).then(async result => {
-        if (!result.isConfirmed) return;
-        const conquistaId = result.value;
+    } catch {
+        btn.disabled = false;
+        toastErro("Erro de comunicação.");
+    }
+}
+
+// Chamado pelo botão "Dar" dentro do modal
+async function gcConceder(userId, conquistaId, nome, xp, icone, btn) {
+    btn.disabled = true;
+    try {
         const resp = await fetch(`/admin/usuario/${userId}/conceder-conquista/${conquistaId}`, {
             method: "POST",
             headers: getCsrfHeaders()
         });
         const data = await resp.json();
         if (data.sucesso) {
-            toastSucesso(data.mensagem || "Conquista concedida!");
-        } else if (data.mensagem) {
-            toastErro(data.mensagem); // "Usuário já possui essa conquista."
+            // Move da seção "bloqueadas" para "desbloqueadas"
+            const row = document.getElementById(`gc-row-${conquistaId}`);
+            if (row) row.remove();
+
+            const listDes = document.getElementById("gc-list-des");
+            const listBlo = document.getElementById("gc-list-blo");
+
+            // Atualiza contadores
+            const cntDes = document.getElementById("gc-count-des");
+            const cntBlo = document.getElementById("gc-count-blo");
+            const ctGeral = document.getElementById("gc-contador");
+            const novasDes = (parseInt(cntDes?.textContent) || 0) + 1;
+            const novasBlo = (parseInt(cntBlo?.textContent) || 1) - 1;
+            if (cntDes) cntDes.textContent = novasDes;
+            if (cntBlo) cntBlo.textContent = novasBlo;
+            if (ctGeral) {
+                const total = novasDes + novasBlo;
+                ctGeral.textContent = `${novasDes} / ${total} desbloqueadas`;
+            }
+
+            // Se bloqueadas ficou vazio
+            if (listBlo && !listBlo.querySelector(".gc-row")) {
+                listBlo.innerHTML = `<p class="gc-empty">Usuário já possui todas as conquistas! 🏆</p>`;
+            }
+
+            const agora = new Date();
+            const dataFmt = agora.toLocaleDateString("pt-BR") + " às " +
+                            agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+            // Insere na seção desbloqueadas
+            if (listDes) {
+                listDes.querySelector(".gc-empty")?.remove();
+                listDes.insertAdjacentHTML("afterbegin", `
+                    <div class="gc-row desbloqueada" id="gc-row-${conquistaId}">
+                        <span class="gc-icone">${escapeHtml(icone)}</span>
+                        <div class="gc-info">
+                            <strong>${escapeHtml(nome)}</strong>
+                            <small>+${xp} XP · ${dataFmt}</small>
+                        </div>
+                        <button class="gc-btn gc-btn-revogar"
+                                onclick="gcRevogar(${userId}, ${conquistaId}, '${escapeHtml(nome)}', ${xp}, '${escapeHtml(icone)}', this)"
+                                title="Revogar conquista (deduz ${xp} XP)">
+                            <i class="fa fa-times"></i> Revogar
+                        </button>
+                    </div>`);
+            }
+
+            toastSucesso(`🏆 "${nome}" concedida! +${xp} XP adicionados.`);
         } else {
-            toastErro(data.erro || "Erro ao conceder conquista.");
+            btn.disabled = false;
+            toastErro(data.mensagem || data.erro || "Erro ao conceder.");
         }
-    });
+    } catch {
+        btn.disabled = false;
+        toastErro("Erro de comunicação.");
+    }
 }
 
 async function abrirBacklogUsuario(userId, nome) {

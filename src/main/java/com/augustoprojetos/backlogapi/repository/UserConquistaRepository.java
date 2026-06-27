@@ -15,6 +15,10 @@ public interface UserConquistaRepository extends JpaRepository<UserConquista, Lo
 
     boolean existsByUserAndConquista_Chave(User user, String chave);
 
+    java.util.Optional<UserConquista> findByUserAndConquista_Id(User user, Long conquistaId);
+
+    java.util.Optional<UserConquista> findByUserIdAndConquistaId(Long userId, Long conquistaId);
+
     // Soma total de XP ganho pelo usuário
     @Query("SELECT COALESCE(SUM(uc.conquista.xp), 0) FROM UserConquista uc WHERE uc.user.id = :userId")
     int sumXpByUserId(@Param("userId") Long userId);

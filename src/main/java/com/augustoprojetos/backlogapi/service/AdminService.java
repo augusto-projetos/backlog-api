@@ -228,11 +228,28 @@ public class AdminService {
         conquistaRepository.save(existente);
     }
 
-    // Concede uma conquista específica a um usuário (ação administrativa)
+    // Concede uma conquista a um usuário (ação administrativa).
+    // Retorna true se concedida, false se o usuário já a possuía.
     public boolean concederConquistaParaUsuario(Long userId, Long conquistaId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         return conquistaService.concederConquistaAdmin(user, conquistaId);
+    }
+
+    // Revoga uma conquista de um usuário (ação administrativa).
+    // Retorna o XP deduzido, ou -1 se o usuário não possuía a conquista.
+    @Transactional
+    public int revogarConquistaDoUsuario(Long userId, Long conquistaId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return conquistaService.revogarConquistaAdmin(user, conquistaId);
+    }
+
+    // Lista as conquistas que um usuário específico já possui.
+    public List<com.augustoprojetos.backlogapi.entity.UserConquista> listarConquistasDoUsuario(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return userConquistaRepository.findByUser(user);
     }
 
     @Transactional
