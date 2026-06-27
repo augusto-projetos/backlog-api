@@ -66,13 +66,22 @@ public class PerfilController {
 
         int xpTotal   = conquistaService.calcularXpTotal(user);
         int nivel     = conquistaService.calcularNivel(xpTotal);
-        int progresso = (int) (((xpTotal % 100) / 100.0) * 100);
+        int xpBase    = conquistaService.xpBaseDoNivel(nivel);
+        int xpProx    = conquistaService.xpParaProximoNivel(nivel);
+        int xpNivel   = xpTotal - xpBase;
+        int progresso = (int) ((xpNivel / (double) xpProx) * 100);
+
+        // Emoji por faixa de nível (muda a cada 5 níveis)
+        String nivelEmoji = calcularEmojiNivel(nivel);
 
         model.addAttribute("usuario",        user);
         model.addAttribute("conquistasView", conquistasView);
         model.addAttribute("xpTotal",        xpTotal);
         model.addAttribute("nivel",          nivel);
         model.addAttribute("progresso",      progresso);
+        model.addAttribute("xpNivel",        xpNivel);
+        model.addAttribute("xpProxNivel",    xpProx);
+        model.addAttribute("nivelEmoji",     nivelEmoji);
         model.addAttribute("conquistas",     conquistasDesbloqueadas);
         return "perfil";
     }
@@ -117,5 +126,19 @@ public class PerfilController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    private String calcularEmojiNivel(int nivel) {
+        if (nivel >= 50) return "🌌";
+        if (nivel >= 45) return "🐉";
+        if (nivel >= 40) return "👑";
+        if (nivel >= 35) return "🦾";
+        if (nivel >= 30) return "🌟";
+        if (nivel >= 25) return "⚡";
+        if (nivel >= 20) return "🏆";
+        if (nivel >= 15) return "💎";
+        if (nivel >= 10) return "🔥";
+        if (nivel >= 5)  return "⚔️";
+        return "🌱";
     }
 }
