@@ -51,6 +51,21 @@
 
         <script th:src="@{/js/script.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
+        <script th:src="@{/js/conquistas.js}"></script>
+
+        <!-- Toast de conquista -->
+        <div id="conquista-toast" class="conquista-toast" style="display:none;">
+            <div class="conquista-toast-inner">
+                <span class="conquista-toast-icone" id="ct-icone">🏆</span>
+                <div class="conquista-toast-texto">
+                    <small>🎉 Conquista Desbloqueada!</small>
+                    <strong id="ct-nome">Nome</strong>
+                    <small id="ct-desc">Descrição</small>
+                    <small class="ct-xp" id="ct-xp">+0 XP</small>
+                </div>
+            </div>
+        </div>
+
         <script>
             document.addEventListener('DOMContentLoaded', carregarMeusLinks);
         </script>

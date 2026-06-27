@@ -966,6 +966,7 @@ async function gerarLink() {
         });
 
         if (res.ok) {
+            const data = await res.json();
             Swal.fire({
                 title: 'Link Gerado!',
                 text: 'Seu link está pronto para ser enviado.',
@@ -973,6 +974,10 @@ async function gerarLink() {
                 timer: 1500
             });
             carregarMeusLinks(); // Recarrega a lista
+            // Toast de conquista se desbloqueou agora
+            if (data.conquistaDesbloqueada && window.Conquistas) {
+                setTimeout(() => window.Conquistas.exibirToasts([data.conquistaDesbloqueada]), 1600);
+            }
         } else {
             Swal.fire('Erro', 'Não foi possível gerar o link.', 'error');
         }
@@ -1231,6 +1236,10 @@ function abrirModalIA(tipo) {
         .then(data => {
             loading.style.display = 'none';
             efeitoDigitacao(textoResposta, data.recomendacao);
+            // Toast de conquista se a IA desbloqueou "Mente Expandida" agora
+            if (data.conquistaDesbloqueada && window.Conquistas) {
+                setTimeout(() => window.Conquistas.exibirToasts([data.conquistaDesbloqueada]), 500);
+            }
         })
         .catch(error => {
             loading.style.display = 'none';

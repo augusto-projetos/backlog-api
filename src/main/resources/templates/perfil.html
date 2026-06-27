@@ -138,14 +138,14 @@
             <!-- Barra de XP -->
             <div class="xp-perfil-container">
                 <div class="xp-nivel-info">
-                    <span class="xp-nivel-label">Nível <strong th:text="${nivel}">1</strong></span>
+                    <span class="xp-nivel-label" th:text="${nivelEmoji} + ' Nível ' + ${nivel}">🌱 Nível 1</span>
                     <span class="xp-total-label" th:text="${xpTotal} + ' XP'">0 XP</span>
                 </div>
                 <div class="xp-bar-track">
                     <div class="xp-bar-fill" th:style="'width:' + ${progresso} + '%'"></div>
                 </div>
                 <small style="color: var(--text-muted); font-size: 0.75rem;">
-                    <span th:text="${xpTotal % 100}">0</span>/100 XP para o próximo nível
+                    <span th:text="${xpNivel}">0</span>/<span th:text="${xpProxNivel}">100</span> XP para o próximo nível
                 </small>
             </div>
 
