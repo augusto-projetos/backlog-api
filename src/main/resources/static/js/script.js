@@ -1292,3 +1292,35 @@ function converterMarkdownParaHtml(texto) {
 
     return html;
 }
+
+// --- Gavetas de Conquistas ---
+function toggleGaveta(id) {
+    const body = document.getElementById('body-' + id);
+    const chevron = document.getElementById('chevron-' + id);
+    const btn = body.previousElementSibling;
+    const aberta = body.classList.contains('aberta');
+
+    if (aberta) {
+        body.style.maxHeight = body.scrollHeight + 'px';
+        requestAnimationFrame(() => {
+            body.style.maxHeight = '0';
+            body.classList.remove('aberta');
+        });
+        chevron.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+        btn.setAttribute('aria-expanded', 'false');
+    } else {
+        body.classList.add('aberta');
+        body.style.maxHeight = body.scrollHeight + 'px';
+        setTimeout(() => { body.style.maxHeight = 'none'; }, 350);
+        chevron.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+        btn.setAttribute('aria-expanded', 'true');
+    }
+}
+
+// Inicializa as gavetas abertas/fechadas
+document.addEventListener('DOMContentLoaded', () => {
+    const bodyDesbloqueadas = document.getElementById('body-desbloqueadas');
+    const bodyBloqueadas = document.getElementById('body-bloqueadas');
+    if (bodyDesbloqueadas) bodyDesbloqueadas.style.maxHeight = 'none';
+    if (bodyBloqueadas) { bodyBloqueadas.style.maxHeight = '0'; }
+});
