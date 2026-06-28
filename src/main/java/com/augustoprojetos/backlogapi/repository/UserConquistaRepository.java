@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.repository;
 
+import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.entity.UserConquista;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,9 +15,14 @@ public interface UserConquistaRepository extends JpaRepository<UserConquista, Lo
 
     boolean existsByUserAndConquista_Chave(User user, String chave);
 
+    java.util.Optional<UserConquista> findByUserAndConquista_Id(User user, Long conquistaId);
+
+    java.util.Optional<UserConquista> findByUserIdAndConquistaId(Long userId, Long conquistaId);
+
     // Soma total de XP ganho pelo usuário
     @Query("SELECT COALESCE(SUM(uc.conquista.xp), 0) FROM UserConquista uc WHERE uc.user.id = :userId")
     int sumXpByUserId(@Param("userId") Long userId);
 
     void deleteByUser(User user);
+    void deleteByConquista(Conquista conquista);
 }

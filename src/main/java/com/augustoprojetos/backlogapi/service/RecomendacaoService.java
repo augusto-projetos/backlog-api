@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.service;
 
+import com.augustoprojetos.backlogapi.dto.ConquistaDesbloqueadaDTO;
 import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
@@ -36,7 +37,9 @@ public class RecomendacaoService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String obterRecomendacaoDaIA(User user, String tipoSolicitado) {
+    public record RecomendacaoResult(String recomendacao, ConquistaDesbloqueadaDTO conquistaDesbloqueada) {}
+
+    public RecomendacaoResult obterRecomendacaoDaIA(User user, String tipoSolicitado) {
         String promptCompleto = gerarPromptDoUsuario(user, tipoSolicitado);
 
         try {
@@ -65,9 +68,9 @@ public class RecomendacaoService {
                 Map<?, ?> firstPart = (Map<?, ?>) parts.get(0);
 
                 // GATILHO DA CONQUISTA: Se a IA respondeu, dispara a checagem da chave
-                conquistaService.verificarConquistas(user);
-                
-                return (String) firstPart.get("text");
+                ConquistaDesbloqueadaDTO conquista = conquistaService.desbloquearEvento(user, "MENTE_EXPANDIDA");
+
+                return new RecomendacaoResult((String) firstPart.get("text"), conquista);
             }
             throw new RuntimeException("Resposta inválida do Gemini");
 
@@ -75,13 +78,13 @@ public class RecomendacaoService {
             // O Gemini falhou! O catch captura e joga imediatamente para a Groq (Meta Llama 3)
             System.out.println("⚠️ O motor principal (Gemini 2.5 Flash) falhou devido a: " + e.getMessage());
             System.out.println("🚀 Acionando plano de contingência: Mudando para Groq Cloud (Llama 3)...");
-            
+
             return chamarGroqFallback(promptCompleto, user);
         }
     }
 
     // Motor secundário de failover utilizando a API Gratuita da Groq Cloud
-    private String chamarGroqFallback(String prompt, User user) {
+    private RecomendacaoResult chamarGroqFallback(String prompt, User user) {
         try {
             // Corpo JSON atualizado com o modelo Llama 3.1 ativo na Groq
             Map<String, Object> requestBody = Map.of(
@@ -105,16 +108,16 @@ public class RecomendacaoService {
                 Map<?, ?> message = (Map<?, ?>) firstChoice.get("message");
 
                 // GATILHO DA CONQUISTA NO FALLBACK
-                conquistaService.verificarConquistas(user);
-                
-                return (String) message.get("content");
+                ConquistaDesbloqueadaDTO conquista = conquistaService.desbloquearEvento(user, "MENTE_EXPANDIDA");
+
+                return new RecomendacaoResult((String) message.get("content"), conquista);
             }
-            
-            return "🤖 Ops! O Gemini e o Llama tentaram, mas os servidores de IA estão instáveis. Tente de novo!";
+
+            return new RecomendacaoResult("🤖 Ops! O Gemini e o Llama tentaram, mas os servidores de IA estão instáveis. Tente de novo!", null);
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            return "🤖 Ocorreu uma falha geral nos motores de recomendação por IA.";
+            return new RecomendacaoResult("🤖 Ocorreu uma falha geral nos motores de recomendação por IA.", null);
         }
     }
 

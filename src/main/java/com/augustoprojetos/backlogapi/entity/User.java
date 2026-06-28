@@ -18,7 +18,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor // Lombok: Cria construtor vazio
 @AllArgsConstructor // Lombok: Cria construtor com tudo
-// implements UserDetails
 public class User implements UserDetails {
 
     @Id
@@ -46,18 +45,26 @@ public class User implements UserDetails {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isPublic = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private UserRole role = UserRole.USER;
+
     // --- Métodos obrigatórios do UserDetails ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Por enquanto, todo mundo é USER comum.
-        // No futuro, teremos ADMIN aqui.
+        if (this.role == UserRole.ADMIN) {
+            return List.of(
+                new SimpleGrantedAuthority("ROLE_ADMIN"),
+                new SimpleGrantedAuthority("ROLE_USER")
+            );
+        }
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
     public String getUsername() {
-        return login; // Avisa pro Spring que nosso "username" é o campo "login"
+        return email; // Avisa pro Spring que nosso "username" é o campo "login"
     }
 
     @Override

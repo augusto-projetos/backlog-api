@@ -50,9 +50,9 @@ public class ConquistaController {
         int xpTotal = conquistaService.calcularXpTotal(user);
         int nivel   = conquistaService.calcularNivel(xpTotal);
 
-        // Calcula progresso para o próximo nível (0-100%)
-        int xpNoNivelAtual    = xpTotal % 100;
-        int xpParaProxNivel   = 100;
+        int xpBase          = conquistaService.xpBaseDoNivel(nivel);
+        int xpParaProxNivel = conquistaService.xpParaProximoNivel(nivel);
+        int xpNoNivelAtual  = xpTotal - xpBase;
 
         List<Map<String, Object>> lista = conquistas.stream().map(uc -> {
             Map<String, Object> m = new HashMap<>();
@@ -72,7 +72,7 @@ public class ConquistaController {
         result.put("xpNoNivelAtual",   xpNoNivelAtual);
         result.put("xpParaProxNivel",  xpParaProxNivel);
         result.put("progresso",        (int) ((xpNoNivelAtual / (double) xpParaProxNivel) * 100));
-        
+
         return result;
     }
 }

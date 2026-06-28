@@ -1,0 +1,1302 @@
+document.addEventListener("DOMContentLoaded", () => {
+    initTabs();
+    initGraficos();
+    initBuscaUsuarios();
+    initAcoesUsuarios();
+    initAcoesConquistas();
+    initFechamentoModal();
+});
+
+// Função auxiliar para coletar os tokens CSRF das metatags
+function getCsrfHeaders() {
+    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+    if (!tokenMeta || !headerMeta) {
+        return { 'Content-Type': 'application/json' };
+    }
+    return {
+        'Content-Type': 'application/json',
+        [headerMeta.getAttribute('content')]: tokenMeta.getAttribute('content')
+    };
+}
+
+// --- ABAS ---
+function initTabs() {
+    const tabs = document.querySelectorAll(".adm-tab");
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            tabs.forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".adm-section").forEach(s => s.classList.remove("active"));
+            tab.classList.add("active");
+            document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+        });
+    });
+}
+
+// --- GRÁFICOS COM FILTROS ---
+
+// Instâncias dos gráficos (mantidas para destroy/rebuild)
+const chartInstances = { tipo: null, status: null, notas: null };
+
+// Estado atual de filtros de cada gráfico
+const chartFilters = {
+    tipo:   { tipos: ["FILME","SERIE","JOGO"], usuario: "" },
+    status: { status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], tipos: ["FILME","SERIE","JOGO"], usuario: "" },
+    notas:  { tipos: ["FILME","SERIE","JOGO"], status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], usuario: "", de: 0, ate: 10 }
+};
+
+function isDarkMode() {
+    return document.documentElement.getAttribute("data-theme") === "dark"
+        || document.body.classList.contains("dark");
+}
+
+function getChartTheme() {
+    const isDark = isDarkMode();
+    return {
+        textColor: isDark ? "#e0e0e0" : "#2c3e50",
+        gridColor: isDark ? "#2a2a3a" : "#eee"
+    };
+}
+
+// --- Construção dos gráficos ---
+
+function buildGraficoTipo(data) {
+    const { textColor } = getChartTheme();
+    const allLabels = ["🎬 Filmes","📺 Séries","🎮 Jogos"];
+    const allColors = ["#e94560","#10b981","#7c3aed"];
+    const allKeys   = ["FILME","SERIE","JOGO"];
+
+    const tipos = chartFilters.tipo.tipos;
+    const labels = [], values = [], colors = [];
+    allKeys.forEach((k, i) => {
+        if (tipos.includes(k)) {
+            let val = 0;
+            if (data) {
+                // backend retorna: filmes, series, jogos
+                const key = k === "FILME" ? "filmes" : k === "SERIE" ? "series" : "jogos";
+                val = data[key] ?? 0;
+            } else {
+                val = k === "FILME" ? STATS.filmes : k === "SERIE" ? STATS.series : STATS.jogos;
+            }
+            labels.push(allLabels[i]);
+            values.push(val);
+            colors.push(allColors[i]);
+        }
+    });
+
+    const canvas = document.getElementById("graficoTipo");
+    const isEmpty = values.every(v => v === 0);
+
+    // Destroi instância anterior antes de alterar visibilidade do container
+    if (chartInstances.tipo) { chartInstances.tipo.destroy(); chartInstances.tipo = null; }
+
+    setChartEmptyState(canvas, isEmpty);
+    if (isEmpty) return;
+
+    chartInstances.tipo = new Chart(canvas.getContext("2d"), {
+        type: "doughnut",
+        data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: textColor, font: { family: "Poppins" } } } }
+        }
+    });
+    // Força redimensionamento para corrigir dimensões após o container ter sido ocultado
+    requestAnimationFrame(() => chartInstances.tipo && chartInstances.tipo.resize());
+}
+
+function buildGraficoStatus(data) {
+    const { textColor, gridColor } = getChartTheme();
+    const allLabels  = ["✅ Concluídos","▶️ Em Progresso","📋 Backlog","❌ Dropados"];
+    const allColors  = ["#10b981","#3b82f6","#f59e0b","#e94560"];
+    const allKeys    = ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"];
+    const backendKeys = ["assistidos","assistindo","backlog","dropados"];
+    const statsKeys  = ["assistidos","assistindo","backlog","dropados"];
+
+    const statusAtivos = chartFilters.status.status;
+    const labels = [], values = [], colors = [];
+    allKeys.forEach((k, i) => {
+        if (statusAtivos.includes(k)) {
+            const val = data ? (data[backendKeys[i]] ?? 0) : (STATS[statsKeys[i]] ?? 0);
+            labels.push(allLabels[i]);
+            values.push(val);
+            colors.push(allColors[i]);
+        }
+    });
+
+    const canvas = document.getElementById("graficoStatus");
+    const isEmpty = values.every(v => v === 0);
+
+    // Destroi instância anterior antes de alterar visibilidade do container
+    if (chartInstances.status) { chartInstances.status.destroy(); chartInstances.status = null; }
+
+    setChartEmptyState(canvas, isEmpty);
+    if (isEmpty) return;
+
+    chartInstances.status = new Chart(canvas.getContext("2d"), {
+        type: "bar",
+        data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: textColor, font: { family: "Poppins" } }, grid: { display: false } },
+                y: {
+                    ticks: { color: textColor, font: { family: "Poppins" }, precision: 0, stepSize: 1 },
+                    grid: { color: gridColor },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    // Força redimensionamento para corrigir dimensões após o container ter sido ocultado
+    requestAnimationFrame(() => chartInstances.status && chartInstances.status.resize());
+}
+
+function buildGraficoNotas(data) {
+    const { textColor, gridColor } = getChartTheme();
+    const labels = data ? Object.keys(data) : Array.from(STATS.notasLabels);
+    const values = data ? Object.values(data) : Array.from(STATS.notasValues);
+
+    const canvas = document.getElementById("graficoNotas");
+    const isEmpty = !labels || labels.length === 0;
+
+    // Destroi instância anterior antes de alterar visibilidade do container
+    if (chartInstances.notas) { chartInstances.notas.destroy(); chartInstances.notas = null; }
+
+    setChartEmptyState(canvas, isEmpty);
+    if (isEmpty) return;
+
+    chartInstances.notas = new Chart(canvas.getContext("2d"), {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [{
+                label: "Quantidade",
+                data: values,
+                backgroundColor: "rgba(124,58,237,0.7)",
+                borderRadius: 6, borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: textColor, font: { family: "Poppins" } }, grid: { display: false } },
+                y: {
+                    ticks: { color: textColor, font: { family: "Poppins" }, precision: 0, stepSize: 1 },
+                    grid: { color: gridColor },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    // Força redimensionamento para corrigir dimensões após o container ter sido ocultado
+    requestAnimationFrame(() => chartInstances.notas && chartInstances.notas.resize());
+}
+
+// Exibe ou oculta o estado vazio no canvas
+function setChartEmptyState(canvas, isEmpty) {
+    const card = canvas.closest(".chart-card");
+    let emptyEl = card.querySelector(".chart-empty-state");
+    const containerCanvas = canvas.parentElement;
+
+    if (isEmpty) {
+        // Oculta o container do canvas para ceder espaço ao empty state
+        containerCanvas.style.visibility = "hidden";
+        containerCanvas.style.position = "absolute";
+
+        if (!emptyEl) {
+            emptyEl = document.createElement("div");
+            emptyEl.className = "chart-empty-state";
+            emptyEl.innerHTML = `
+                <i class="fa-solid fa-chart-pie"></i>
+                <p>Sem dados para os filtros selecionados</p>
+            `;
+            card.appendChild(emptyEl);
+        }
+        emptyEl.style.display = "flex";
+    } else {
+        // Restaura o container do canvas antes do Chart.js renderizar
+        containerCanvas.style.visibility = "";
+        containerCanvas.style.position = "";
+        if (emptyEl) {
+            emptyEl.style.display = "none";
+        }
+    }
+}
+
+// --- Busca filtrada no backend ---
+
+async function fetchChartData(chartName) {
+    const f = chartFilters[chartName];
+    const params = new URLSearchParams();
+
+    if (chartName === "tipo") {
+        f.tipos.forEach(t => params.append("tipo", t));
+        if (f.usuario) params.set("usuarioId", f.usuario);
+    }
+    if (chartName === "status") {
+        f.status.forEach(s => params.append("status", s));
+        f.tipos.forEach(t => params.append("tipo", t));
+        if (f.usuario) params.set("usuarioId", f.usuario);
+    }
+    if (chartName === "notas") {
+        f.tipos.forEach(t => params.append("tipo", t));
+        f.status.forEach(s => params.append("status", s));
+        if (f.usuario) params.set("usuarioId", f.usuario);
+        params.set("de", f.de);
+        params.set("ate", f.ate);
+    }
+
+    try {
+        const res = await fetch(`/admin/api/stats/${chartName}?${params.toString()}`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (e) {
+        console.warn("Erro ao buscar dados filtrados:", e);
+        return null;
+    }
+}
+
+// --- Renderização das tags de filtros ativos ---
+
+const LABEL_MAP = {
+    FILME: "🎬 Filmes", SERIE: "📺 Séries", JOGO: "🎮 Jogos",
+    CONCLUIDO: "✅ Concluídos", ASSISTINDO: "▶️ Em Progresso",
+    BACKLOG: "📋 Backlog", DROPADO: "❌ Dropados"
+};
+
+function renderFilterTags(chartName) {
+    const container = document.getElementById(`filter-tags-${chartName}`);
+    if (!container) return;
+
+    const f = chartFilters[chartName];
+    const tags = [];
+
+    if (chartName === "tipo" || chartName === "status" || chartName === "notas") {
+        const allTipos = ["FILME","SERIE","JOGO"];
+        if (f.tipos && f.tipos.length < allTipos.length) {
+            f.tipos.forEach(t => tags.push({ label: LABEL_MAP[t], key: "tipos", val: t, chart: chartName }));
+        }
+    }
+    if (chartName === "status" || chartName === "notas") {
+        const allStatus = ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"];
+        if (f.status && f.status.length < allStatus.length) {
+            f.status.forEach(s => tags.push({ label: LABEL_MAP[s], key: "status", val: s, chart: chartName }));
+        }
+    }
+    if (f.usuario) {
+        const sel = document.querySelector(`[name="${chartName}-usuario"]`);
+        const label = sel ? (sel.selectedOptions[0]?.text ?? "Usuário") : "Usuário";
+        tags.push({ label: `👤 ${label}`, key: "usuario", val: "", chart: chartName });
+    }
+    if (chartName === "notas" && (f.de > 0 || f.ate < 10)) {
+        tags.push({ label: `⭐ ${f.de}–${f.ate}`, key: "range", val: "", chart: chartName });
+    }
+
+    container.innerHTML = tags.map(tag =>
+        `<span class="filter-tag">${tag.label}</span>`
+    ).join("");
+}
+
+// --- Aplicar filtros ---
+
+async function applyFilters(chartName) {
+    const popover = document.getElementById(`filter-popover-${chartName}`);
+
+    if (chartName === "tipo") {
+        chartFilters.tipo.tipos   = [...popover.querySelectorAll('[name="tipo-tipo"]:checked')].map(c => c.value);
+        chartFilters.tipo.usuario = popover.querySelector('[name="tipo-usuario"]').value;
+    }
+    if (chartName === "status") {
+        chartFilters.status.status  = [...popover.querySelectorAll('[name="status-status"]:checked')].map(c => c.value);
+        chartFilters.status.tipos   = [...popover.querySelectorAll('[name="status-tipo"]:checked')].map(c => c.value);
+        chartFilters.status.usuario = popover.querySelector('[name="status-usuario"]').value;
+    }
+    if (chartName === "notas") {
+        chartFilters.notas.tipos   = [...popover.querySelectorAll('[name="notas-tipo"]:checked')].map(c => c.value);
+        chartFilters.notas.status  = [...popover.querySelectorAll('[name="notas-status"]:checked')].map(c => c.value);
+        chartFilters.notas.usuario = popover.querySelector('[name="notas-usuario"]').value;
+        chartFilters.notas.de      = parseFloat(popover.querySelector('[name="notas-de"]').value) || 0;
+        chartFilters.notas.ate     = parseFloat(popover.querySelector('[name="notas-ate"]').value) || 10;
+    }
+
+    popover.classList.add("hidden");
+    // Esconde o backdrop ao aplicar o filtro (mobile)
+    const backdrop = document.querySelector(".filter-backdrop");
+    if (backdrop) backdrop.style.display = "none";
+    renderFilterTags(chartName);
+
+    const data = await fetchChartData(chartName);
+    if (chartName === "tipo")   buildGraficoTipo(data);
+    if (chartName === "status") buildGraficoStatus(data);
+    if (chartName === "notas")  buildGraficoNotas(data);
+}
+
+// --- Limpar filtros ---
+
+function clearFilters(chartName) {
+    const popover = document.getElementById(`filter-popover-${chartName}`);
+
+    // Marca todos os checkboxes
+    popover.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = true);
+    // Reset selects
+    popover.querySelectorAll("select").forEach(s => s.value = "");
+    // Reset ranges
+    const de = popover.querySelector('[name="notas-de"]'); if (de) de.value = 0;
+    const ate = popover.querySelector('[name="notas-ate"]'); if (ate) ate.value = 10;
+
+    // Reset estado
+    if (chartName === "tipo")   chartFilters.tipo   = { tipos: ["FILME","SERIE","JOGO"], usuario: "" };
+    if (chartName === "status") chartFilters.status = { status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], tipos: ["FILME","SERIE","JOGO"], usuario: "" };
+    if (chartName === "notas")  chartFilters.notas  = { tipos: ["FILME","SERIE","JOGO"], status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], usuario: "", de: 0, ate: 10 };
+
+    document.getElementById(`filter-tags-${chartName}`).innerHTML = "";
+
+    // Fecha o popover e esconde o backdrop após limpar
+    if (popover) popover.classList.add("hidden");
+    const backdrop = document.querySelector(".filter-backdrop");
+    if (backdrop) backdrop.style.display = "none";
+
+    if (chartName === "tipo")   buildGraficoTipo(null);
+    if (chartName === "status") buildGraficoStatus(null);
+    if (chartName === "notas")  buildGraficoNotas(null);
+}
+
+// --- Init ---
+
+function initGraficos() {
+    // Constrói com dados padrão (sem filtro)
+    buildGraficoTipo(null);
+    buildGraficoStatus(null);
+    buildGraficoNotas(null);
+    initFilterControls();
+}
+
+function initFilterControls() {
+    // Cria o backdrop uma única vez
+    const backdrop = document.createElement("div");
+    backdrop.className = "filter-backdrop";
+    document.body.appendChild(backdrop);
+
+    function closeAllPopovers() {
+        document.querySelectorAll(".filter-popover").forEach(p => p.classList.add("hidden"));
+        backdrop.style.display = "none";
+    }
+
+    // Botões de abrir/fechar popover
+    document.querySelectorAll(".btn-chart-filter").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const chart = btn.dataset.chart;
+            const popover = document.getElementById(`filter-popover-${chart}`);
+            const isHidden = popover.classList.contains("hidden");
+
+            // Fecha todos os outros
+            closeAllPopovers();
+
+            if (isHidden) {
+                popover.classList.remove("hidden");
+                // Mostra backdrop apenas no mobile
+                if (window.innerWidth <= 900) {
+                    backdrop.style.display = "block";
+                }
+            }
+        });
+    });
+
+    // Fechar ao clicar no backdrop (mobile)
+    backdrop.addEventListener("click", closeAllPopovers);
+
+    // Botão aplicar
+    document.querySelectorAll(".filter-apply-btn").forEach(btn => {
+        btn.addEventListener("click", () => applyFilters(btn.dataset.chart));
+    });
+
+    // Botão limpar
+    document.querySelectorAll(".filter-clear-btn").forEach(btn => {
+        btn.addEventListener("click", () => clearFilters(btn.dataset.chart));
+    });
+
+    // Fechar popover ao clicar fora (desktop)
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".chart-filter-wrap")) {
+            closeAllPopovers();
+        }
+    });
+}
+
+// --- BUSCA DE USUÁRIOS ---
+function initBuscaUsuarios() {
+    const input = document.getElementById("busca-usuarios");
+    if (!input) return;
+    input.addEventListener("input", () => {
+        const termo = input.value.toLowerCase();
+        document.querySelectorAll("#tabela-usuarios tbody tr[data-id]").forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(termo) ? "" : "none";
+        });
+    });
+}
+
+// --- AÇÕES DE USUÁRIOS ---
+function initAcoesUsuarios() {
+    // Usando delegação de eventos para garantir o mapeamento estável pós-renderização do Thymeleaf
+    document.addEventListener("click", (e) => {
+        const btnVer       = e.target.closest(".btn-ver-itens");
+        const btnEdit      = e.target.closest(".btn-editar-usuario");
+        const btnSenha     = e.target.closest(".btn-senha-usuario");
+        const btnDel       = e.target.closest(".btn-deletar-usuario");
+        const btnConquista = e.target.closest(".btn-conceder-conquista");
+
+        if (btnVer)       abrirBacklogUsuario(btnVer.dataset.id, btnVer.dataset.nome);
+        if (btnEdit)      editarUsuario(btnEdit.dataset);
+        if (btnSenha)     redefinirSenha(btnSenha.dataset.id, btnSenha.dataset.nome);
+        if (btnDel)       deletarUsuario(btnDel.dataset.id, btnDel.dataset.nome);
+        if (btnConquista) abrirConcederConquista(btnConquista.dataset.id, btnConquista.dataset.nome);
+    });
+}
+
+// ---------------------------------------------------------------
+// Modal de gerenciamento de conquistas do usuário
+// Mostra: conquistas desbloqueadas (com botão de revogar) +
+//         conquistas bloqueadas (com botão de conceder)
+// ---------------------------------------------------------------
+async function abrirConcederConquista(userId, nomeUsuario) {
+    const isDark = isDarkMode();
+    await renderModalConquistas(userId, nomeUsuario, isDark);
+}
+
+async function renderModalConquistas(userId, nomeUsuario, isDark) {
+    // Busca em paralelo: todas as conquistas do sistema + as do usuário
+    let todasConquistas = [], conquistasDoUsuario = [];
+    try {
+        [todasConquistas, conquistasDoUsuario] = await Promise.all([
+            fetch("/admin/api/conquistas").then(r => r.json()),
+            fetch(`/admin/api/usuario/${userId}/conquistas`).then(r => r.json())
+        ]);
+    } catch (e) {
+        toastErro("Erro ao carregar conquistas.");
+        return;
+    }
+
+    // IDs das conquistas que o usuário já possui
+    const idsDoUsuario = new Set(conquistasDoUsuario.map(c => c.id));
+
+    const fmtData = iso => {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return d.toLocaleDateString("pt-BR") + " às " +
+               d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    };
+
+    // --- Estilos embutidos no HTML do modal ---
+    const styles = `
+        <style>
+            .gc-section-title {
+                font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+                letter-spacing: .6px; color: #7f8c8d; text-align: left;
+                margin: 16px 0 8px;
+            }
+            .gc-section-title:first-child { margin-top: 4px; }
+            .gc-list { max-height: 210px; overflow-y: auto; padding-right: 2px; }
+            .gc-row {
+                display: flex; align-items: center; gap: 10px;
+                padding: 9px 12px; border-radius: 9px; margin-bottom: 6px;
+                text-align: left; transition: opacity .2s;
+            }
+            .gc-row.desbloqueada {
+                background: rgba(124,58,237,0.08);
+                border: 1px solid rgba(124,58,237,0.2);
+            }
+            .gc-row.bloqueada {
+                background: rgba(255,255,255,0.03);
+                border: 1px solid rgba(255,255,255,0.07);
+                opacity: .75;
+            }
+            .gc-icone { font-size: 1.35rem; flex-shrink: 0; line-height: 1; }
+            .gc-row.bloqueada .gc-icone { filter: grayscale(80%); opacity: .6; }
+            .gc-info { flex: 1; min-width: 0; }
+            .gc-info strong {
+                display: block; font-size: 0.84rem; font-weight: 600;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .gc-info small { font-size: 0.72rem; color: #7f8c8d; }
+            .gc-btn {
+                flex-shrink: 0; font-size: 0.75rem; font-weight: 700;
+                padding: 5px 12px; border-radius: 7px; cursor: pointer;
+                border: 1px solid; display: flex; align-items: center;
+                gap: 5px; white-space: nowrap; transition: all .18s;
+            }
+            .gc-btn:disabled { opacity: .35; pointer-events: none; }
+            .gc-btn-revogar {
+                background: transparent; color: #e94560;
+                border-color: rgba(233,69,96,0.35);
+            }
+            .gc-btn-revogar:hover { background: #e94560; color: #fff; }
+            .gc-btn-conceder {
+                background: rgba(124,58,237,0.12); color: #a78bfa;
+                border-color: rgba(124,58,237,0.35);
+            }
+            .gc-btn-conceder:hover { background: #7c3aed; color: #fff; }
+            .gc-empty { font-size: 0.82rem; color: #7f8c8d; text-align: left; padding: 6px 2px; }
+        </style>
+    `;
+
+    // --- Seção: desbloqueadas ---
+    const desbloqueadasHtml = conquistasDoUsuario.length
+        ? conquistasDoUsuario.map(c => `
+            <div class="gc-row desbloqueada" id="gc-row-${c.id}">
+                <span class="gc-icone">${escapeHtml(c.icone)}</span>
+                <div class="gc-info">
+                    <strong>${escapeHtml(c.nome)}</strong>
+                    <small>+${c.xp} XP · ${fmtData(c.desbloquedaEm)}</small>
+                </div>
+                <button class="gc-btn gc-btn-revogar"
+                        onclick="gcRevogar(${userId}, ${c.id}, '${escapeHtml(c.nome)}', ${c.xp}, '${escapeHtml(c.icone)}', this)"
+                        title="Revogar conquista (deduz ${c.xp} XP)">
+                    <i class="fa fa-times"></i> Revogar
+                </button>
+            </div>`).join("")
+        : `<p class="gc-empty">Nenhuma conquista ainda.</p>`;
+
+    // --- Seção: bloqueadas ---
+    const bloqueadasHtml = todasConquistas.filter(c => !idsDoUsuario.has(c.id)).length
+        ? todasConquistas.filter(c => !idsDoUsuario.has(c.id)).map(c => `
+            <div class="gc-row bloqueada" id="gc-row-${c.id}">
+                <span class="gc-icone">${escapeHtml(c.icone)}</span>
+                <div class="gc-info">
+                    <strong>${escapeHtml(c.nome)}</strong>
+                    <small>+${c.xp} XP · ${escapeHtml(c.descricao || "")}</small>
+                </div>
+                <button class="gc-btn gc-btn-conceder"
+                        onclick="gcConceder(${userId}, ${c.id}, '${escapeHtml(c.nome)}', ${c.xp}, '${escapeHtml(c.icone)}', this)"
+                        title="Conceder conquista (+${c.xp} XP)">
+                    <i class="fa fa-plus"></i> Dar
+                </button>
+            </div>`).join("")
+        : `<p class="gc-empty">Usuário já possui todas as conquistas! 🏆</p>`;
+
+    const totalDesbloqueadas = conquistasDoUsuario.length;
+    const totalConquistas    = todasConquistas.length;
+
+    Swal.fire({
+        title: "🏆 Conquistas do Usuário",
+        width: "540px",
+        html: `
+            ${styles}
+            <p style="font-size:0.84rem;color:var(--text-muted,#aaa);margin-bottom:2px;text-align:left">
+                <strong style="color:inherit">${escapeHtml(nomeUsuario)}</strong>
+                &nbsp;·&nbsp;
+                <span id="gc-contador" style="color:#a78bfa;font-weight:600">
+                    ${totalDesbloqueadas} / ${totalConquistas} desbloqueadas
+                </span>
+            </p>
+
+            <p class="gc-section-title" id="gc-title-des">
+                ✅ Desbloqueadas (<span id="gc-count-des">${totalDesbloqueadas}</span>)
+            </p>
+            <div class="gc-list" id="gc-list-des">${desbloqueadasHtml}</div>
+
+            <p class="gc-section-title" id="gc-title-blo">
+                🔒 Bloqueadas (<span id="gc-count-blo">${totalConquistas - totalDesbloqueadas}</span>)
+            </p>
+            <div class="gc-list" id="gc-list-blo">${bloqueadasHtml}</div>
+        `,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: "Fechar",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+    });
+}
+
+// Chamado pelo botão "Revogar" dentro do modal
+async function gcRevogar(userId, conquistaId, nome, xp, icone, btn) {
+    const isDark = isDarkMode();
+    const confirm = await Swal.fire({
+        title: "Revogar conquista?",
+        html: `Deseja remover <strong>${escapeHtml(nome)}</strong> deste usuário?<br>
+               <small style="color:#e94560">−${xp} XP serão descontados do total.</small>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, revogar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#e94560",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+    });
+    if (!confirm.isConfirmed) return;
+
+    btn.disabled = true;
+    try {
+        const resp = await fetch(`/admin/usuario/${userId}/revogar-conquista/${conquistaId}`, {
+            method: "DELETE",
+            headers: getCsrfHeaders()
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            // Move a linha da seção "desbloqueadas" para "bloqueadas" sem fechar o modal
+            const row = document.getElementById(`gc-row-${conquistaId}`);
+            if (row) row.remove();
+
+            // Remove mensagem de vazio se existia
+            const listDes = document.getElementById("gc-list-des");
+            const listBlo = document.getElementById("gc-list-blo");
+
+            // Atualiza contadores
+            const cntDes = document.getElementById("gc-count-des");
+            const cntBlo = document.getElementById("gc-count-blo");
+            const ctGeral = document.getElementById("gc-contador");
+            const novasDes = (parseInt(cntDes?.textContent) || 1) - 1;
+            const novasBlo = (parseInt(cntBlo?.textContent) || 0) + 1;
+            if (cntDes) cntDes.textContent = novasDes;
+            if (cntBlo) cntBlo.textContent = novasBlo;
+            if (ctGeral) {
+                const total = novasDes + novasBlo;
+                ctGeral.textContent = `${novasDes} / ${total} desbloqueadas`;
+            }
+
+            // Se ficou vazio, mostra placeholder
+            if (listDes && !listDes.querySelector(".gc-row")) {
+                listDes.innerHTML = `<p class="gc-empty">Nenhuma conquista ainda.</p>`;
+            }
+
+            // Insere o card na seção bloqueadas
+            if (listBlo) {
+                listBlo.querySelector(".gc-empty")?.remove();
+                listBlo.insertAdjacentHTML("afterbegin", `
+                    <div class="gc-row bloqueada" id="gc-row-${conquistaId}">
+                        <span class="gc-icone" style="filter:grayscale(80%);opacity:.6">${escapeHtml(icone)}</span>
+                        <div class="gc-info">
+                            <strong>${escapeHtml(nome)}</strong>
+                            <small>+${xp} XP</small>
+                        </div>
+                        <button class="gc-btn gc-btn-conceder"
+                                onclick="gcConceder(${userId}, ${conquistaId}, '${escapeHtml(nome)}', ${xp}, '${escapeHtml(icone)}', this)"
+                                title="Conceder conquista (+${xp} XP)">
+                            <i class="fa fa-plus"></i> Dar
+                        </button>
+                    </div>`);
+            }
+
+            toastSucesso(`🗑 "${nome}" revogada. −${data.xpDeduzido || xp} XP descontados.`);
+        } else {
+            btn.disabled = false;
+            toastErro(data.mensagem || data.erro || "Erro ao revogar.");
+        }
+    } catch {
+        btn.disabled = false;
+        toastErro("Erro de comunicação.");
+    }
+}
+
+// Chamado pelo botão "Dar" dentro do modal
+async function gcConceder(userId, conquistaId, nome, xp, icone, btn) {
+    btn.disabled = true;
+    try {
+        const resp = await fetch(`/admin/usuario/${userId}/conceder-conquista/${conquistaId}`, {
+            method: "POST",
+            headers: getCsrfHeaders()
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            // Move da seção "bloqueadas" para "desbloqueadas"
+            const row = document.getElementById(`gc-row-${conquistaId}`);
+            if (row) row.remove();
+
+            const listDes = document.getElementById("gc-list-des");
+            const listBlo = document.getElementById("gc-list-blo");
+
+            // Atualiza contadores
+            const cntDes = document.getElementById("gc-count-des");
+            const cntBlo = document.getElementById("gc-count-blo");
+            const ctGeral = document.getElementById("gc-contador");
+            const novasDes = (parseInt(cntDes?.textContent) || 0) + 1;
+            const novasBlo = (parseInt(cntBlo?.textContent) || 1) - 1;
+            if (cntDes) cntDes.textContent = novasDes;
+            if (cntBlo) cntBlo.textContent = novasBlo;
+            if (ctGeral) {
+                const total = novasDes + novasBlo;
+                ctGeral.textContent = `${novasDes} / ${total} desbloqueadas`;
+            }
+
+            // Se bloqueadas ficou vazio
+            if (listBlo && !listBlo.querySelector(".gc-row")) {
+                listBlo.innerHTML = `<p class="gc-empty">Usuário já possui todas as conquistas! 🏆</p>`;
+            }
+
+            const agora = new Date();
+            const dataFmt = agora.toLocaleDateString("pt-BR") + " às " +
+                            agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+            // Insere na seção desbloqueadas
+            if (listDes) {
+                listDes.querySelector(".gc-empty")?.remove();
+                listDes.insertAdjacentHTML("afterbegin", `
+                    <div class="gc-row desbloqueada" id="gc-row-${conquistaId}">
+                        <span class="gc-icone">${escapeHtml(icone)}</span>
+                        <div class="gc-info">
+                            <strong>${escapeHtml(nome)}</strong>
+                            <small>+${xp} XP · ${dataFmt}</small>
+                        </div>
+                        <button class="gc-btn gc-btn-revogar"
+                                onclick="gcRevogar(${userId}, ${conquistaId}, '${escapeHtml(nome)}', ${xp}, '${escapeHtml(icone)}', this)"
+                                title="Revogar conquista (deduz ${xp} XP)">
+                            <i class="fa fa-times"></i> Revogar
+                        </button>
+                    </div>`);
+            }
+
+            toastSucesso(`🏆 "${nome}" concedida! +${xp} XP adicionados.`);
+        } else {
+            btn.disabled = false;
+            toastErro(data.mensagem || data.erro || "Erro ao conceder.");
+        }
+    } catch {
+        btn.disabled = false;
+        toastErro("Erro de comunicação.");
+    }
+}
+
+async function abrirBacklogUsuario(userId, nome) {
+    const modal = document.getElementById("modal-itens");
+    const titulo = document.getElementById("modal-itens-titulo");
+    const corpo = document.getElementById("modal-itens-corpo");
+
+    titulo.textContent = `Backlog de ${nome}`;
+    corpo.innerHTML = `<p class="empty-modal">⏳ Carregando...</p>`;
+    modal.classList.remove("hidden");
+
+    try {
+        const resp = await fetch(`/admin/api/usuario/${userId}/itens`);
+        const itens = await resp.json();
+
+        if (itens.length === 0) {
+            corpo.innerHTML = `<p class="empty-modal">📋 Este usuário não tem itens no backlog.</p>`;
+            return;
+        }
+
+        const tipoIcon = { "Filme": "🎬", "Série": "📺", "Jogo": "🎮" };
+
+        corpo.innerHTML = `<div class="item-lista">
+            ${itens.map(item => `
+                <div class="item-row" id="item-row-${item.id}">
+                    ${item.imagemUrl
+                        ? `<img class="item-thumb" src="${escapeHtml(item.imagemUrl)}" alt="${escapeHtml(item.titulo)}" onerror="this.style.display='none'">`
+                        : `<div class="item-thumb-placeholder">${tipoIcon[item.tipo] || "📦"}</div>`
+                    }
+                    <div class="item-info">
+                        <div class="item-titulo">${escapeHtml(item.titulo)}</div>
+                        <div class="item-meta">
+                            <span class="tag tag-tipo">${tipoIcon[item.tipo] || ""} ${escapeHtml(item.tipo)}</span>
+                            <span class="tag tag-status">${escapeHtml(item.status)}</span>
+                            ${item.nota != null ? `<span class="tag tag-nota">⭐ ${item.nota}</span>` : ""}
+                        </div>
+                        ${item.resenha ? `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">"${escapeHtml(item.resenha)}"</div>` : ""}
+                    </div>
+                    <div class="item-actions">
+                        <button class="item-action-btn" onclick="editarItemAdmin(${item.id}, '${escapeHtml(item.titulo)}', '${escapeHtml(item.status)}', ${item.nota ?? 0}, \`${escapeHtml(item.resenha || '')}\`)" title="Editar item">
+                            <i class="fa fa-pen"></i>
+                        </button>
+                        <button class="item-action-btn btn-danger" onclick="deletarItemAdmin(${item.id})" title="Remover item">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join("")}
+        </div>`;
+    } catch (e) {
+        corpo.innerHTML = `<p class="empty-modal">❌ Erro ao carregar itens.</p>`;
+    }
+}
+
+async function editarItemAdmin(itemId, titulo, statusAtual, notaAtual, resenhaAtual) {
+    const isDark = isDarkMode();
+    const statusOptions = ["Backlog", "Assistindo", "Jogando", "Assistido", "Zerado", "Dropado"];
+
+    const { value: resultado } = await Swal.fire({
+        title: `✏️ Editar Item`,
+        html: `
+            <div style="text-align:left;margin-bottom:6px">
+                <strong style="font-size:0.95rem">${escapeHtml(titulo)}</strong>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px;text-align:left">
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">STATUS</label>
+                    <select id="swal-status" class="swal2-select" style="margin-top:6px;width:100%">
+                        ${statusOptions.map(s => `<option value="${s}" ${s === statusAtual ? "selected" : ""}>${s}</option>`).join("")}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">NOTA (0–10)</label>
+                    <input id="swal-nota" class="swal2-input" type="number" min="0" max="10" step="0.5" value="${notaAtual}" style="margin-top:6px">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">RESENHA</label>
+                    <textarea id="swal-resenha" class="swal2-textarea" style="margin-top:6px;min-height:80px">${escapeHtml(resenhaAtual)}</textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Salvar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#7c3aed",
+        width: "500px",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+        preConfirm: () => {
+            const nota = parseFloat(document.getElementById("swal-nota").value);
+            if (isNaN(nota) || nota < 0 || nota > 10) {
+                Swal.showValidationMessage("A nota deve ser entre 0 e 10.");
+                return false;
+            }
+            return {
+                status:  document.getElementById("swal-status").value,
+                nota,
+                resenha: document.getElementById("swal-resenha").value.trim()
+            };
+        }
+    });
+
+    if (!resultado) return;
+
+    const resp = await fetch(`/admin/item/${itemId}/editar`, {
+        method: "POST",
+        headers: getCsrfHeaders(),
+        body: JSON.stringify(resultado)
+    });
+    const data = await resp.json();
+
+    if (data.sucesso) {
+        toastSucesso("Item atualizado!");
+        const row = document.getElementById(`item-row-${itemId}`);
+        if (row) {
+            row.querySelector(".tag-status").textContent = resultado.status;
+            const tagNota = row.querySelector(".tag-nota");
+            if (tagNota) tagNota.textContent = `⭐ ${resultado.nota}`;
+        }
+    } else {
+        toastErro(data.erro || "Erro ao editar item.");
+    }
+}
+
+async function deletarItemAdmin(itemId) {
+    const confirm = await Swal.fire({
+        title: "Remover item?",
+        text: "Este item será removido do backlog do usuário.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e94560",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Sim, remover",
+        cancelButtonText: "Cancelar",
+        background: isDarkMode() ? "#1e1e1e" : "#fff",
+        color: isDarkMode() ? "#e0e0e0" : "#2c3e50",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    const resp = await fetch(`/admin/item/${itemId}`, { 
+        method: "DELETE",
+        headers: getCsrfHeaders()
+    });
+    const data = await resp.json();
+
+    if (data.sucesso) {
+        document.getElementById(`item-row-${itemId}`)?.remove();
+        toastSucesso("Item removido!");
+    } else {
+        toastErro(data.erro || "Erro ao remover item.");
+    }
+}
+
+function editarUsuario(dataset) {
+    const isDark = isDarkMode();
+    Swal.fire({
+        title: "✏️ Editar Usuário",
+        html: `
+            <div style="display:flex;flex-direction:column;gap:14px;text-align:left">
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">NOME</label>
+                    <input id="swal-login" class="swal2-input" value="${escapeHtml(dataset.login)}" placeholder="Nome do usuário" style="margin-top:6px">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">@ USUÁRIO</label>
+                    <input id="swal-social" class="swal2-input" value="${escapeHtml(dataset.social)}" placeholder="@usuário" style="margin-top:6px">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">E-MAIL</label>
+                    <input id="swal-email" class="swal2-input" type="email" value="${escapeHtml(dataset.email)}" placeholder="email@exemplo.com" style="margin-top:6px">
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Salvar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#7c3aed",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+        preConfirm: () => {
+            const login = document.getElementById("swal-login").value.trim();
+            const social = document.getElementById("swal-social").value.trim();
+            const email = document.getElementById("swal-email").value.trim();
+            if (!login || !social || !email) {
+                Swal.showValidationMessage("Preencha todos os campos.");
+                return false;
+            }
+            return { login, socialUsername: social, email };
+        }
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+        
+        const resp = await fetch(`/admin/usuario/${dataset.id}/editar`, {
+            method: "POST",
+            headers: getCsrfHeaders(),
+            body: JSON.stringify(result.value)
+        });
+        const data = await resp.json();
+        if (data.sucesso) { toastSucesso("Usuário atualizado!"); setTimeout(() => location.reload(), 1200); }
+        else toastErro(data.erro || "Erro ao editar.");
+    });
+}
+
+function redefinirSenha(userId, nome) {
+    const isDark = isDarkMode();
+    
+    Swal.fire({
+        title: `🔑 Nova senha para ${escapeHtml(nome)}`,
+        width: "460px",
+        html: `
+            <div style="display:flex;flex-direction:column;gap:14px;text-align:left; max-width:100%;">
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">NOVA SENHA</label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input id="swal-nova-senha" class="swal2-input senha-verifica" type="password" placeholder="Nova senha" style="margin:6px 0 0 0; width:100%; padding-right:40px;">
+                        <button type="button" onclick="togglePasswordAdmin(this)" style="position:absolute; right:10px; top:65%; transform:translateY(-50%); background:none; border:none; color:#7f8c8d; cursor:pointer;">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">CONFIRMAR</label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input id="swal-confirma-senha" class="swal2-input" type="password" placeholder="Confirmar nova senha" style="margin:6px 0 0 0; width:100%; padding-right:40px;">
+                        <button type="button" onclick="togglePasswordAdmin(this)" style="position:absolute; right:10px; top:65%; transform:translateY(-50%); background:none; border:none; color:#7f8c8d; cursor:pointer;">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="box-requisitos" class="box-requisitos-adm" style="background:rgba(0,0,0,0.1); padding:10px; border-radius:8px; font-size:0.8rem; border:1px solid var(--border-color);">
+                    <div id="req-tamanho" class="invalido" style="color:#e74c3c; margin-bottom:4px;"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</div>
+                    <div id="req-maiuscula" class="invalido" style="color:#e74c3c; margin-bottom:4px;"><i class="fa-solid fa-circle-check"></i> Uma letra maiúscula</div>
+                    <div id="req-numero" class="invalido" style="color:#e74c3c; margin-bottom:4px;"><i class="fa-solid fa-circle-xmark"></i> Um número</div>
+                    <div id="req-especial" class="invalido" style="color:#e74c3c;"><i class="fa-solid fa-circle-xmark"></i> Um caractere especial (!@#$%^&*)</div>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Redefinir",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#f59e0b",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+        didOpen: () => {
+            const inputSenha = document.getElementById('swal-nova-senha');
+            const reqTamanho = document.getElementById('req-tamanho');
+            const reqMaiuscula = document.getElementById('req-maiuscula');
+            const reqNumero = document.getElementById('req-numero');
+            const reqEspecial = document.getElementById('req-especial');
+
+            inputSenha.addEventListener('input', () => {
+                const valor = inputSenha.value;
+                validarItemLinha(reqTamanho, valor.length >= 8);
+                validarItemLinha(reqMaiuscula, /[A-Z]/.test(valor));
+                validarItemLinha(reqNumero, /[0-9]/.test(valor));
+                validarItemLinha(reqEspecial, /[!@#$%^&*(),.?":{}|<>]/.test(valor)); // Regex de símbolo especial
+            });
+        },
+        preConfirm: () => {
+            const nova = document.getElementById("swal-nova-senha").value;
+            const confirma = document.getElementById("swal-confirma-senha").value;
+
+            if (nova.length < 8 || !/[A-Z]/.test(nova) || !/[0-9]/.test(nova) || !/[!@#$%^&*(),.?":{}|<>]/.test(nova)) {
+                Swal.showValidationMessage("A senha não atende aos requisitos mínimos.");
+                return false;
+            }
+            if (nova !== confirma) {
+                Swal.showValidationMessage("As senhas não coincidem.");
+                return false;
+            }
+            return nova;
+        }
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+        
+        const resp = await fetch(`/admin/usuario/${userId}/senha`, {
+            method: "POST",
+            headers: getCsrfHeaders(),
+            body: JSON.stringify({ novaSenha: result.value })
+        });
+        const data = await resp.json();
+        if (data.sucesso) toastSucesso("Senha redefinida!");
+        else toastErro(data.erro || "Erro ao redefinir senha.");
+    });
+}
+
+function deletarUsuario(userId, nome) {
+    const isDark = isDarkMode();
+    Swal.fire({
+        title: "⚠️ Deletar usuário?",
+        html: `Tem certeza que deseja deletar <strong>${escapeHtml(nome)}</strong>?<br><br>
+               <span style="color:#e94560">Todos os dados, backlog e conquistas serão removidos permanentemente.</span>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e94560",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Sim, deletar",
+        cancelButtonText: "Cancelar",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+        
+        const resp = await fetch(`/admin/usuario/${userId}`, { 
+            method: "DELETE",
+            headers: getCsrfHeaders()
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            toastSucesso("Usuário deletado!");
+            document.querySelector(`tr[data-id="${userId}"]`)?.remove();
+        } else toastErro(data.erro || "Erro ao deletar.");
+    });
+}
+
+// --- AÇÕES DE CONQUISTAS ---
+function initAcoesConquistas() {
+    document.getElementById("btn-nova-conquista")?.addEventListener("click", () => abrirFormConquista(null));
+    
+    // Delegação de eventos estável para os botões da lista de conquistas
+    document.addEventListener("click", (e) => {
+        const btnEditConq = e.target.closest(".btn-editar-conquista");
+        const btnDelConq = e.target.closest(".btn-deletar-conquista");
+
+        if (btnEditConq) abrirFormConquista({
+            ...btnEditConq.dataset,
+            criterioTipo:  btnEditConq.dataset.criteriotipo  || "MANUAL",
+            criterioValor: btnEditConq.dataset.criteriovalor || ""
+        });
+        if (btnDelConq) deletarConquista(btnDelConq.dataset.id, btnDelConq.dataset.nome);
+    });
+}
+
+function abrirFormConquista(dados) {
+    const isEdicao = !!dados;
+    const isDark = isDarkMode();
+
+    const CRITERIOS = [
+        { value: "MANUAL",           label: "Manual (concedida pelo admin)" },
+        { value: "TOTAL_ITENS",      label: "Total de itens cadastrados" },
+        { value: "TOTAL_CONCLUIDOS", label: "Total de itens concluídos" },
+        { value: "TOTAL_DROPADOS",   label: "Total de itens dropados" },
+        { value: "JOGOS_ZERADOS",    label: "Jogos zerados" },
+        { value: "FILMES_ASSISTIDOS",label: "Filmes assistidos" },
+        { value: "SERIES_ASSISTIDAS",label: "Séries assistidas" },
+        { value: "NOTA10_FILMES",    label: "Filmes com nota 10" },
+        { value: "NOTA10_JOGOS",     label: "Jogos com nota 10" },
+        { value: "NOTA10_TOTAL",     label: "Itens com nota 10 (qualquer tipo)" },
+        { value: "TMDB_CAPA",        label: "Cadastrou item com capa do TMDB" },
+        { value: "SHARE_LINK_CRIADO",label: "Criou link de compartilhamento" },
+        { value: "AI_USADA",         label: "Usou a IA pela primeira vez" },
+    ];
+
+    const criterioAtual = isEdicao ? (dados.criterioTipo || "MANUAL") : "MANUAL";
+    const valorAtual    = isEdicao ? (dados.criterioValor || "") : "";
+
+    const optionsHtml = CRITERIOS.map(c =>
+        `<option value="${c.value}"${criterioAtual === c.value ? " selected" : ""}>${c.label}</option>`
+    ).join("");
+
+    const labelStyle = "display:block;font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px";
+    const hintStyle  = "font-size:0.72rem;color:#7f8c8d;margin-top:4px";
+
+    Swal.fire({
+        title: isEdicao ? "✏️ Editar Conquista" : "🏆 Nova Conquista",
+        width: "540px",
+        html: `
+            <div style="display:flex;flex-direction:column;gap:18px;text-align:left;padding:4px 0">
+                <div style="display:grid;grid-template-columns:90px 1fr;gap:14px">
+                    <div>
+                        <label style="${labelStyle}">ÍCONE</label>
+                        <input id="sc-icone" class="swal2-input" value="${isEdicao ? escapeHtml(dados.icone) : "🏆"}" maxlength="5" style="text-align:center;font-size:1.6rem;padding:8px;height:52px;margin:0;width:100%">
+                    </div>
+                    <div>
+                        <label style="${labelStyle}">XP GANHO</label>
+                        <input id="sc-xp" class="swal2-input" type="number" value="${isEdicao ? dados.xp : "50"}" min="1" placeholder="50" style="margin:0;width:100%;height:52px">
+                    </div>
+                </div>
+                <div>
+                    <label style="${labelStyle}">CHAVE ÚNICA</label>
+                    <input id="sc-chave" class="swal2-input" value="${isEdicao ? escapeHtml(dados.chave) : ""}" placeholder="Ex: PRIMEIRO_FILME" style="text-transform:uppercase;margin:0;width:100%">
+                </div>
+                <div>
+                    <label style="${labelStyle}">NOME</label>
+                    <input id="sc-nome" class="swal2-input" value="${isEdicao ? escapeHtml(dados.nome) : ""}" placeholder="Nome da conquista" style="margin:0;width:100%">
+                </div>
+                <div>
+                    <label style="${labelStyle}">DESCRIÇÃO</label>
+                    <textarea id="sc-desc" class="swal2-textarea" placeholder="Descrição exibida ao usuário" style="margin:0;width:100%;min-height:80px;resize:vertical;box-sizing:border-box">${isEdicao ? escapeHtml(dados.descricao) : ""}</textarea>
+                </div>
+                <div style="border-top:1px solid rgba(127,140,141,0.2);padding-top:14px">
+                    <label style="${labelStyle}">🎯 CRITÉRIO DE DESBLOQUEIO</label>
+                    <select id="sc-criterio" class="swal2-select" style="margin:0;width:100%;height:44px;border-radius:8px">
+                        ${optionsHtml}
+                    </select>
+                    <p style="${hintStyle}">Define quando o sistema desbloqueia essa conquista automaticamente.</p>
+                </div>
+                <div id="sc-valor-wrap">
+                    <label style="${labelStyle}">QUANTIDADE MÍNIMA</label>
+                    <input id="sc-valor" class="swal2-input" type="number" value="${valorAtual}" min="1" placeholder="Ex: 10" style="margin:0;width:100%">
+                    <p style="${hintStyle}">Número de itens necessários para atingir o critério acima.</p>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: isEdicao ? "Salvar Edição" : "Criar Conquista",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#7c3aed",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+        didOpen: () => {
+            const sel  = document.getElementById("sc-criterio");
+            const wrap = document.getElementById("sc-valor-wrap");
+            const CRITERIOS_SEM_VALOR = new Set(["MANUAL", "AI_USADA", "TMDB_CAPA", "SHARE_LINK_CRIADO"]);
+            const toggle = () => { wrap.style.display = CRITERIOS_SEM_VALOR.has(sel.value) ? "none" : ""; };
+            toggle();
+            sel.addEventListener("change", toggle);
+        },
+        preConfirm: () => {
+            const icone      = document.getElementById("sc-icone").value.trim();
+            const chave      = document.getElementById("sc-chave").value.trim().toUpperCase();
+            const nome       = document.getElementById("sc-nome").value.trim();
+            const desc       = document.getElementById("sc-desc").value.trim();
+            const xp         = parseInt(document.getElementById("sc-xp").value);
+            const criterio   = document.getElementById("sc-criterio").value;
+            const valorRaw   = document.getElementById("sc-valor")?.value;
+            const criteriosSemValor = new Set(["MANUAL", "AI_USADA", "TMDB_CAPA", "SHARE_LINK_CRIADO"]);
+            const valor      = criteriosSemValor.has(criterio) ? null : parseInt(valorRaw);
+
+            if (!icone || !chave || !nome || !desc || isNaN(xp) || xp < 1) {
+                Swal.showValidationMessage("Preencha todos os campos corretamente.");
+                return false;
+            }
+            if (!criteriosSemValor.has(criterio) && (isNaN(valor) || valor < 1)) {
+                Swal.showValidationMessage("Informe a quantidade mínima para o critério escolhido.");
+                return false;
+            }
+            return { icone, chave, nome, descricao: desc, xp, criterioTipo: criterio, criterioValor: valor };
+        }
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+        const url = isEdicao ? `/admin/conquista/${dados.id}/editar` : `/admin/conquista/criar`;
+
+        const resp = await fetch(url, {
+            method: "POST",
+            headers: getCsrfHeaders(),
+            body: JSON.stringify(result.value)
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            toastSucesso(isEdicao ? "Conquista atualizada!" : "Conquista criada!");
+            setTimeout(() => location.reload(), 1200);
+        } else toastErro(data.erro || "Erro ao salvar conquista.");
+    });
+}
+
+function deletarConquista(id, nome) {
+    const isDark = isDarkMode();
+    Swal.fire({
+        title: "Deletar conquista?",
+        html: `A conquista <strong>${escapeHtml(nome)}</strong> será removida de todos os usuários que a possuem.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e94560",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Deletar",
+        cancelButtonText: "Cancelar",
+        background: isDark ? "#1e1e1e" : "#fff",
+        color: isDark ? "#e0e0e0" : "#2c3e50",
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+        
+        const resp = await fetch(`/admin/conquista/${id}`, { 
+            method: "DELETE",
+            headers: getCsrfHeaders()
+        });
+        const data = await resp.json();
+        if (data.sucesso) { toastSucesso("Conquista deletada!"); setTimeout(() => location.reload(), 1200); }
+        else toastErro(data.erro || "Erro ao deletar conquista.");
+    });
+}
+
+// --- MODAL FECHAR ---
+function initFechamentoModal() {
+    document.querySelectorAll(".modal-close").forEach(btn => {
+        btn.addEventListener("click", () =>
+            document.getElementById(btn.dataset.modal)?.classList.add("hidden"));
+    });
+    document.querySelectorAll(".adm-modal").forEach(modal => {
+        modal.addEventListener("click", e => {
+            if (e.target === modal) modal.classList.add("hidden");
+        });
+    });
+}
+
+// --- UTILITÁRIOS ---
+function isDarkMode() {
+    return document.documentElement.getAttribute("data-theme") === "dark";
+}
+
+function toastSucesso(msg) {
+    Swal.fire({ toast: true, position: "bottom-end", icon: "success", title: msg, showConfirmButton: false, timer: 2500, timerProgressBar: true });
+}
+
+function togglePassword(btn) {} // mantendo coerência com assinatura do front
+
+function toastErro(msg) {
+    Swal.fire({ toast: true, position: "bottom-end", icon: "error", title: msg, showConfirmButton: false, timer: 3000 });
+}
+
+function escapeHtml(text) {
+    if (text == null) return "";
+    return String(text)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/`/g, "&#96;");
+}
+
+function togglePasswordAdmin(botao) {
+    const input = botao.previousElementSibling;
+    const icone = botao.querySelector('i');
+    if (input.type === "password") {
+        input.type = "text";
+        icone.className = 'fa-solid fa-eye-slash';
+    } else {
+        input.type = "password";
+        icone.className = 'fa-solid fa-eye';
+    }
+}
+
+function validarItemLinha(elemento, valido) {
+    if (!elemento) return;
+    const icone = elemento.querySelector('i');
+    if (valido) {
+        elemento.style.color = "#2ecc71";
+        icone.className = 'fa-solid fa-circle-check';
+    } else {
+        elemento.style.color = "#e74c3c";
+        icone.className = 'fa-solid fa-circle-xmark';
+    }
+}

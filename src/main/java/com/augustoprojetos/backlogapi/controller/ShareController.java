@@ -64,9 +64,15 @@ public class ShareController {
     @PostMapping("/api/share/gerar")
     @ResponseBody
     public ResponseEntity<?> gerarLink(@RequestBody Map<String, Integer> payload, @AuthenticationPrincipal User user) {
-        int horas = payload.getOrDefault("horas", 24); // Padrão 24h se não enviar nada
-        ShareToken token = shareTokenService.gerarToken(user, horas);
-        return ResponseEntity.ok(token);
+        int horas = payload.getOrDefault("horas", 24);
+        ShareTokenService.GerarTokenResult resultado = shareTokenService.gerarToken(user, horas);
+
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("token", resultado.token());
+        if (resultado.conquistaDesbloqueada() != null) {
+            response.put("conquistaDesbloqueada", resultado.conquistaDesbloqueada());
+        }
+        return ResponseEntity.ok(response);
     }
 
     // Apagar link (Revogar acesso)
