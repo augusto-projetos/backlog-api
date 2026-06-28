@@ -42,9 +42,12 @@ public class PublicProfileController {
 
         // Dados de conquistas para o perfil público
         List<UserConquista> conquistas = conquistaService.listarConquistasDoUsuario(targetUser);
-        int xpTotal = conquistaService.calcularXpTotal(targetUser);
-        int nivel   = conquistaService.calcularNivel(xpTotal);
-        int progresso = (int) (((xpTotal % 100) / 100.0) * 100);
+        int xpTotal   = conquistaService.calcularXpTotal(targetUser);
+        int nivel     = conquistaService.calcularNivel(xpTotal);
+        int xpBase    = conquistaService.xpBaseDoNivel(nivel);
+        int xpProx    = conquistaService.xpParaProximoNivel(nivel);
+        int xpNivel   = xpTotal - xpBase;
+        int progresso = (int) ((xpNivel / (double) xpProx) * 100);
 
         model.addAttribute("apelido",    "@" + targetUser.getSocialUsername());
         model.addAttribute("itens",      itens);

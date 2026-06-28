@@ -32,9 +32,9 @@ public class DashboardApiController {
     public ResponseEntity<DashboardStatsDTO> getEstatisticas() {
         // 1. Pega o usuário logado
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String login = auth.getName();
+        String email = auth.getName();
 
-        User user = (User) userRepository.findByLogin(login);
+        User user = userRepository.findByEmail(email).orElse(null);
 
         // 2. Cria o DTO vazio
         DashboardStatsDTO stats = new DashboardStatsDTO();

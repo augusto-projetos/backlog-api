@@ -8,6 +8,7 @@ import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.ConquistaRepository;
 import com.augustoprojetos.backlogapi.repository.EmailVerificationTokenRepository;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
+import com.augustoprojetos.backlogapi.repository.ShareTokenRepository;
 import com.augustoprojetos.backlogapi.repository.UserConquistaRepository;
 import com.augustoprojetos.backlogapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class AdminService {
     @Autowired private ConquistaRepository conquistaRepository;
     @Autowired private UserConquistaRepository userConquistaRepository;
     @Autowired private EmailVerificationTokenRepository emailVerificationTokenRepository;
+    @Autowired private ShareTokenRepository shareTokenRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private ConquistaService conquistaService;
 
@@ -108,6 +110,8 @@ public class AdminService {
 
         userConquistaRepository.deleteByUser(user);
         itemRepository.deleteByUser(user);
+        // Apaga share tokens do usuário (necessário para evitar violação de FK)
+        shareTokenRepository.findByUser(user).forEach(shareTokenRepository::delete);
         emailVerificationTokenRepository.findByUser_Id(id).ifPresent(emailVerificationTokenRepository::delete);
         userRepository.delete(user);
     }
@@ -159,11 +163,17 @@ public class AdminService {
         long totalJogos  = todosItens.stream().filter(i -> "Jogo".equalsIgnoreCase(i.getTipo())).count();
 
         long totalAssistidos = todosItens.stream()
+                .filter(i -> i.getStatus() != null)
                 .filter(i -> i.getStatus().contains("Assistido") || i.getStatus().contains("Zerado")).count();
         long totalAssistindo = todosItens.stream()
+                .filter(i -> i.getStatus() != null)
                 .filter(i -> i.getStatus().contains("Assistindo") || i.getStatus().contains("Jogando")).count();
-        long totalBacklog = todosItens.stream().filter(i -> i.getStatus().contains("Backlog")).count();
-        long totalDropados = todosItens.stream().filter(i -> i.getStatus().contains("Dropado")).count();
+        long totalBacklog = todosItens.stream()
+                .filter(i -> i.getStatus() != null)
+                .filter(i -> i.getStatus().contains("Backlog")).count();
+        long totalDropados = todosItens.stream()
+                .filter(i -> i.getStatus() != null)
+                .filter(i -> i.getStatus().contains("Dropado")).count();
 
         // Distribuição de notas global
         Map<String, Long> distribNotas = new LinkedHashMap<>();
