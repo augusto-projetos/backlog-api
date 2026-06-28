@@ -149,23 +149,64 @@
                 </small>
             </div>
 
-            <!-- Grid de badges (desbloqueadas + bloqueadas) -->
-            <div class="conquistas-grid">
-                <div th:each="item : ${conquistasView}"
-                     th:classappend="${item.desbloqueada} ? '' : 'conquista-bloqueada'"
-                     class="conquista-badge">
-                    <span class="conquista-badge-icone" th:text="${item.conquista.icone}">🏅</span>
-                    <div class="conquista-badge-info">
-                        <strong th:text="${item.conquista.nome}">Nome</strong>
-                        <small th:text="${item.conquista.descricao}">Descrição</small>
-                        <small th:classappend="${item.desbloqueada} ? 'ct-xp' : 'ct-xp-bloqueado'"
-                               th:text="${item.desbloqueada} ? ('+' + ${item.conquista.xp} + ' XP') : (${item.conquista.xp} + ' XP')">+0 XP</small>
+            <!-- Gaveta: Conquistas Desbloqueadas -->
+            <div class="conquista-gaveta" id="gaveta-desbloqueadas"
+                 th:with="qtdDesbloqueadas=${#lists.size(conquistasView.?[desbloqueada == true])}">
+                <button class="conquista-gaveta-header" onclick="toggleGaveta('desbloqueadas')" aria-expanded="true">
+                    <span class="gaveta-titulo">
+                        <span class="gaveta-emoji">🏆</span>
+                        Desbloqueadas
+                        <span class="gaveta-contador" id="count-desbloqueadas" th:text="${qtdDesbloqueadas}">0</span>
+                    </span>
+                    <span class="gaveta-chevron" id="chevron-desbloqueadas"><i class="fa-solid fa-chevron-up"></i></span>
+                </button>
+                <div class="conquista-gaveta-body aberta" id="body-desbloqueadas">
+                    <div class="conquistas-grid">
+                        <th:block th:each="item : ${conquistasView}" th:if="${item.desbloqueada}">
+                            <div class="conquista-badge">
+                                <span class="conquista-badge-icone" th:text="${item.conquista.icone}">🏅</span>
+                                <div class="conquista-badge-info">
+                                    <strong th:text="${item.conquista.nome}">Nome</strong>
+                                    <small th:text="${item.conquista.descricao}">Descrição</small>
+                                    <small class="ct-xp" th:text="'+' + ${item.conquista.xp} + ' XP'">+0 XP</small>
+                                </div>
+                            </div>
+                        </th:block>
+                        <div th:if="${qtdDesbloqueadas == 0}" class="conquistas-vazio">
+                            <p>😴 Nenhuma conquista desbloqueada ainda. Continue jogando!</p>
+                        </div>
                     </div>
-                    <span th:if="${!item.desbloqueada}" class="conquista-cadeado" title="Bloqueada">🔒</span>
                 </div>
+            </div>
 
-                <div th:if="${conquistasView.isEmpty()}" class="conquistas-vazio">
-                    <p>😴 Nenhuma conquista cadastrada ainda.</p>
+            <!-- Gaveta: Conquistas Bloqueadas -->
+            <div class="conquista-gaveta" id="gaveta-bloqueadas" style="margin-top: 10px;"
+                 th:with="qtdBloqueadas=${#lists.size(conquistasView.?[desbloqueada == false])}">
+                <button class="conquista-gaveta-header" onclick="toggleGaveta('bloqueadas')" aria-expanded="false">
+                    <span class="gaveta-titulo">
+                        <span class="gaveta-emoji">🔒</span>
+                        Bloqueadas
+                        <span class="gaveta-contador bloqueada" id="count-bloqueadas" th:text="${qtdBloqueadas}">0</span>
+                    </span>
+                    <span class="gaveta-chevron" id="chevron-bloqueadas"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="conquista-gaveta-body" id="body-bloqueadas">
+                    <div class="conquistas-grid">
+                        <th:block th:each="item : ${conquistasView}" th:if="${!item.desbloqueada}">
+                            <div class="conquista-badge conquista-bloqueada">
+                                <span class="conquista-badge-icone" th:text="${item.conquista.icone}">🏅</span>
+                                <div class="conquista-badge-info">
+                                    <strong th:text="${item.conquista.nome}">Nome</strong>
+                                    <small th:text="${item.conquista.descricao}">Descrição</small>
+                                    <small class="ct-xp-bloqueado" th:text="${item.conquista.xp} + ' XP'">0 XP</small>
+                                </div>
+                                <span class="conquista-cadeado" title="Bloqueada">🔒</span>
+                            </div>
+                        </th:block>
+                        <div th:if="${qtdBloqueadas == 0}" class="conquistas-vazio">
+                            <p>🎉 Você desbloqueou tudo! Incrível!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -183,8 +224,12 @@
 
         </div>
 
+        <!-- Botão Voltar ao Topo -->
+        <button id="btn-topo" title="Voltar ao topo">⬆</button>
+
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script th:src="@{/js/script.js}"></script>
+        <script th:src="@{/js/search-scroll.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
         <script th:src="@{/js/perfil-social.js}"></script>
     </body>
