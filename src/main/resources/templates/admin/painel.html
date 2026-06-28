@@ -104,18 +104,130 @@
 
             <!-- Gráficos -->
             <div class="charts-grid">
+
+                <!-- Acervo por Tipo -->
                 <div class="chart-card">
-                    <h4 class="chart-title">Acervo por Tipo</h4>
+                    <div class="chart-header">
+                        <h4 class="chart-title">Acervo por Tipo</h4>
+                        <div class="chart-filter-wrap">
+                            <button class="btn-chart-filter" data-chart="tipo" title="Filtrar gráfico">
+                                <i class="fa fa-sliders"></i>
+                            </button>
+                            <div class="filter-popover hidden" id="filter-popover-tipo">
+                                <div class="filter-popover-header">
+                                    <span>Filtros</span>
+                                    <button class="filter-clear-btn" data-chart="tipo">Limpar</button>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Tipos de mídia</p>
+                                    <label class="filter-checkbox"><input type="checkbox" name="tipo-tipo" value="FILME" checked> 🎬 Filmes</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="tipo-tipo" value="SERIE" checked> 📺 Séries</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="tipo-tipo" value="JOGO" checked> 🎮 Jogos</label>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Usuário</p>
+                                    <select class="filter-select" name="tipo-usuario">
+                                        <option value="">Todos os usuários</option>
+                                        <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.login}"></option>
+                                    </select>
+                                </div>
+                                <button class="filter-apply-btn" data-chart="tipo">Aplicar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-active-tags" id="filter-tags-tipo"></div>
                     <div class="canvas-container"><canvas id="graficoTipo"></canvas></div>
                 </div>
+
+                <!-- Status Global -->
                 <div class="chart-card">
-                    <h4 class="chart-title">Status Global</h4>
+                    <div class="chart-header">
+                        <h4 class="chart-title">Status Global</h4>
+                        <div class="chart-filter-wrap">
+                            <button class="btn-chart-filter" data-chart="status" title="Filtrar gráfico">
+                                <i class="fa fa-sliders"></i>
+                            </button>
+                            <div class="filter-popover hidden" id="filter-popover-status">
+                                <div class="filter-popover-header">
+                                    <span>Filtros</span>
+                                    <button class="filter-clear-btn" data-chart="status">Limpar</button>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Status</p>
+                                    <label class="filter-checkbox"><input type="checkbox" name="status-status" value="CONCLUIDO" checked> ✅ Concluídos</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="status-status" value="ASSISTINDO" checked> ▶️ Em Progresso</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="status-status" value="BACKLOG" checked> 📋 Backlog</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="status-status" value="DROPADO" checked> ❌ Dropados</label>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Tipo de mídia</p>
+                                    <label class="filter-checkbox"><input type="checkbox" name="status-tipo" value="FILME" checked> 🎬 Filmes</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="status-tipo" value="SERIE" checked> 📺 Séries</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="status-tipo" value="JOGO" checked> 🎮 Jogos</label>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Usuário</p>
+                                    <select class="filter-select" name="status-usuario">
+                                        <option value="">Todos os usuários</option>
+                                        <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.login}"></option>
+                                    </select>
+                                </div>
+                                <button class="filter-apply-btn" data-chart="status">Aplicar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-active-tags" id="filter-tags-status"></div>
                     <div class="canvas-container"><canvas id="graficoStatus"></canvas></div>
                 </div>
+
+                <!-- Distribuição de Notas -->
                 <div class="chart-card chart-full">
-                    <h4 class="chart-title">Distribuição de Notas</h4>
+                    <div class="chart-header">
+                        <h4 class="chart-title">Distribuição de Notas</h4>
+                        <div class="chart-filter-wrap">
+                            <button class="btn-chart-filter" data-chart="notas" title="Filtrar gráfico">
+                                <i class="fa fa-sliders"></i>
+                            </button>
+                            <div class="filter-popover hidden" id="filter-popover-notas">
+                                <div class="filter-popover-header">
+                                    <span>Filtros</span>
+                                    <button class="filter-clear-btn" data-chart="notas">Limpar</button>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Tipo de mídia</p>
+                                    <label class="filter-checkbox"><input type="checkbox" name="notas-tipo" value="FILME" checked> 🎬 Filmes</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="notas-tipo" value="SERIE" checked> 📺 Séries</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="notas-tipo" value="JOGO" checked> 🎮 Jogos</label>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Status</p>
+                                    <label class="filter-checkbox"><input type="checkbox" name="notas-status" value="CONCLUIDO" checked> ✅ Concluídos</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="notas-status" value="ASSISTINDO" checked> ▶️ Em Progresso</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="notas-status" value="BACKLOG" checked> 📋 Backlog</label>
+                                    <label class="filter-checkbox"><input type="checkbox" name="notas-status" value="DROPADO" checked> ❌ Dropados</label>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Usuário</p>
+                                    <select class="filter-select" name="notas-usuario">
+                                        <option value="">Todos os usuários</option>
+                                        <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.login}"></option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Faixa de nota</p>
+                                    <div class="filter-range-row">
+                                        <label>De <input type="number" class="filter-range-input" name="notas-de" min="0" max="10" value="0" step="0.5"></label>
+                                        <label>Até <input type="number" class="filter-range-input" name="notas-ate" min="0" max="10" value="10" step="0.5"></label>
+                                    </div>
+                                </div>
+                                <button class="filter-apply-btn" data-chart="notas">Aplicar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-active-tags" id="filter-tags-notas"></div>
                     <div class="canvas-container"><canvas id="graficoNotas"></canvas></div>
                 </div>
+
             </div>
 
         </section>

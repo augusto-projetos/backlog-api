@@ -33,36 +33,149 @@ function initTabs() {
     });
 }
 
-// --- GRÁFICOS ---
-function initGraficos() {
-    const isDark = isDarkMode();
-    const textColor = isDark ? "#e0e0e0" : "#2c3e50";
-    const gridColor = isDark ? "#333" : "#eee";
+// --- GRÁFICOS COM FILTROS ---
 
-    new Chart(document.getElementById("graficoTipo").getContext("2d"), {
+// Instâncias dos gráficos (mantidas para destroy/rebuild)
+const chartInstances = { tipo: null, status: null, notas: null };
+
+// Estado atual de filtros de cada gráfico
+const chartFilters = {
+    tipo:   { tipos: ["FILME","SERIE","JOGO"], usuario: "" },
+    status: { status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], tipos: ["FILME","SERIE","JOGO"], usuario: "" },
+    notas:  { tipos: ["FILME","SERIE","JOGO"], status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], usuario: "", de: 0, ate: 10 }
+};
+
+function isDarkMode() {
+    return document.documentElement.getAttribute("data-theme") === "dark"
+        || document.body.classList.contains("dark");
+}
+
+function getChartTheme() {
+    const isDark = isDarkMode();
+    return {
+        textColor: isDark ? "#e0e0e0" : "#2c3e50",
+        gridColor: isDark ? "#2a2a3a" : "#eee"
+    };
+}
+
+// --- Construção dos gráficos ---
+
+function buildGraficoTipo(data) {
+    const { textColor } = getChartTheme();
+    const allLabels = ["🎬 Filmes","📺 Séries","🎮 Jogos"];
+    const allColors = ["#e94560","#10b981","#7c3aed"];
+    const allKeys   = ["FILME","SERIE","JOGO"];
+
+    const tipos = chartFilters.tipo.tipos;
+    const labels = [], values = [], colors = [];
+    allKeys.forEach((k, i) => {
+        if (tipos.includes(k)) {
+            let val = 0;
+            if (data) {
+                // backend retorna: filmes, series, jogos
+                const key = k === "FILME" ? "filmes" : k === "SERIE" ? "series" : "jogos";
+                val = data[key] ?? 0;
+            } else {
+                val = k === "FILME" ? STATS.filmes : k === "SERIE" ? STATS.series : STATS.jogos;
+            }
+            labels.push(allLabels[i]);
+            values.push(val);
+            colors.push(allColors[i]);
+        }
+    });
+
+    const canvas = document.getElementById("graficoTipo");
+    const isEmpty = values.every(v => v === 0);
+
+    // Destroi instância anterior antes de alterar visibilidade do container
+    if (chartInstances.tipo) { chartInstances.tipo.destroy(); chartInstances.tipo = null; }
+
+    setChartEmptyState(canvas, isEmpty);
+    if (isEmpty) return;
+
+    chartInstances.tipo = new Chart(canvas.getContext("2d"), {
         type: "doughnut",
-        data: {
-            labels: ["🎬 Filmes", "📺 Séries", "🎮 Jogos"],
-            datasets: [{
-                data: [STATS.filmes, STATS.series, STATS.jogos],
-                backgroundColor: ["#e94560", "#10b981", "#7c3aed"],
-                borderWidth: 0,
-            }]
-        },
+        data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { labels: { color: textColor, font: { family: "Poppins" } } } }
         }
     });
+    // Força redimensionamento para corrigir dimensões após o container ter sido ocultado
+    requestAnimationFrame(() => chartInstances.tipo && chartInstances.tipo.resize());
+}
 
-    new Chart(document.getElementById("graficoStatus").getContext("2d"), {
+function buildGraficoStatus(data) {
+    const { textColor, gridColor } = getChartTheme();
+    const allLabels  = ["✅ Concluídos","▶️ Em Progresso","📋 Backlog","❌ Dropados"];
+    const allColors  = ["#10b981","#3b82f6","#f59e0b","#e94560"];
+    const allKeys    = ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"];
+    const backendKeys = ["assistidos","assistindo","backlog","dropados"];
+    const statsKeys  = ["assistidos","assistindo","backlog","dropados"];
+
+    const statusAtivos = chartFilters.status.status;
+    const labels = [], values = [], colors = [];
+    allKeys.forEach((k, i) => {
+        if (statusAtivos.includes(k)) {
+            const val = data ? (data[backendKeys[i]] ?? 0) : (STATS[statsKeys[i]] ?? 0);
+            labels.push(allLabels[i]);
+            values.push(val);
+            colors.push(allColors[i]);
+        }
+    });
+
+    const canvas = document.getElementById("graficoStatus");
+    const isEmpty = values.every(v => v === 0);
+
+    // Destroi instância anterior antes de alterar visibilidade do container
+    if (chartInstances.status) { chartInstances.status.destroy(); chartInstances.status = null; }
+
+    setChartEmptyState(canvas, isEmpty);
+    if (isEmpty) return;
+
+    chartInstances.status = new Chart(canvas.getContext("2d"), {
+        type: "bar",
+        data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: textColor, font: { family: "Poppins" } }, grid: { display: false } },
+                y: {
+                    ticks: { color: textColor, font: { family: "Poppins" }, precision: 0, stepSize: 1 },
+                    grid: { color: gridColor },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    // Força redimensionamento para corrigir dimensões após o container ter sido ocultado
+    requestAnimationFrame(() => chartInstances.status && chartInstances.status.resize());
+}
+
+function buildGraficoNotas(data) {
+    const { textColor, gridColor } = getChartTheme();
+    const labels = data ? Object.keys(data) : Array.from(STATS.notasLabels);
+    const values = data ? Object.values(data) : Array.from(STATS.notasValues);
+
+    const canvas = document.getElementById("graficoNotas");
+    const isEmpty = !labels || labels.length === 0;
+
+    // Destroi instância anterior antes de alterar visibilidade do container
+    if (chartInstances.notas) { chartInstances.notas.destroy(); chartInstances.notas = null; }
+
+    setChartEmptyState(canvas, isEmpty);
+    if (isEmpty) return;
+
+    chartInstances.notas = new Chart(canvas.getContext("2d"), {
         type: "bar",
         data: {
-            labels: ["✅ Concluídos", "▶️ Em Progresso", "📋 Backlog", "❌ Dropados"],
+            labels,
             datasets: [{
-                data: [STATS.assistidos, STATS.assistindo, STATS.backlog, STATS.dropados],
-                backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#e94560"],
-                borderRadius: 8, borderSkipped: false,
+                label: "Quantidade",
+                data: values,
+                backgroundColor: "rgba(124,58,237,0.7)",
+                borderRadius: 6, borderSkipped: false
             }]
         },
         options: {
@@ -70,33 +183,248 @@ function initGraficos() {
             plugins: { legend: { display: false } },
             scales: {
                 x: { ticks: { color: textColor, font: { family: "Poppins" } }, grid: { display: false } },
-                y: { ticks: { color: textColor, font: { family: "Poppins" } }, grid: { color: gridColor } }
+                y: {
+                    ticks: { color: textColor, font: { family: "Poppins" }, precision: 0, stepSize: 1 },
+                    grid: { color: gridColor },
+                    beginAtZero: true
+                }
             }
         }
     });
+    // Força redimensionamento para corrigir dimensões após o container ter sido ocultado
+    requestAnimationFrame(() => chartInstances.notas && chartInstances.notas.resize());
+}
 
-    if (STATS.notasLabels && STATS.notasLabels.length > 0) {
-        new Chart(document.getElementById("graficoNotas").getContext("2d"), {
-            type: "bar",
-            data: {
-                labels: Array.from(STATS.notasLabels),
-                datasets: [{
-                    label: "Quantidade",
-                    data: Array.from(STATS.notasValues),
-                    backgroundColor: "rgba(124, 58, 237, 0.7)",
-                    borderRadius: 6, borderSkipped: false,
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: textColor, font: { family: "Poppins" } }, grid: { display: false } },
-                    y: { ticks: { color: textColor, font: { family: "Poppins" } }, grid: { color: gridColor } }
+// Exibe ou oculta o estado vazio no canvas
+function setChartEmptyState(canvas, isEmpty) {
+    const card = canvas.closest(".chart-card");
+    let emptyEl = card.querySelector(".chart-empty-state");
+    const containerCanvas = canvas.parentElement;
+
+    if (isEmpty) {
+        // Oculta o container do canvas para ceder espaço ao empty state
+        containerCanvas.style.visibility = "hidden";
+        containerCanvas.style.position = "absolute";
+
+        if (!emptyEl) {
+            emptyEl = document.createElement("div");
+            emptyEl.className = "chart-empty-state";
+            emptyEl.innerHTML = `
+                <i class="fa-solid fa-chart-pie"></i>
+                <p>Sem dados para os filtros selecionados</p>
+            `;
+            card.appendChild(emptyEl);
+        }
+        emptyEl.style.display = "flex";
+    } else {
+        // Restaura o container do canvas antes do Chart.js renderizar
+        containerCanvas.style.visibility = "";
+        containerCanvas.style.position = "";
+        if (emptyEl) {
+            emptyEl.style.display = "none";
+        }
+    }
+}
+
+// --- Busca filtrada no backend ---
+
+async function fetchChartData(chartName) {
+    const f = chartFilters[chartName];
+    const params = new URLSearchParams();
+
+    if (chartName === "tipo") {
+        f.tipos.forEach(t => params.append("tipo", t));
+        if (f.usuario) params.set("usuarioId", f.usuario);
+    }
+    if (chartName === "status") {
+        f.status.forEach(s => params.append("status", s));
+        f.tipos.forEach(t => params.append("tipo", t));
+        if (f.usuario) params.set("usuarioId", f.usuario);
+    }
+    if (chartName === "notas") {
+        f.tipos.forEach(t => params.append("tipo", t));
+        f.status.forEach(s => params.append("status", s));
+        if (f.usuario) params.set("usuarioId", f.usuario);
+        params.set("de", f.de);
+        params.set("ate", f.ate);
+    }
+
+    try {
+        const res = await fetch(`/admin/api/stats/${chartName}?${params.toString()}`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (e) {
+        console.warn("Erro ao buscar dados filtrados:", e);
+        return null;
+    }
+}
+
+// --- Renderização das tags de filtros ativos ---
+
+const LABEL_MAP = {
+    FILME: "🎬 Filmes", SERIE: "📺 Séries", JOGO: "🎮 Jogos",
+    CONCLUIDO: "✅ Concluídos", ASSISTINDO: "▶️ Em Progresso",
+    BACKLOG: "📋 Backlog", DROPADO: "❌ Dropados"
+};
+
+function renderFilterTags(chartName) {
+    const container = document.getElementById(`filter-tags-${chartName}`);
+    if (!container) return;
+
+    const f = chartFilters[chartName];
+    const tags = [];
+
+    if (chartName === "tipo" || chartName === "status" || chartName === "notas") {
+        const allTipos = ["FILME","SERIE","JOGO"];
+        if (f.tipos && f.tipos.length < allTipos.length) {
+            f.tipos.forEach(t => tags.push({ label: LABEL_MAP[t], key: "tipos", val: t, chart: chartName }));
+        }
+    }
+    if (chartName === "status" || chartName === "notas") {
+        const allStatus = ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"];
+        if (f.status && f.status.length < allStatus.length) {
+            f.status.forEach(s => tags.push({ label: LABEL_MAP[s], key: "status", val: s, chart: chartName }));
+        }
+    }
+    if (f.usuario) {
+        const sel = document.querySelector(`[name="${chartName}-usuario"]`);
+        const label = sel ? (sel.selectedOptions[0]?.text ?? "Usuário") : "Usuário";
+        tags.push({ label: `👤 ${label}`, key: "usuario", val: "", chart: chartName });
+    }
+    if (chartName === "notas" && (f.de > 0 || f.ate < 10)) {
+        tags.push({ label: `⭐ ${f.de}–${f.ate}`, key: "range", val: "", chart: chartName });
+    }
+
+    container.innerHTML = tags.map(tag =>
+        `<span class="filter-tag">${tag.label}</span>`
+    ).join("");
+}
+
+// --- Aplicar filtros ---
+
+async function applyFilters(chartName) {
+    const popover = document.getElementById(`filter-popover-${chartName}`);
+
+    if (chartName === "tipo") {
+        chartFilters.tipo.tipos   = [...popover.querySelectorAll('[name="tipo-tipo"]:checked')].map(c => c.value);
+        chartFilters.tipo.usuario = popover.querySelector('[name="tipo-usuario"]').value;
+    }
+    if (chartName === "status") {
+        chartFilters.status.status  = [...popover.querySelectorAll('[name="status-status"]:checked')].map(c => c.value);
+        chartFilters.status.tipos   = [...popover.querySelectorAll('[name="status-tipo"]:checked')].map(c => c.value);
+        chartFilters.status.usuario = popover.querySelector('[name="status-usuario"]').value;
+    }
+    if (chartName === "notas") {
+        chartFilters.notas.tipos   = [...popover.querySelectorAll('[name="notas-tipo"]:checked')].map(c => c.value);
+        chartFilters.notas.status  = [...popover.querySelectorAll('[name="notas-status"]:checked')].map(c => c.value);
+        chartFilters.notas.usuario = popover.querySelector('[name="notas-usuario"]').value;
+        chartFilters.notas.de      = parseFloat(popover.querySelector('[name="notas-de"]').value) || 0;
+        chartFilters.notas.ate     = parseFloat(popover.querySelector('[name="notas-ate"]').value) || 10;
+    }
+
+    popover.classList.add("hidden");
+    // Esconde o backdrop ao aplicar o filtro (mobile)
+    const backdrop = document.querySelector(".filter-backdrop");
+    if (backdrop) backdrop.style.display = "none";
+    renderFilterTags(chartName);
+
+    const data = await fetchChartData(chartName);
+    if (chartName === "tipo")   buildGraficoTipo(data);
+    if (chartName === "status") buildGraficoStatus(data);
+    if (chartName === "notas")  buildGraficoNotas(data);
+}
+
+// --- Limpar filtros ---
+
+function clearFilters(chartName) {
+    const popover = document.getElementById(`filter-popover-${chartName}`);
+
+    // Marca todos os checkboxes
+    popover.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = true);
+    // Reset selects
+    popover.querySelectorAll("select").forEach(s => s.value = "");
+    // Reset ranges
+    const de = popover.querySelector('[name="notas-de"]'); if (de) de.value = 0;
+    const ate = popover.querySelector('[name="notas-ate"]'); if (ate) ate.value = 10;
+
+    // Reset estado
+    if (chartName === "tipo")   chartFilters.tipo   = { tipos: ["FILME","SERIE","JOGO"], usuario: "" };
+    if (chartName === "status") chartFilters.status = { status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], tipos: ["FILME","SERIE","JOGO"], usuario: "" };
+    if (chartName === "notas")  chartFilters.notas  = { tipos: ["FILME","SERIE","JOGO"], status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], usuario: "", de: 0, ate: 10 };
+
+    document.getElementById(`filter-tags-${chartName}`).innerHTML = "";
+
+    // Fecha o popover e esconde o backdrop após limpar
+    if (popover) popover.classList.add("hidden");
+    const backdrop = document.querySelector(".filter-backdrop");
+    if (backdrop) backdrop.style.display = "none";
+
+    if (chartName === "tipo")   buildGraficoTipo(null);
+    if (chartName === "status") buildGraficoStatus(null);
+    if (chartName === "notas")  buildGraficoNotas(null);
+}
+
+// --- Init ---
+
+function initGraficos() {
+    // Constrói com dados padrão (sem filtro)
+    buildGraficoTipo(null);
+    buildGraficoStatus(null);
+    buildGraficoNotas(null);
+    initFilterControls();
+}
+
+function initFilterControls() {
+    // Cria o backdrop uma única vez
+    const backdrop = document.createElement("div");
+    backdrop.className = "filter-backdrop";
+    document.body.appendChild(backdrop);
+
+    function closeAllPopovers() {
+        document.querySelectorAll(".filter-popover").forEach(p => p.classList.add("hidden"));
+        backdrop.style.display = "none";
+    }
+
+    // Botões de abrir/fechar popover
+    document.querySelectorAll(".btn-chart-filter").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const chart = btn.dataset.chart;
+            const popover = document.getElementById(`filter-popover-${chart}`);
+            const isHidden = popover.classList.contains("hidden");
+
+            // Fecha todos os outros
+            closeAllPopovers();
+
+            if (isHidden) {
+                popover.classList.remove("hidden");
+                // Mostra backdrop apenas no mobile
+                if (window.innerWidth <= 900) {
+                    backdrop.style.display = "block";
                 }
             }
         });
-    }
+    });
+
+    // Fechar ao clicar no backdrop (mobile)
+    backdrop.addEventListener("click", closeAllPopovers);
+
+    // Botão aplicar
+    document.querySelectorAll(".filter-apply-btn").forEach(btn => {
+        btn.addEventListener("click", () => applyFilters(btn.dataset.chart));
+    });
+
+    // Botão limpar
+    document.querySelectorAll(".filter-clear-btn").forEach(btn => {
+        btn.addEventListener("click", () => clearFilters(btn.dataset.chart));
+    });
+
+    // Fechar popover ao clicar fora (desktop)
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".chart-filter-wrap")) {
+            closeAllPopovers();
+        }
+    });
 }
 
 // --- BUSCA DE USUÁRIOS ---
