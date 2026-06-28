@@ -63,7 +63,7 @@ public class ExportController {
     // Metodo auxiliar para não repetir código
     private User getUsuarioLogado() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // Ajuste aqui se seu UserRepository busca por 'login' ou 'email'
-        return (User) userRepository.findByLogin(auth.getName());
+        return userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado"));
     }
 }
