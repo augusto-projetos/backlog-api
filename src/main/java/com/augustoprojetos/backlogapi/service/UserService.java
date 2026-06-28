@@ -42,7 +42,9 @@ public class UserService {
         }
 
         // 3. Valida a senha antes de tudo
-        assert user.getPassword() != null;
+        if (user.getPassword() == null) {
+            throw new IllegalArgumentException("A senha não pode ser nula.");
+        }
         validarRequisitosSenha(user.getPassword());
 
         // 4. Criptografa a senha
@@ -79,7 +81,6 @@ public class UserService {
     public void deletarConta(User user) {
         // Apaga conquistas do usuário
         userConquistaRepository.deleteByUser(user);
-        itemRepository.deleteByUser(user);
         itemRepository.deleteByUser(user);
         // Depois apaga o usuário
         userRepository.delete(user);
