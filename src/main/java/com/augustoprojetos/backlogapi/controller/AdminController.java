@@ -2,6 +2,7 @@ package com.augustoprojetos.backlogapi.controller;
 
 import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.service.AdminService;
+import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,9 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
+
+    @Autowired
+    private AtividadeLogService atividadeLogService;
 
     // --- PAINEL PRINCIPAL ---
 
@@ -212,6 +216,49 @@ public class AdminController {
     public ResponseEntity<?> deletarConquista(@PathVariable Long id) {
         try {
             adminService.deletarConquista(id);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // --- TIMELINE (ADMIN) ---
+
+    // Página HTML da timeline de um usuário específico
+    @GetMapping("/usuario/{id}/timeline")
+    public String timelineUsuario(@PathVariable Long id, Model model) {
+        var usuario = adminService.buscarUsuarioPorId(id); // já existente
+        var logs    = atividadeLogService.buscarTimelinePorUserId(id);
+        model.addAttribute("usuarioAdm", usuario);
+        model.addAttribute("logs", logs);
+        return "admin/timeline-usuario";
+    }
+
+    // API: lista logs de um usuário (JSON)
+    @GetMapping("/api/usuario/{id}/logs")
+    @ResponseBody
+    public ResponseEntity<?> getLogsUsuario(@PathVariable Long id) {
+        return ResponseEntity.ok(atividadeLogService.buscarTimelinePorUserId(id));
+    }
+
+    // Deleta um log específico
+    @DeleteMapping("/log/{logId}")
+    @ResponseBody
+    public ResponseEntity<?> deletarLog(@PathVariable Long logId) {
+        try {
+            atividadeLogService.deletarLog(logId);
+            return ResponseEntity.ok(Map.of("sucesso", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // Deleta TODOS os logs de um usuário
+    @DeleteMapping("/usuario/{id}/logs")
+    @ResponseBody
+    public ResponseEntity<?> deletarTodosLogsUsuario(@PathVariable Long id) {
+        try {
+            atividadeLogService.deletarTodosLogsDoUsuario(id);
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
