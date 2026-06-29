@@ -15,6 +15,9 @@ import java.util.List;
 @Component
 public class CleanupTask {
 
+    // Dias de retenção dos registros de auditoria
+    private static final int DIAS_RETENCAO_AUDIT = 7;
+
     @Autowired
     private EmailVerificationTokenRepository tokenRepository;
 
@@ -23,6 +26,9 @@ public class CleanupTask {
 
     @Autowired
     private AtividadeLogService atividadeLogService;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     // Roda automaticamente a cada 1 hora (3600000 milissegundos)
     @Scheduled(fixedRate = 3600000)
@@ -46,6 +52,20 @@ public class CleanupTask {
                     System.out.println("🧹 Limpeza automática: Conta fantasma apagada - " + user.getEmail());
                 }
             }
+        }
+    }
+
+    /*
+     * Roda uma vez por dia (meia-noite) e remove todos os registros de auditoria
+     * mais antigos que DIAS_RETENCAO_AUDIT (7 dias).
+     */
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void cleanUpAuditLogs() {
+        int removidos = auditLogService.limparLogsAntigos(DIAS_RETENCAO_AUDIT);
+        if (removidos > 0) {
+            System.out.println("🧹 [CleanupTask] Audit log: " + removidos
+                + " registros removidos (retenção: " + DIAS_RETENCAO_AUDIT + " dias).");
         }
     }
 }
