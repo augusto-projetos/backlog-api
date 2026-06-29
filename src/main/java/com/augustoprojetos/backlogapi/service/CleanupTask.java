@@ -21,6 +21,9 @@ public class CleanupTask {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AtividadeLogService atividadeLogService;
+
     // Roda automaticamente a cada 1 hora (3600000 milissegundos)
     @Scheduled(fixedRate = 3600000)
     @Transactional
@@ -31,12 +34,14 @@ public class CleanupTask {
         for (EmailVerificationToken token : expiredTokens) {
             if (token.isExpired()) {
                 User user = token.getUser();
-                
+
                 // Deleta o token expirado
                 tokenRepository.delete(token);
-                
+
                 // Deleta o usuário inativo associado a ele
                 if (!user.isEnabled()) {
+                    // Garante que nenhum log órfão bloqueie a deleção
+                    atividadeLogService.deletarLogsByUser(user);
                     userRepository.delete(user);
                     System.out.println("🧹 Limpeza automática: Conta fantasma apagada - " + user.getEmail());
                 }

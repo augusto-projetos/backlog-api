@@ -4,6 +4,7 @@ import com.augustoprojetos.backlogapi.dto.RegisterDTO;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.entity.EmailVerificationToken;
 import com.augustoprojetos.backlogapi.repository.UserRepository;
+import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import com.augustoprojetos.backlogapi.repository.EmailVerificationTokenRepository;
 import com.augustoprojetos.backlogapi.service.UserService;
 import com.augustoprojetos.backlogapi.service.EmailService;
@@ -40,6 +41,9 @@ public class AuthenticationController {
 
     @Autowired
     private RateLimitService rateLimitService;
+
+    @Autowired
+    private AtividadeLogService atividadeLogService;
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
@@ -159,6 +163,9 @@ public class AuthenticationController {
         // Se estiver tudo OK, ativa a conta do utilizador
         user.setEmailVerified(true);
         userRepository.save(user);
+
+        // Registra na timeline o momento em que a conta foi ativada
+        atividadeLogService.registrarContaCriada(user);
 
         // Apaga o token para que não seja reutilizado
         emailVerificationTokenRepository.delete(verificationToken);

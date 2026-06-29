@@ -33,7 +33,8 @@ public class AdminService {
     @Autowired private ShareTokenRepository shareTokenRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private ConquistaService conquistaService;
-
+    @Autowired private AtividadeLogService atividadeLogService;
+    
     @Value("${admin.email}")
     private String adminEmail;
 
@@ -113,6 +114,10 @@ public class AdminService {
         // Apaga share tokens do usuário (necessário para evitar violação de FK)
         shareTokenRepository.findByUser(user).forEach(shareTokenRepository::delete);
         emailVerificationTokenRepository.findByUser_Id(id).ifPresent(emailVerificationTokenRepository::delete);
+
+        // Remove logs da timeline
+        atividadeLogService.deletarLogsByUser(user);
+
         userRepository.delete(user);
     }
 

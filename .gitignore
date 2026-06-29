@@ -32,6 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 .env
+application-local.properties
+schema-gerado.sql
 
 ### Node.js ###
 node_modules/

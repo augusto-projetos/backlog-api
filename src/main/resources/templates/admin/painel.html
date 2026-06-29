@@ -273,6 +273,11 @@
                                         title="Ver backlog">
                                     <i class="fa fa-list"></i>
                                 </button>
+                                <a class="btn-adm-sm b-teal"
+                                   th:href="@{'/admin/usuario/' + ${u.id} + '/timeline'}"
+                                   title="Ver linha do tempo">
+                                    <i class="fa fa-clock-rotate-left"></i>
+                                </a>
                                 <button class="btn-adm-sm b-purple btn-conceder-conquista"
                                         th:data-id="${u.id}" th:data-nome="${u.login}"
                                         title="Conceder conquista">
