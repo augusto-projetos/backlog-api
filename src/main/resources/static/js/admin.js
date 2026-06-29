@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initAcoesUsuarios();
     initAcoesConquistas();
     initFechamentoModal();
+    initAuditoria();
 });
 
 // Função auxiliar para coletar os tokens CSRF das metatags
@@ -1299,4 +1300,206 @@ function validarItemLinha(elemento, valido) {
         elemento.style.color = "#e74c3c";
         icone.className = 'fa-solid fa-circle-xmark';
     }
+}
+
+// --- ABA DE AUDITORIA ---
+
+const auditState = {
+    pagina: 0,
+    totalPaginas: 0,
+    acao: "",
+    alvoNome: "",
+    carregando: false
+};
+
+function initAuditoria() {
+    // Carrega ações distintas para o dropdown quando a aba for aberta pela primeira vez
+    document.querySelector('[data-tab="auditoria"]')?.addEventListener("click", () => {
+        if (!auditState._inicializado) {
+            auditState._inicializado = true;
+            carregarAcoesDistintas();
+            buscarAuditLog(0);
+        }
+    });
+
+    document.getElementById("btn-audit-buscar")?.addEventListener("click", () => {
+        auditState.acao     = document.getElementById("audit-filter-acao")?.value || "";
+        auditState.alvoNome = document.getElementById("audit-filter-alvo")?.value.trim() || "";
+        buscarAuditLog(0);
+    });
+
+    document.getElementById("btn-audit-limpar")?.addEventListener("click", () => {
+        document.getElementById("audit-filter-acao").value  = "";
+        document.getElementById("audit-filter-alvo").value  = "";
+        auditState.acao     = "";
+        auditState.alvoNome = "";
+        buscarAuditLog(0);
+    });
+
+    // Permite buscar com Enter no campo de texto
+    document.getElementById("audit-filter-alvo")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("btn-audit-buscar")?.click();
+    });
+
+    // Auto-refresh silencioso a cada 30 segundos enquanto a aba estiver visível
+    setInterval(() => {
+        const abaAtiva = document.getElementById("tab-auditoria");
+        if (abaAtiva && !abaAtiva.classList.contains("hidden") && !auditState.carregando) {
+            buscarAuditLog(auditState.pagina, /* silencioso */ true);
+        }
+    }, 30000);
+}
+
+async function carregarAcoesDistintas() {
+    try {
+        const res  = await fetch("/admin/api/audit-log/acoes");
+        const acoes = await res.json();
+        const sel  = document.getElementById("audit-filter-acao");
+        if (!sel) return;
+        acoes.forEach(a => {
+            const opt = document.createElement("option");
+            opt.value = a;
+            opt.textContent = formatarAcao(a);
+            sel.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("[Auditoria] Erro ao carregar ações:", err);
+    }
+}
+
+async function buscarAuditLog(pagina, silencioso = false) {
+    if (auditState.carregando) return;
+    auditState.carregando = true;
+
+    const tbody = document.getElementById("audit-tbody");
+    if (!silencioso) {
+        tbody.innerHTML = `<tr id="audit-loading"><td colspan="4" class="audit-estado"><i class="fa fa-spinner fa-spin"></i> Carregando...</td></tr>`;
+    }
+
+    const params = new URLSearchParams({ page: pagina, size: 30 });
+    if (auditState.acao)     params.set("acao", auditState.acao);
+    if (auditState.alvoNome) params.set("alvoNome", auditState.alvoNome);
+
+    try {
+        const res  = await fetch("/admin/api/audit-log?" + params.toString());
+        const data = await res.json();
+
+        auditState.pagina       = data.paginaAtual;
+        auditState.totalPaginas = data.totalPaginas;
+        auditState.carregando   = false;
+
+        renderizarTabelaAudit(data.registros, data.totalItens);
+        renderizarPaginacaoAudit(data.paginaAtual, data.totalPaginas);
+    } catch (err) {
+        auditState.carregando = false;
+        tbody.innerHTML = `<tr><td colspan="5" class="audit-estado">❌ Erro ao carregar logs. Tente novamente.</td></tr>`;
+        console.error("[Auditoria] Erro:", err);
+    }
+}
+
+function renderizarTabelaAudit(registros, total) {
+    const tbody = document.getElementById("audit-tbody");
+
+    if (!registros || registros.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="audit-estado">📭 Nenhum registro encontrado para os filtros aplicados.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = registros.map(r => `
+        <tr>
+            <td class="audit-data">${formatarDataAudit(r.criadoEm)}</td>
+            <td><span class="audit-acao-badge ${categoriaAcao(r.acao)}">${formatarAcao(r.acao)}</span></td>
+            <td>${escapeHtml(r.descricao)}</td>
+            <td class="audit-detalhe">${r.detalhe ? escapeHtml(r.detalhe) : '<span style="opacity:0.4">—</span>'}</td>
+        </tr>
+    `).join("");
+}
+
+function renderizarPaginacaoAudit(paginaAtual, totalPaginas) {
+    const container = document.getElementById("audit-paginacao");
+    if (!container) return;
+
+    if (totalPaginas <= 1) {
+        container.innerHTML = "";
+        return;
+    }
+
+    let html = "";
+
+    // Botão anterior
+    html += `<button class="audit-pag-btn" onclick="buscarAuditLog(${paginaAtual - 1})" ${paginaAtual === 0 ? "disabled" : ""}>
+        <i class="fa fa-chevron-left"></i>
+    </button>`;
+
+    // Páginas numeradas (janela de 5 ao redor da atual)
+    const inicio = Math.max(0, paginaAtual - 2);
+    const fim    = Math.min(totalPaginas - 1, paginaAtual + 2);
+
+    if (inicio > 0) {
+        html += `<button class="audit-pag-btn" onclick="buscarAuditLog(0)">1</button>`;
+        if (inicio > 1) html += `<span style="padding: 0 4px; color: var(--adm-muted)">…</span>`;
+    }
+
+    for (let i = inicio; i <= fim; i++) {
+        html += `<button class="audit-pag-btn ${i === paginaAtual ? 'active' : ''}" onclick="buscarAuditLog(${i})">${i + 1}</button>`;
+    }
+
+    if (fim < totalPaginas - 1) {
+        if (fim < totalPaginas - 2) html += `<span style="padding: 0 4px; color: var(--adm-muted)">…</span>`;
+        html += `<button class="audit-pag-btn" onclick="buscarAuditLog(${totalPaginas - 1})">${totalPaginas}</button>`;
+    }
+
+    // Botão próximo
+    html += `<button class="audit-pag-btn" onclick="buscarAuditLog(${paginaAtual + 1})" ${paginaAtual >= totalPaginas - 1 ? "disabled" : ""}>
+        <i class="fa fa-chevron-right"></i>
+    </button>`;
+
+    container.innerHTML = html;
+}
+
+// Mapeia código da ação para texto legível no dropdown e na badge
+function formatarAcao(acao) {
+    const mapa = {
+        "CONTA_CRIADA":         "Conta criada",
+        "CONTA_DELETADA":       "Conta deletada",
+        "SENHA_REDEFINIDA":     "Senha redefinida",
+        "SENHA_ALTERADA":       "Senha alterada",
+        "USUARIO_EDITADO":      "Usuário editado",
+        "CONQUISTA_CRIADA":     "Conquista criada",
+        "CONQUISTA_EDITADA":    "Conquista editada",
+        "CONQUISTA_DELETADA":   "Conquista deletada",
+        "CONQUISTA_CONCEDIDA":  "Conquista concedida",
+        "CONQUISTA_REVOGADA":   "Conquista revogada",
+        "ITEM_DELETADO":        "Item deletado",
+    };
+    return mapa[acao] || acao;
+}
+
+// Retorna a classe CSS de cor conforme categoria da ação
+function categoriaAcao(acao) {
+    if (!acao) return "cat-default";
+    if (acao.startsWith("CONTA_"))     return "cat-conta";
+    if (acao.startsWith("SENHA_"))     return "cat-senha";
+    if (acao.startsWith("CONQUISTA_")) return "cat-conquista";
+    if (acao.startsWith("ITEM_"))      return "cat-item";
+    if (acao.startsWith("USUARIO_"))   return "cat-usuario";
+    return "cat-default";
+}
+
+function formatarDataAudit(isoStr) {
+    if (!isoStr) return "—";
+    try {
+        const d = new Date(isoStr);
+        return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+             + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    } catch { return isoStr; }
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 }

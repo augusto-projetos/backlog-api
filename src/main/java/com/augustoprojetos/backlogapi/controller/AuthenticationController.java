@@ -8,6 +8,7 @@ import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import com.augustoprojetos.backlogapi.repository.EmailVerificationTokenRepository;
 import com.augustoprojetos.backlogapi.service.UserService;
 import com.augustoprojetos.backlogapi.service.EmailService;
+import com.augustoprojetos.backlogapi.service.AuditLogService;
 import com.augustoprojetos.backlogapi.service.RateLimitService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,6 +45,9 @@ public class AuthenticationController {
 
     @Autowired
     private AtividadeLogService atividadeLogService;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
@@ -166,6 +170,10 @@ public class AuthenticationController {
 
         // Registra na timeline o momento em que a conta foi ativada
         atividadeLogService.registrarContaCriada(user);
+
+        // Registra no audit log (ação crítica de sistema)
+        String clientIp = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For").split(",")[0].trim() : request.getRemoteAddr();
+        auditLogService.registrarContaCriada(user.getEmail(), user.getLogin(), clientIp);
 
         // Apaga o token para que não seja reutilizado
         emailVerificationTokenRepository.delete(verificationToken);

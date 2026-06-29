@@ -2,6 +2,7 @@ package com.augustoprojetos.backlogapi.controller;
 
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.UserRepository;
+import com.augustoprojetos.backlogapi.service.AuditLogService;
 import com.augustoprojetos.backlogapi.service.PasswordResetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,9 @@ public class PasswordResetController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     // Recebe o e-mail da tela "Esqueci minha senha"
     @PostMapping("/recuperar-senha")
@@ -65,6 +69,9 @@ public class PasswordResetController {
             // Criptografa a nova senha antes de salvar
             user.setPassword(passwordEncoder.encode(password));
             userRepository.save(user);
+
+            // Registra no audit log
+            auditLogService.registrarSenhaAlteradaPeloUsuario(user.getEmail(), "desconhecido");
 
             // Apaga o token usado
             passwordResetService.deleteToken(token);
