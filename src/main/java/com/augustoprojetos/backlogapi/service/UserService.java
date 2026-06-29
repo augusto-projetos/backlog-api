@@ -1,27 +1,28 @@
 package com.augustoprojetos.backlogapi.service;
 
 import com.augustoprojetos.backlogapi.entity.User;
+import com.augustoprojetos.backlogapi.repository.EmailVerificationTokenRepository;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
-import com.augustoprojetos.backlogapi.repository.UserRepository;
+import com.augustoprojetos.backlogapi.repository.PasswordResetTokenRepository;
+import com.augustoprojetos.backlogapi.repository.ShareTokenRepository;
 import com.augustoprojetos.backlogapi.repository.UserConquistaRepository;
+import com.augustoprojetos.backlogapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
-    private UserConquistaRepository userConquistaRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Autowired private UserRepository userRepository;
+    @Autowired private ItemRepository itemRepository;
+    @Autowired private UserConquistaRepository userConquistaRepository;
+    @Autowired private ShareTokenRepository shareTokenRepository;
+    @Autowired private EmailVerificationTokenRepository emailVerificationTokenRepository;
+    @Autowired private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Autowired private AtividadeLogService atividadeLogService;
+    @Autowired private PasswordEncoder passwordEncoder;
 
     // --- CADASTRAR COM SEGURANÇA ---
     public void cadastrarUsuario(User user) {
@@ -77,12 +78,30 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // Deletar Conta (e tudo relacionado a ela)
+    // Deletar Conta (e todos os dados relacionados)
+    @Transactional
     public void deletarConta(User user) {
-        // Apaga conquistas do usuário
+        // 1. Conquistas do usuário
         userConquistaRepository.deleteByUser(user);
+
+        // 2. Itens do backlog
         itemRepository.deleteByUser(user);
-        // Depois apaga o usuário
+
+        // 3. Share tokens
+        shareTokenRepository.findByUser(user).forEach(shareTokenRepository::delete);
+
+        // 4. Token de verificação de e-mail (se ainda existir)
+        emailVerificationTokenRepository.findByUser_Id(user.getId())
+                .ifPresent(emailVerificationTokenRepository::delete);
+
+        // 5. Token de recuperação de senha (se ainda existir)
+        passwordResetTokenRepository.findByUser(user)
+                .ifPresent(passwordResetTokenRepository::delete);
+
+        // 6. Logs da timeline
+        atividadeLogService.deletarLogsByUser(user);
+
+        // 7. Por último, o próprio usuário
         userRepository.delete(user);
     }
 
