@@ -111,6 +111,11 @@ public class ItemController {
         // Carrega o item anterior para comparar campos
         Item anterior = itemRepository.findById(id).orElse(null);
 
+        // Verifica se o item pertence ao usuário logado
+        if (anterior != null && !anterior.getUser().getId().equals(userLogado.getId())) {
+            return ResponseEntity.status(403).body(Map.of("erro", "Acesso negado."));
+        }
+
         itemAtualizado.setId(id);
         itemAtualizado.setUser(userLogado);
         Item salvo = itemRepository.save(itemAtualizado);
@@ -161,11 +166,13 @@ public class ItemController {
                         @AuthenticationPrincipal User userLogado) {
         Item item = itemRepository.findById(id).orElse(null);
         if (item != null) {
+            // Verifica se o item pertence ao usuário logado
+            if (userLogado != null && !item.getUser().getId().equals(userLogado.getId())) {
+                return;
+            }
             if (userLogado != null) {
                 atividadeLogService.registrarItemRemovido(userLogado, item);
             }
-            itemRepository.deleteById(id);
-        } else {
             itemRepository.deleteById(id);
         }
     }
