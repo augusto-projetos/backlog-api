@@ -5,6 +5,7 @@ import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.entity.UserConquista;
 import com.augustoprojetos.backlogapi.service.ConquistaService;
 import com.augustoprojetos.backlogapi.service.UserService;
+import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,6 +33,9 @@ public class PerfilController {
 
     @Autowired
     private ConquistaService conquistaService;
+
+    @Autowired
+    private AtividadeLogService atividadeLogService;
 
     // Mostrar a página - injeta dados de conquistas
     @GetMapping
@@ -88,7 +92,8 @@ public class PerfilController {
 
     // API para Atualizar APELIDO
     @PutMapping("/apelido")
-    public ResponseEntity<?> atualizarApelido(@AuthenticationPrincipal User user, @RequestBody Map<String, String> dados) {
+    public ResponseEntity<?> atualizarApelido(@AuthenticationPrincipal User user,
+                                               @RequestBody Map<String, String> dados) {
         String novoApelido = dados.get("novoApelido");
 
         if (novoApelido == null || novoApelido.trim().isEmpty()) {
@@ -96,6 +101,10 @@ public class PerfilController {
         }
 
         userService.atualizarApelido(user, novoApelido);
+
+        // Registra na timeline
+        atividadeLogService.registrarPerfilEditado(user);
+
         return ResponseEntity.ok().body("{\"message\": \"Apelido atualizado!\"}");
     }
 

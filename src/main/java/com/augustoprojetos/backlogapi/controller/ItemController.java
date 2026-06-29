@@ -1,6 +1,7 @@
 package com.augustoprojetos.backlogapi.controller;
 
 import com.augustoprojetos.backlogapi.dto.ConquistaDesbloqueadaDTO;
+import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import com.augustoprojetos.backlogapi.service.ConquistaService;
 import com.augustoprojetos.backlogapi.service.TmdbService;
 import org.springframework.ui.Model;
@@ -32,6 +33,9 @@ public class ItemController {
     @Autowired
     private ConquistaService conquistaService;
 
+    @Autowired
+    private AtividadeLogService atividadeLogService;
+
     // --- ROTAS DE PÁGINAS (VIEW) ---
 
     @GetMapping("/")
@@ -44,7 +48,7 @@ public class ItemController {
         } else {
             model.addAttribute("nomeUsuario", "Visitante");
         }
-
+        
         return "home";
     }
 
@@ -64,7 +68,7 @@ public class ItemController {
 
     // --- ROTAS DA API (JSON) COM SEGURANÇA ---
 
-    // 1. CADASTRAR - salva o item e verifica conquistas em background.
+    // 1. CADASTRAR
     @PostMapping("/itens")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cadastrar(
@@ -74,7 +78,14 @@ public class ItemController {
         item.setUser(userLogado);
         Item salvo = itemRepository.save(item);
 
+        // Registra na timeline
+        atividadeLogService.registrarItemAdicionado(userLogado, salvo);
+
         List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
+
+        // Registra conquistas desbloqueadas na timeline
+        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
+                userLogado, c.nome(), c.icone()));
 
         Map<String, Object> response = new HashMap<>();
         response.put("item", salvo);
@@ -89,7 +100,7 @@ public class ItemController {
         return itemRepository.findByUser(userLogado);
     }
 
-    // 3. EDITAR — atualiza o item e verifica conquistas (nota 10 pode desbloquear algo).
+    // 3. EDITAR
     @PutMapping("/itens/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> atualizar(
@@ -97,11 +108,45 @@ public class ItemController {
             @RequestBody @Valid Item itemAtualizado,
             @AuthenticationPrincipal User userLogado) {
 
+        // Carrega o item anterior para comparar campos
+        Item anterior = itemRepository.findById(id).orElse(null);
+
         itemAtualizado.setId(id);
         itemAtualizado.setUser(userLogado);
         Item salvo = itemRepository.save(itemAtualizado);
 
+        // Detecta o que mudou e registra o evento mais específico
+        if (anterior != null) {
+            boolean statusMudou = !igual(anterior.getStatus(), salvo.getStatus());
+            boolean notaMudou   = !igual(anterior.getNota(), salvo.getNota());
+            boolean resenhaMudou = !igual(anterior.getResenha(), salvo.getResenha());
+
+            if (statusMudou) {
+                atividadeLogService.registrarStatusAlterado(userLogado, salvo, anterior.getStatus());
+            }
+            if (notaMudou) {
+                atividadeLogService.registrarNotaAlterada(userLogado, salvo, anterior.getNota());
+            }
+            if (resenhaMudou) {
+                boolean resenhaEraVazia = anterior.getResenha() == null || anterior.getResenha().isBlank();
+                if (resenhaEraVazia && salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
+                    atividadeLogService.registrarResenhaAdicionada(userLogado, salvo);
+                } else if (salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
+                    atividadeLogService.registrarResenhaEditada(userLogado, salvo);
+                }
+            }
+            // Se mudou outros campos mas nenhum dos acima
+            if (!statusMudou && !notaMudou && !resenhaMudou) {
+                atividadeLogService.registrarItemEditado(userLogado, salvo);
+            }
+        } else {
+            atividadeLogService.registrarItemEditado(userLogado, salvo);
+        }
+
         List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
+
+        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
+                userLogado, c.nome(), c.icone()));
 
         Map<String, Object> response = new HashMap<>();
         response.put("item", salvo);
@@ -112,8 +157,17 @@ public class ItemController {
     // 4. DELETAR
     @DeleteMapping("/itens/{id}")
     @ResponseBody
-    public void deletar(@PathVariable Long id) {
-        itemRepository.deleteById(id);
+    public void deletar(@PathVariable Long id,
+                        @AuthenticationPrincipal User userLogado) {
+        Item item = itemRepository.findById(id).orElse(null);
+        if (item != null) {
+            if (userLogado != null) {
+                atividadeLogService.registrarItemRemovido(userLogado, item);
+            }
+            itemRepository.deleteById(id);
+        } else {
+            itemRepository.deleteById(id);
+        }
     }
 
     // 5. BUSCAR UM
@@ -135,9 +189,8 @@ public class ItemController {
         return tmdbService.buscarFilmes(query);
     }
 
-    // Aguarda até 2 segundos pela verificação assíncrona de conquistas.
-    // Se expirar, retorna lista vazia (o usuário não perde nada, só não vê o toast agora).
-    
+    // --- Helpers ---
+
     private List<ConquistaDesbloqueadaDTO> verificarConquistasComTimeout(User user) {
         try {
             CompletableFuture<List<ConquistaDesbloqueadaDTO>> future =
@@ -146,5 +199,12 @@ public class ItemController {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    // Compara dois objetos com null-safety
+    private boolean igual(Object a, Object b) {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        return a.equals(b);
     }
 }
