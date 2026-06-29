@@ -1430,3 +1430,206 @@ body {
         opacity: 1;
     }
 }
+
+/* --- ABA DE AUDITORIA --- */
+
+.audit-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: var(--adm-danger, #ef4444);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 4px;
+    line-height: 1;
+}
+
+.audit-toolbar { margin-bottom: 1.5rem; }
+
+.audit-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--adm-text);
+    margin: 0 0 0.25rem;
+}
+
+.audit-subtitle {
+    font-size: 0.82rem;
+    color: var(--adm-muted, #6b7280);
+    margin: 0 0 1rem;
+}
+
+.audit-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.audit-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.audit-filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--adm-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.audit-select,
+.audit-input {
+    height: 38px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--adm-border, #e5e7eb);
+    border-radius: 8px;
+    background: var(--adm-surface, #fff);
+    color: var(--adm-text);
+    font-size: 0.85rem;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 180px;
+}
+
+.audit-select:focus,
+.audit-input:focus {
+    border-color: var(--adm-accent, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.btn-audit-buscar,
+.btn-audit-limpar {
+    height: 38px;
+    padding: 0 1rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn-audit-buscar { background: var(--adm-accent, #6366f1); color: #fff; }
+.btn-audit-limpar {
+    background: var(--adm-surface-alt, #f3f4f6);
+    color: var(--adm-text);
+    border: 1px solid var(--adm-border, #e5e7eb);
+}
+
+.btn-audit-buscar:hover,
+.btn-audit-limpar:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.audit-estado {
+    text-align: center;
+    padding: 2.5rem 1rem !important;
+    color: var(--adm-muted, #6b7280);
+    font-size: 0.9rem;
+}
+
+.audit-acao-badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.audit-acao-badge.cat-conta     { background: #dbeafe; color: #1d4ed8; }
+.audit-acao-badge.cat-senha     { background: #fef3c7; color: #b45309; }
+.audit-acao-badge.cat-conquista { background: #f3e8ff; color: #7c3aed; }
+.audit-acao-badge.cat-item      { background: #fce7f3; color: #be185d; }
+.audit-acao-badge.cat-usuario   { background: #d1fae5; color: #065f46; }
+.audit-acao-badge.cat-default   { background: var(--adm-surface-alt, #f3f4f6); color: var(--adm-muted); }
+
+.audit-data {
+    font-size: 0.78rem;
+    color: var(--adm-muted, #6b7280);
+    white-space: nowrap;
+}
+
+.audit-detalhe {
+    font-size: 0.78rem;
+    color: var(--adm-muted, #6b7280);
+    max-width: 220px;
+    word-break: break-word;
+}
+
+.audit-paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 1.25rem 0 0.5rem;
+}
+
+.audit-pag-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid var(--adm-border, #e5e7eb);
+    background: var(--adm-surface, #fff);
+    color: var(--adm-text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.audit-pag-btn:hover:not(:disabled) {
+    background: var(--adm-accent, #6366f1);
+    color: #fff;
+    border-color: var(--adm-accent, #6366f1);
+}
+
+.audit-pag-btn.active {
+    background: var(--adm-accent, #6366f1);
+    color: #fff;
+    border-color: var(--adm-accent, #6366f1);
+}
+
+.audit-pag-btn:disabled { opacity: 0.4; cursor: default; }
+
+@media (max-width: 640px) {
+    .audit-filters { flex-direction: column; align-items: stretch; }
+    .audit-select, .audit-input { min-width: 100%; width: 100%; }
+    .btn-audit-buscar, .btn-audit-limpar { width: 100%; justify-content: center; }
+}
+
+[data-theme="dark"] .audit-select,
+[data-theme="dark"] .audit-input {
+    background: var(--adm-surface, #1e1e2e);
+    border-color: var(--adm-border, #2a2a3a);
+    color: var(--adm-text, #e0e0e0);
+}
+
+[data-theme="dark"] .audit-acao-badge.cat-conta     { background: #1e3a5f; color: #93c5fd; }
+[data-theme="dark"] .audit-acao-badge.cat-senha     { background: #451a03; color: #fcd34d; }
+[data-theme="dark"] .audit-acao-badge.cat-conquista { background: #3b0764; color: #d8b4fe; }
+[data-theme="dark"] .audit-acao-badge.cat-item      { background: #500724; color: #f9a8d4; }
+[data-theme="dark"] .audit-acao-badge.cat-usuario   { background: #064e3b; color: #6ee7b7; }
+[data-theme="dark"] .btn-audit-limpar {
+    background: var(--adm-surface-alt, #1a1a2e);
+    border-color: var(--adm-border, #2a2a3a);
+    color: var(--adm-text, #e0e0e0);
+}

@@ -50,6 +50,9 @@
                     ⏳ Pendentes (<span th:text="${#lists.size(pendentes)}">0</span>)
                 </button>
                 <button class="adm-tab" data-tab="conquistas">🏆 Conquistas</button>
+                <button class="adm-tab" data-tab="auditoria">
+                    🔐 Auditoria <span class="audit-badge" th:text="${totalAuditLogs > 0 ? totalAuditLogs : ''}"></span>
+                </button>
             </nav>
         </div>
 
@@ -427,6 +430,62 @@
                     </tbody>
                 </table>
             </div>
+        </section>
+
+
+        <!-- --- ABA: AUDITORIA --- -->
+        <section id="tab-auditoria" class="adm-section">
+
+            <div class="audit-toolbar">
+                <h3 class="audit-title">🔐 Log de Auditoria</h3>
+                <p class="audit-subtitle">Ações críticas do sistema — registros retidos por 7 dias automaticamente.</p>
+
+                <!-- Filtros -->
+                <div class="audit-filters">
+                    <div class="audit-filter-group">
+                        <label for="audit-filter-acao">Tipo de ação</label>
+                        <select id="audit-filter-acao" class="audit-select">
+                            <option value="">Todas as ações</option>
+                            <!-- populado via JS -->
+                        </select>
+                    </div>
+                    <div class="audit-filter-group">
+                        <label for="audit-filter-alvo">Usuário / alvo</label>
+                        <input type="text" id="audit-filter-alvo" class="audit-input" placeholder="login, email ou nome..." />
+                    </div>
+                    <button id="btn-audit-buscar" class="btn-audit-buscar">
+                        <i class="fa fa-search"></i> Buscar
+                    </button>
+                    <button id="btn-audit-limpar" class="btn-audit-limpar">
+                        <i class="fa fa-times"></i> Limpar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabela -->
+            <div class="adm-table-wrap">
+                <table class="adm-table" id="tabela-auditoria">
+                    <thead>
+                        <tr>
+                            <th>Quando</th>
+                            <th>Ação</th>
+                            <th>Descrição</th>
+                            <th>Detalhe</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-tbody">
+                        <tr id="audit-loading">
+                            <td colspan="4" class="audit-estado">
+                                <i class="fa fa-spinner fa-spin"></i> Carregando logs...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            <div class="audit-paginacao" id="audit-paginacao"></div>
+
         </section>
 
     </main>
