@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.service;
 
+import com.augustoprojetos.backlogapi.dto.admin.AdminItemDTO;
 import com.augustoprojetos.backlogapi.dto.admin.AdminUserDTO;
 import com.augustoprojetos.backlogapi.dto.admin.AdminGlobalStatsDTO;
 import com.augustoprojetos.backlogapi.entity.Conquista;
@@ -126,6 +127,20 @@ public class AdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         return itemRepository.findByUser(user);
+    }
+
+
+    // Busca item por ID e retorna DTO leve (título, tipo, dono) — usado pelo audit log antes de deletar
+    public AdminItemDTO buscarItemPorId(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+        AdminItemDTO dto = new AdminItemDTO();
+        dto.setId(item.getId());
+        dto.setTitulo(item.getTitulo());
+        dto.setTipo(item.getTipo());
+        dto.setStatus(item.getStatus());
+        dto.setUserLogin(item.getUser() != null ? item.getUser().getLogin() : "(desconhecido)");
+        return dto;
     }
 
     // Edita status, nota e resenha de qualquer item (acesso admin)

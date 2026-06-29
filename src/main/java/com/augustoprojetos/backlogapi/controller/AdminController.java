@@ -3,7 +3,11 @@ package com.augustoprojetos.backlogapi.controller;
 import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.service.AdminService;
 import com.augustoprojetos.backlogapi.service.AtividadeLogService;
+import com.augustoprojetos.backlogapi.service.AuditLogService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -23,6 +27,9 @@ public class AdminController {
     @Autowired
     private AtividadeLogService atividadeLogService;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     // --- PAINEL PRINCIPAL ---
 
     @GetMapping({"", "/"})
@@ -31,6 +38,8 @@ public class AdminController {
         model.addAttribute("usuarios",   adminService.listarUsuariosAtivos());
         model.addAttribute("pendentes",  adminService.listarUsuariosPendentes());
         model.addAttribute("conquistas", adminService.listarConquistas());
+        // Badge da aba de auditoria
+        model.addAttribute("totalAuditLogs", auditLogService.contarTotal());
         return "admin/painel";
     }
 
@@ -79,9 +88,15 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<?> editarUsuario(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
         try {
-            adminService.editarUsuario(id, body.get("login"), body.get("socialUsername"), body.get("email"));
+            String novoLogin  = body.get("login");
+            String novoSocial = body.get("socialUsername");
+            String novoEmail  = body.get("email");
+            adminService.editarUsuario(id, novoLogin, novoSocial, novoEmail);
+            String detalhe = "Login: " + novoLogin + " | @: " + novoSocial + " | Email: " + novoEmail;
+            auditLogService.registrarUsuarioEditado(id, novoLogin, detalhe, getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -92,9 +107,12 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<?> redefinirSenha(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
         try {
             adminService.redefinirSenhaUsuario(id, body.get("novaSenha"));
+            var usuario = adminService.buscarUsuarioPorId(id);
+            auditLogService.registrarSenhaRedefinida(id, usuario.getLogin(), getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -103,9 +121,16 @@ public class AdminController {
 
     @DeleteMapping("/usuario/{id}")
     @ResponseBody
-    public ResponseEntity<?> deletarUsuario(@PathVariable Long id) {
+    public ResponseEntity<?> deletarUsuario(
+            @PathVariable Long id,
+            HttpServletRequest request) {
         try {
+            // Guarda os dados antes de deletar
+            var usuario = adminService.buscarUsuarioPorId(id);
+            String loginAlvo = usuario.getLogin();
+            String emailAlvo = usuario.getEmail();
             adminService.deletarUsuario(id);
+            auditLogService.registrarContaDeletada(emailAlvo, loginAlvo, getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -117,10 +142,18 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<?> concederConquista(
             @PathVariable Long userId,
-            @PathVariable Long conquistaId) {
+            @PathVariable Long conquistaId,
+            HttpServletRequest request) {
         try {
             boolean concedida = adminService.concederConquistaParaUsuario(userId, conquistaId);
             if (concedida) {
+                var usuario    = adminService.buscarUsuarioPorId(userId);
+                var conquistas = adminService.listarConquistas();
+                String nomeConquista = conquistas.stream()
+                    .filter(c -> c.getId().equals(conquistaId))
+                    .map(Conquista::getNome)
+                    .findFirst().orElse("(desconhecida)");
+                auditLogService.registrarConquistaConcedida(userId, usuario.getLogin(), nomeConquista, getClientIp(request));
                 return ResponseEntity.ok(Map.of("sucesso", true, "mensagem", "Conquista concedida com sucesso!"));
             } else {
                 return ResponseEntity.ok(Map.of("sucesso", false, "mensagem", "Usuário já possui essa conquista."));
@@ -135,15 +168,22 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<?> revogarConquista(
             @PathVariable Long userId,
-            @PathVariable Long conquistaId) {
+            @PathVariable Long conquistaId,
+            HttpServletRequest request) {
         try {
             // Busca o ícone antes de revogar para incluir na resposta
             String icone = adminService.listarConquistas().stream()
                     .filter(c -> c.getId().equals(conquistaId))
                     .map(c -> c.getIcone())
                     .findFirst().orElse("");
+            String nomeConquista = adminService.listarConquistas().stream()
+                    .filter(c -> c.getId().equals(conquistaId))
+                    .map(Conquista::getNome)
+                    .findFirst().orElse("(desconhecida)");
             int xpDeduzido = adminService.revogarConquistaDoUsuario(userId, conquistaId);
             if (xpDeduzido >= 0) {
+                var usuario = adminService.buscarUsuarioPorId(userId);
+                auditLogService.registrarConquistaRevogada(userId, usuario.getLogin(), nomeConquista, xpDeduzido, getClientIp(request));
                 return ResponseEntity.ok(Map.of(
                     "sucesso",    true,
                     "xpDeduzido", xpDeduzido,
@@ -178,9 +218,14 @@ public class AdminController {
 
     @DeleteMapping("/item/{id}")
     @ResponseBody
-    public ResponseEntity<?> deletarItem(@PathVariable Long id) {
+    public ResponseEntity<?> deletarItem(
+            @PathVariable Long id,
+            HttpServletRequest request) {
         try {
+            // Guarda dados antes de deletar
+            var item = adminService.buscarItemPorId(id);
             adminService.deletarItem(id);
+            auditLogService.registrarItemDeletado(id, item.getTitulo(), item.getUserLogin(), getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -191,9 +236,16 @@ public class AdminController {
 
     @PostMapping("/conquista/criar")
     @ResponseBody
-    public ResponseEntity<?> criarConquista(@RequestBody Conquista conquista) {
+    public ResponseEntity<?> criarConquista(
+            @RequestBody Conquista conquista,
+            HttpServletRequest request) {
         try {
             adminService.criarConquista(conquista);
+            // Busca o ID gerado
+            var salva = adminService.listarConquistas().stream()
+                .filter(c -> c.getChave().equals(conquista.getChave()))
+                .findFirst().orElse(conquista);
+            auditLogService.registrarConquistaCriada(salva.getId(), salva.getNome(), getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -202,9 +254,13 @@ public class AdminController {
 
     @PostMapping("/conquista/{id}/editar")
     @ResponseBody
-    public ResponseEntity<?> editarConquista(@PathVariable Long id, @RequestBody Conquista dados) {
+    public ResponseEntity<?> editarConquista(
+            @PathVariable Long id,
+            @RequestBody Conquista dados,
+            HttpServletRequest request) {
         try {
             adminService.editarConquista(id, dados);
+            auditLogService.registrarConquistaEditada(id, dados.getNome(), getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -213,9 +269,13 @@ public class AdminController {
 
     @DeleteMapping("/conquista/{id}")
     @ResponseBody
-    public ResponseEntity<?> deletarConquista(@PathVariable Long id) {
+    public ResponseEntity<?> deletarConquista(
+            @PathVariable Long id,
+            HttpServletRequest request) {
         try {
+            var conquista = adminService.buscarConquistaPorId(id);
             adminService.deletarConquista(id);
+            auditLogService.registrarConquistaDeletada(id, conquista.getNome(), getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -227,7 +287,7 @@ public class AdminController {
     // Página HTML da timeline de um usuário específico
     @GetMapping("/usuario/{id}/timeline")
     public String timelineUsuario(@PathVariable Long id, Model model) {
-        var usuario = adminService.buscarUsuarioPorId(id); // já existente
+        var usuario = adminService.buscarUsuarioPorId(id);
         var logs    = atividadeLogService.buscarTimelinePorUserId(id);
         model.addAttribute("usuarioAdm", usuario);
         model.addAttribute("logs", logs);
@@ -263,5 +323,65 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
+    }
+
+    // --- AUDIT LOG (ADMIN) ---
+
+    // API principal do log de auditoria com filtros e paginação.
+    @GetMapping("/api/audit-log")
+    @ResponseBody
+    public ResponseEntity<?> getAuditLog(
+            @RequestParam(required = false) String acao,
+            @RequestParam(required = false) String alvoNome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        var resultado = auditLogService.listarComFiltros(acao, alvoNome, pageable);
+
+        // Serializa manualmente para evitar lazy loading issues
+        var registros = resultado.getContent().stream().map(a -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id",         a.getId());
+            m.put("acao",       a.getAcao());
+            m.put("descricao",  a.getDescricao());
+            m.put("detalhe",    a.getDetalhe());
+            m.put("alvoTipo",   a.getAlvoTipo());
+            m.put("alvoId",     a.getAlvoId());
+            m.put("alvoNome",   a.getAlvoNome());
+            m.put("criadoEm",   a.getCriadoEm() != null ? a.getCriadoEm().toString() : null);
+            return m;
+        }).toList();
+
+        return ResponseEntity.ok(Map.of(
+            "registros",    registros,
+            "totalPaginas", resultado.getTotalPages(),
+            "totalItens",   resultado.getTotalElements(),
+            "paginaAtual",  resultado.getNumber()
+        ));
+    }
+
+    // Lista as ações distintas para popular o dropdown de filtro
+    @GetMapping("/api/audit-log/acoes")
+    @ResponseBody
+    public ResponseEntity<?> getAcoesAuditoria() {
+        return ResponseEntity.ok(auditLogService.listarAcoesDistintas());
+    }
+
+    // --- HELPER: IP DO CLIENTE ---
+
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // X-Forwarded-For pode conter múltiplos IPs separados por vírgula — pega o primeiro
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

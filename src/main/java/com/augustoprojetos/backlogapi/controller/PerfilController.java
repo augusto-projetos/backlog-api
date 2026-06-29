@@ -6,6 +6,7 @@ import com.augustoprojetos.backlogapi.entity.UserConquista;
 import com.augustoprojetos.backlogapi.service.ConquistaService;
 import com.augustoprojetos.backlogapi.service.UserService;
 import com.augustoprojetos.backlogapi.service.AtividadeLogService;
+import com.augustoprojetos.backlogapi.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,6 +37,9 @@ public class PerfilController {
 
     @Autowired
     private AtividadeLogService atividadeLogService;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     // Mostrar a página - injeta dados de conquistas
     @GetMapping
@@ -126,6 +130,10 @@ public class PerfilController {
     @DeleteMapping
     public ResponseEntity<?> deletarConta(@AuthenticationPrincipal User user,
                                           HttpServletRequest request, HttpServletResponse response) {
+                                            
+        // Registra no audit log antes de deletar (dados somem após a deleção)
+        auditLogService.registrarContaDeletada(user.getEmail(), user.getLogin(), request.getRemoteAddr());
+
         userService.deletarConta(user);
 
         // Mata a sessão agora mesmo
