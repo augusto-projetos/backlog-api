@@ -107,7 +107,10 @@
         </div>
     </main>
 
+    <button id="btn-topo" title="Voltar ao topo">⬆</button>
+
     <script th:src="@{/js/theme-toggle.js}"></script>
+    <script th:src="@{/js/search-scroll.js}"></script>
     <script th:inline="javascript">
         const CSRF_TOKEN  = /*[[${_csrf.token}]]*/ '';
         const CSRF_HEADER = /*[[${_csrf.headerName}]]*/ '';
