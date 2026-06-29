@@ -1,0 +1,383 @@
+/* ================================================================
+   timeline.css — Linha do Tempo (usuário e admin)
+   ================================================================ */
+
+/* --- Layout --- */
+
+.timeline-container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 10px 0 40px;
+}
+
+.adm-timeline-container {
+    max-width: 900px;
+}
+
+/* --- Cabeçalho informativo (usuário) --- */
+
+.timeline-header-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px var(--card-shadow);
+}
+
+.timeline-header-icon {
+    font-size: 2rem;
+    color: #e94560;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.timeline-header-title {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    color: var(--text-main);
+}
+
+.timeline-header-sub {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* --- Toolbar admin --- */
+
+.adm-timeline-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 6px var(--card-shadow);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.adm-timeline-toolbar-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.adm-timeline-toolbar-info i {
+    color: #e94560;
+    font-size: 1rem;
+}
+
+.btn-adm-danger {
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-adm-danger:hover {
+    background: #e74c3c;
+    transform: translateY(-1px);
+}
+
+/* --- Estado vazio --- */
+
+.timeline-empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--bg-card);
+    border: 1px dashed var(--border-color);
+    border-radius: 14px;
+}
+
+.timeline-empty-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 14px;
+}
+
+.timeline-empty-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 6px;
+}
+
+.timeline-empty-sub {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 20px;
+}
+
+.btn-timeline-action {
+    display: inline-block;
+    background: #e94560;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-timeline-action:hover { background: #c73652; }
+
+/* --- Lista de itens --- */
+
+.timeline-list {
+    position: relative;
+    padding-left: 28px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 28px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+/* Linha vertical */
+.timeline-line {
+    position: absolute;
+    left: -17px;
+    top: 20px;
+    bottom: -8px;
+    width: 2px;
+    background: var(--border-color);
+    z-index: 0;
+}
+
+/* Ponto do evento */
+.timeline-dot {
+    position: absolute;
+    left: -23px;
+    top: 14px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+    background: #7f8c8d;
+    z-index: 1;
+    box-shadow: 0 0 0 2px var(--border-color);
+    flex-shrink: 0;
+}
+
+/* Cores por tipo de evento */
+.timeline-dot.tipo-item-adicionado     { background: #27ae60; box-shadow: 0 0 0 2px rgba(39,174,96,.3); }
+.timeline-dot.tipo-item-removido       { background: #e74c3c; box-shadow: 0 0 0 2px rgba(231,76,60,.3); }
+.timeline-dot.tipo-item-editado        { background: #f39c12; box-shadow: 0 0 0 2px rgba(243,156,18,.3); }
+.timeline-dot.tipo-status-alterado     { background: #3498db; box-shadow: 0 0 0 2px rgba(52,152,219,.3); }
+.timeline-dot.tipo-nota-alterada       { background: #f1c40f; box-shadow: 0 0 0 2px rgba(241,196,15,.3); }
+.timeline-dot.tipo-resenha-adicionada  { background: #9b59b6; box-shadow: 0 0 0 2px rgba(155,89,182,.3); }
+.timeline-dot.tipo-resenha-editada     { background: #8e44ad; box-shadow: 0 0 0 2px rgba(142,68,173,.3); }
+.timeline-dot.tipo-conquista-desbloqueada { background: #e94560; box-shadow: 0 0 0 2px rgba(233,69,96,.3); }
+.timeline-dot.tipo-perfil-editado      { background: #1abc9c; box-shadow: 0 0 0 2px rgba(26,188,156,.3); }
+.timeline-dot.tipo-conta-criada        { background: #e94560; box-shadow: 0 0 0 2px rgba(233,69,96,.3); }
+
+/* --- Card do log --- */
+
+.timeline-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 6px var(--card-shadow);
+    transition: box-shadow 0.2s;
+}
+
+.timeline-card:hover {
+    box-shadow: 0 4px 14px var(--card-shadow);
+}
+
+.timeline-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+/* Badges de tipo */
+.timeline-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: var(--border-color);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.badge-item-adicionado     { background: rgba(39,174,96,.15);  color: #27ae60; }
+.badge-item-removido       { background: rgba(231,76,60,.15);  color: #e74c3c; }
+.badge-item-editado        { background: rgba(243,156,18,.15); color: #d68910; }
+.badge-status-alterado     { background: rgba(52,152,219,.15); color: #2980b9; }
+.badge-nota-alterada       { background: rgba(241,196,15,.15); color: #b7950b; }
+.badge-resenha-adicionada  { background: rgba(155,89,182,.15); color: #8e44ad; }
+.badge-resenha-editada     { background: rgba(142,68,173,.15); color: #7d3c98; }
+.badge-conquista-desbloqueada { background: rgba(233,69,96,.15); color: #e94560; }
+.badge-perfil-editado      { background: rgba(26,188,156,.15); color: #17a589; }
+.badge-conta-criada        { background: rgba(233,69,96,.15);  color: #e94560; }
+
+.timeline-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-family: "JetBrains Mono", monospace;
+}
+
+.timeline-descricao {
+    margin: 0 0 4px;
+    font-size: 0.92rem;
+    color: var(--text-main);
+    line-height: 1.45;
+}
+
+.timeline-detalhe {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", monospace;
+}
+
+/* --- Botão voltar (admin) --- */
+
+.btn-adm-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124, 58, 237, 0.1);
+    color: #a78bfa;
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    font-family: "Poppins", sans-serif;
+}
+
+.btn-adm-voltar:hover {
+    background: rgba(124, 58, 237, 0.25);
+    color: #c084fc;
+    border-color: #7c3aed;
+}
+
+/* --- Botão excluir log (admin) --- */
+
+.adm-log-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.btn-adm-log-delete {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-adm-log-delete:hover {
+    background: rgba(231, 76, 60, 0.12);
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.3);
+}
+
+/* --- Rodapé --- */
+
+.timeline-footer {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* --- Botão voltar --- */
+
+.btn-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-voltar:hover {
+    background: rgba(233, 69, 96, 0.08);
+    color: #e94560;
+}
+
+/* --- Responsivo --- */
+
+@media (max-width: 600px) {
+    .timeline-container {
+        padding: 6px 0 30px;
+    }
+
+    .timeline-list {
+        padding-left: 22px;
+    }
+
+    .timeline-card {
+        padding: 12px 14px;
+    }
+
+    .timeline-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .adm-timeline-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .timeline-header-card {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

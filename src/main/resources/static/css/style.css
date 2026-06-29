@@ -126,6 +126,35 @@ main {
     background-color: #8e44ad !important; /* Roxo mais escuro no hover */
 }
 
+/* Botão da Timeline - visível só no PC, estilo pílula ciano */
+.btn-timeline-pc-only {
+    display: flex; /* mostra no PC */
+    background-color: #1abc9c;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-timeline-pc-only:hover {
+    background-color: #17a589;
+}
+
+/* Botão da Timeline no mobile - visível só na gaveta */
+.btn-timeline-mobile {
+    background-color: #1abc9c;
+}
+
+.btn-timeline-mobile:hover {
+    background-color: #17a589;
+}
+
 /* --- BARRA DE BUSCA SOCIAL NO HEADER --- */
 .search-social-container {
     position: relative;
@@ -907,6 +936,10 @@ main {
     .form-logout {
         width: 100%;
         margin: 0;
+    }
+
+    .btn-timeline-pc-only {
+        display: none !important; /* esconde no mobile */
     }
 
     /* Adaptação dos Cards (Grid 2 colunas) */

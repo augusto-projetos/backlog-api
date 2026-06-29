@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Linha do Tempo - Meus Backlog</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+        <link rel="stylesheet" th:href="@{/css/timeline.css}">
+    </head>
+    <body>
+
+        <header class="app-header">
+            <div class="header-info">
+                <h2>📅 Linha do Tempo</h2>
+                <p class="user-greeting">
+                    Histórico de atividades de
+                    <strong class="user-name" th:text="${nomeUsuario}">Usuário</strong>
+                </p>
+            </div>
+            <div class="header-actions">
+                <a th:href="@{/home}" class="btn-voltar">⬅ Voltar</a>
+                <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="timeline-container">
+
+                <!-- Cabeçalho informativo -->
+                <div class="timeline-header-card">
+                    <i class="fa-solid fa-clock-rotate-left timeline-header-icon"></i>
+                    <div>
+                        <h3 class="timeline-header-title">Seu Histórico</h3>
+                        <p class="timeline-header-sub">
+                            Cada ação que você realiza fica registrada aqui, em ordem cronológica.
+                            Esta linha do tempo é <strong>somente leitura</strong> — ela não pode ser editada.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Estado vazio -->
+                <div th:if="${#lists.isEmpty(logs)}" class="timeline-empty">
+                    <span class="timeline-empty-icon">🌱</span>
+                    <p class="timeline-empty-title">Nenhuma atividade ainda</p>
+                    <p class="timeline-empty-sub">Adicione filmes, séries ou jogos ao seu backlog para começar!</p>
+                    <a th:href="@{/home}" class="btn-timeline-action">Ir para o Backlog</a>
+                </div>
+
+                <!-- Timeline de logs -->
+                <div class="timeline-list" th:if="${!#lists.isEmpty(logs)}">
+
+                    <!-- Agrupa por data (usamos Thymeleaf para exibir a data separadamente) -->
+                    <div th:each="log, stat : ${logs}" class="timeline-item"
+                         th:classappend="${stat.first} ? 'primeiro' : ''">
+
+                        <!-- Linha vertical (exceto no último) -->
+                        <div class="timeline-line" th:unless="${stat.last}"></div>
+
+                        <!-- Ponto do evento -->
+                        <div class="timeline-dot" th:classappend="'tipo-' + ${log.tipo.toLowerCase().replace('_','-')}">
+                        </div>
+
+                        <!-- Conteúdo do card -->
+                        <div class="timeline-card">
+                            <div class="timeline-card-header">
+                                <span class="timeline-badge"
+                                      th:classappend="'badge-' + ${log.tipo.toLowerCase().replace('_','-')}"
+                                      th:text="${#strings.replace(log.tipo,'_',' ')}">TIPO</span>
+                                <time class="timeline-date"
+                                      th:datetime="${log.criadoEm}"
+                                      th:text="${#temporals.format(log.criadoEm, 'dd/MM/yyyy') + ' às ' + #temporals.format(log.criadoEm, 'HH:mm')}">
+                                    00/00/0000 às 00:00
+                                </time>
+                            </div>
+                            <p class="timeline-descricao" th:text="${log.descricao}">Descrição</p>
+                            <p class="timeline-detalhe" th:if="${log.detalhe != null}" th:text="${log.detalhe}"></p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Rodapé com total -->
+                <div class="timeline-footer" th:if="${!#lists.isEmpty(logs)}">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span th:text="${#lists.size(logs)} + ' registro(s) encontrado(s)'">0 registros</span>
+                </div>
+
+            </div>
+        </main>
+
+        <script th:src="@{/js/theme-toggle.js}"></script>
+    </body>
+</html>

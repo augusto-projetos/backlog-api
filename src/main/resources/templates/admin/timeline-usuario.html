@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <title>👑 Timeline — <span th:text="${usuarioAdm.login}">Usuário</span> — ADM</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👑</text></svg>">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <link rel="stylesheet" th:href="@{/css/timeline.css}">
+    </head>
+    <body>
+
+    <header class="app-header adm-header">
+        <div class="header-info">
+            <h2>👑 Timeline do Usuário</h2>
+            <p class="user-greeting">
+                Histórico de
+                <strong class="user-name" th:text="${usuarioAdm.login}">Usuário</strong>
+                (<span th:text="'@' + ${usuarioAdm.socialUsername}">@user</span>)
+            </p>
+        </div>
+        <div class="header-actions">
+            <a th:href="@{/admin}" class="btn-adm-voltar">
+                ⬅ Voltar ao Painel
+            </a>
+            <button id="theme-toggle" class="btn-theme" title="Alternar tema">
+                <span id="theme-icon">🌙</span>
+            </button>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn-logout">
+                    <i class="fa fa-sign-out-alt"></i> Sair
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main class="adm-main">
+        <div class="timeline-container adm-timeline-container">
+
+            <!-- Barra de ações admin -->
+            <div class="adm-timeline-toolbar">
+                <div class="adm-timeline-toolbar-info">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>
+                        <strong id="contador-logs" th:text="${#lists.size(logs)}">0</strong> registro(s) encontrado(s)
+                    </span>
+                </div>
+                <button class="btn-adm-danger"
+                        th:if="${!#lists.isEmpty(logs)}"
+                        onclick="deletarTodosLogs()"
+                        th:data-userid="${usuarioAdm.id}">
+                    <i class="fa-solid fa-trash-can"></i> Limpar tudo
+                </button>
+            </div>
+
+            <!-- Estado vazio -->
+            <div th:if="${#lists.isEmpty(logs)}" class="timeline-empty">
+                <span class="timeline-empty-icon">🧹</span>
+                <p class="timeline-empty-title">Nenhuma atividade registrada</p>
+                <p class="timeline-empty-sub">Este usuário ainda não tem logs na linha do tempo.</p>
+            </div>
+
+            <!-- Lista de logs -->
+            <div id="lista-logs" class="timeline-list" th:if="${!#lists.isEmpty(logs)}">
+                <div th:each="log, stat : ${logs}"
+                     class="timeline-item"
+                     th:id="'log-' + ${log.id}">
+
+                    <div class="timeline-line" th:unless="${stat.last}"></div>
+
+                    <div class="timeline-dot"
+                         th:classappend="'tipo-' + ${log.tipo.toLowerCase().replace('_','-')}">
+                    </div>
+
+                    <div class="timeline-card adm-timeline-card">
+                        <div class="timeline-card-header">
+                            <span class="timeline-badge"
+                                  th:classappend="'badge-' + ${log.tipo.toLowerCase().replace('_','-')}"
+                                  th:text="${#strings.replace(log.tipo,'_',' ')}">TIPO</span>
+                            <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+                                <time class="timeline-date"
+                                      th:datetime="${log.criadoEm}"
+                                      th:text="${#temporals.format(log.criadoEm, 'dd/MM/yyyy') + ' às ' + #temporals.format(log.criadoEm, 'HH:mm')}">
+                                </time>
+                                <div class="adm-log-actions">
+                                    <button class="btn-adm-log-delete"
+                                            th:onclick="'deletarLog(' + ${log.id} + ')'"
+                                            title="Excluir este log">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="timeline-descricao" th:text="${log.descricao}">Descrição</p>
+                        <p class="timeline-detalhe" th:if="${log.detalhe != null}" th:text="${log.detalhe}"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script th:src="@{/js/theme-toggle.js}"></script>
+    <script th:inline="javascript">
+        const CSRF_TOKEN  = /*[[${_csrf.token}]]*/ '';
+        const CSRF_HEADER = /*[[${_csrf.headerName}]]*/ '';
+        const USUARIO_ID  = /*[[${usuarioAdm.id}]]*/ 0;
+
+        function csrfHeaders() {
+            const h = { 'Content-Type': 'application/json' };
+            h[CSRF_HEADER] = CSRF_TOKEN;
+            return h;
+        }
+
+        async function deletarLog(logId) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Excluir log?',
+                text: 'Esta ação não pode ser desfeita.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#e74c3c',
+                background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e1e1e' : '#fff',
+                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#2c3e50',
+            });
+            if (!isConfirmed) return;
+
+            try {
+                const res = await fetch(`/admin/log/${logId}`, {
+                    method: 'DELETE',
+                    headers: csrfHeaders()
+                });
+                const data = await res.json();
+                if (data.sucesso) {
+                    const el = document.getElementById(`log-${logId}`);
+                    if (el) el.remove();
+                    atualizarContador();
+                    checarListaVazia();
+                    toastSucesso('Log removido!');
+                } else {
+                    Swal.fire('Erro', data.erro || 'Falha ao excluir.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Erro', 'Falha de comunicação com o servidor.', 'error');
+            }
+        }
+
+        async function deletarTodosLogs() {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Limpar toda a timeline?',
+                text: 'Todos os registros de atividade deste usuário serão removidos permanentemente.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, limpar tudo',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#c0392b',
+                background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e1e1e' : '#fff',
+                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#2c3e50',
+            });
+            if (!isConfirmed) return;
+
+            try {
+                const res = await fetch(`/admin/usuario/${USUARIO_ID}/logs`, {
+                    method: 'DELETE',
+                    headers: csrfHeaders()
+                });
+                const data = await res.json();
+                if (data.sucesso) {
+                    document.getElementById('lista-logs').innerHTML = '';
+                    checarListaVazia();
+                    toastSucesso('Timeline limpa com sucesso!');
+                } else {
+                    Swal.fire('Erro', data.erro || 'Falha ao limpar.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Erro', 'Falha de comunicação com o servidor.', 'error');
+            }
+        }
+
+        function atualizarContador() {
+            const lista = document.getElementById('lista-logs');
+            const contador = document.getElementById('contador-logs');
+            if (!contador) return;
+            const total = lista ? lista.querySelectorAll('.timeline-item').length : 0;
+            contador.textContent = total;
+        }
+
+        function checarListaVazia() {
+            const lista = document.getElementById('lista-logs');
+            const total = lista ? lista.querySelectorAll('.timeline-item').length : 0;
+            if (total === 0) {
+                lista?.remove();
+                const toolbar = document.querySelector('.adm-timeline-toolbar');
+                if (toolbar) {
+                    toolbar.innerHTML = '<span style="color:var(--text-muted); font-size:0.9rem;">Nenhum registro encontrado.</span>';
+                }
+            }
+        }
+
+        function toastSucesso(msg) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: msg,
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e1e1e' : '#fff',
+                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#2c3e50',
+            });
+        }
+    </script>
+    </body>
+</html>
