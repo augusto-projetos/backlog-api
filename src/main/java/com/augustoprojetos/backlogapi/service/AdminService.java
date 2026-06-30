@@ -57,6 +57,14 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    // Lista os e-mails dos usuários ativos (verificados), para disparo em massa de comunicados
+    public List<String> listarEmailsUsuariosAtivos() {
+        return userRepository.findAll().stream()
+                .filter(u -> u.isEmailVerified() && !adminEmail.equalsIgnoreCase(u.getEmail()))
+                .map(User::getEmail)
+                .collect(Collectors.toList());
+    }
+
     public AdminUserDTO buscarUsuarioPorId(Long id) {
         User u = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));

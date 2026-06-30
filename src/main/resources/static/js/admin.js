@@ -1636,6 +1636,77 @@ function initSistema() {
         });
     }
 
+    // Disparar novidades por e-mail (comunicado em massa via Brevo)
+    const btnEmail = document.getElementById("btn-email-novidades");
+    if (btnEmail) {
+        btnEmail.addEventListener("click", async () => {
+            const texto = document.getElementById("textarea-novidades")?.value?.trim() || "";
+
+            if (!texto) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Campo vazio",
+                    text: "Escreva o comunicado no campo de texto antes de disparar o e-mail.",
+                    background: "#161620",
+                    color: "#f1f1f5",
+                });
+                return;
+            }
+
+            const { isConfirmed } = await Swal.fire({
+                title: "📧 Disparar e-mail para todos os usuários?",
+                html: `O comunicado abaixo será enviado por e-mail para <strong>todos os usuários ativos</strong>:<br><br>`
+                    + `<em style="color:#d1d5db">"${texto.substring(0, 120)}${texto.length > 120 ? '…' : ''}"</em>`
+                    + `<br><br><span style="font-size:0.85rem;color:#9ca3af">O envio roda em segundo plano e pode levar alguns minutos dependendo da quantidade de usuários.</span>`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Disparar e-mail",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#0ea5e9",
+                background: "#161620",
+                color: "#f1f1f5",
+            });
+
+            if (!isConfirmed) return;
+
+            btnEmail.disabled = true;
+            const labelOriginal = btnEmail.innerHTML;
+            btnEmail.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando...';
+
+            try {
+                const res = await fetch("/admin/sistema/novidades/email", {
+                    method: "POST",
+                    headers: getCsrfHeaders(),
+                    body: JSON.stringify({ texto }),
+                });
+                const data = await res.json();
+
+                if (data.sucesso) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "E-mail em disparo!",
+                        html: `Comunicado enviado em segundo plano para <strong>${data.totalDestinatarios}</strong> usuário(s) ativo(s).`,
+                        background: "#161620",
+                        color: "#f1f1f5",
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Não foi possível disparar",
+                        text: data.erro || "Tente novamente em instantes.",
+                        background: "#161620",
+                        color: "#f1f1f5",
+                    });
+                }
+            } catch (err) {
+                Swal.fire({ icon: "error", title: "Erro", text: err.message, background: "#161620", color: "#f1f1f5" });
+            } finally {
+                btnEmail.disabled = false;
+                btnEmail.innerHTML = labelOriginal;
+            }
+        });
+    }
+
     // Limpar novidades
     const btnLimpar = document.getElementById("btn-limpar-novidades");
     if (btnLimpar) {

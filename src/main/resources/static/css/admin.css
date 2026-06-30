@@ -487,6 +487,37 @@ body {
     background: linear-gradient(135deg, #8b5cf6, var(--adm-purple));
 }
 
+/* Botão de disparo de e-mail (comunicado em massa) */
+.btn-adm-email {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    font-size: 0.84rem;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+    white-space: nowrap;
+}
+
+.btn-adm-email:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(14, 165, 233, 0.5);
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+}
+
+.btn-adm-email:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* --- INPUT DE BUSCA --- */
 .busca-wrapper {
     position: relative;
