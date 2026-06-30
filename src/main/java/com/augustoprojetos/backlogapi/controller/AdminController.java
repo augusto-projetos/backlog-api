@@ -4,6 +4,7 @@ import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.service.AdminService;
 import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import com.augustoprojetos.backlogapi.service.AuditLogService;
+import com.augustoprojetos.backlogapi.service.EmailService;
 import com.augustoprojetos.backlogapi.service.SystemConfigService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -33,6 +35,9 @@ public class AdminController {
 
     @Autowired
     private SystemConfigService systemConfigService;
+
+    @Autowired
+    private EmailService emailService;
 
     // --- PAINEL PRINCIPAL ---
 
@@ -408,6 +413,36 @@ public class AdminController {
             systemConfigService.setValor(SystemConfigService.NOVIDADES, texto);
             auditLogService.registrarAcaoSistema("NOVIDADES_ATUALIZADAS", texto.isBlank() ? "(removido)" : texto, getClientIp(request));
             return ResponseEntity.ok(Map.of("sucesso", true, "ativo", !texto.isBlank()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // Dispara o comunicado/novidade por e-mail para todos os usuários ativos (verificados)
+    @PostMapping("/sistema/novidades/email")
+    @ResponseBody
+    public ResponseEntity<?> enviarNovidadesPorEmail(
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
+        try {
+            String texto = body.getOrDefault("texto", "").strip();
+            if (texto.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Escreva uma mensagem no campo de comunicado antes de disparar o e-mail."));
+            }
+
+            List<String> destinatarios = adminService.listarEmailsUsuariosAtivos();
+            if (destinatarios.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Não há usuários ativos para receber o e-mail."));
+            }
+
+            emailService.sendBulkAnnouncementEmail(destinatarios, texto);
+            auditLogService.registrarAcaoSistema(
+                    "NOVIDADES_EMAIL_DISPARADO",
+                    texto + " (" + destinatarios.size() + " destinatário" + (destinatarios.size() == 1 ? "" : "s") + ")",
+                    getClientIp(request)
+            );
+
+            return ResponseEntity.ok(Map.of("sucesso", true, "totalDestinatarios", destinatarios.size()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
