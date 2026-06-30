@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initAcoesConquistas();
     initFechamentoModal();
     initAuditoria();
+    initSistema();
 });
 
 // Função auxiliar para coletar os tokens CSRF das metatags
@@ -1502,4 +1503,204 @@ function escapeHtml(str) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
+}
+
+// --- ABA SISTEMA — Alavancas de controle ---
+
+function initSistema() {
+    // Toggles de alavancas booleanas
+    document.querySelectorAll(".sistema-toggle").forEach(input => {
+        input.addEventListener("change", async (e) => {
+            const chave = e.target.dataset.chave;
+            const novoEstado = e.target.checked;
+
+            const nomes = {
+                MODO_MANUTENCAO:  "Modo Manutenção",
+                MODO_INSTAVEL:    "Modo Instabilidade",
+                SISTEMA_BLOQUEADO:"Bloqueio Total do Sistema",
+                MODO_READONLY:    "Modo Somente-Leitura",
+            };
+
+            const icons = {
+                MODO_MANUTENCAO:  "🛠️",
+                MODO_INSTAVEL:    "⚠️",
+                SISTEMA_BLOQUEADO:"🔒",
+                MODO_READONLY:    "📖",
+            };
+
+            const textoAcao = novoEstado ? "ATIVAR" : "DESATIVAR";
+            const corBotao  = novoEstado
+                ? (chave === "SISTEMA_BLOQUEADO" ? "#dc2626" : "#7c3aed")
+                : "#6b7280";
+
+            // Reverte o toggle visualmente enquanto aguarda confirmação
+            e.target.checked = !novoEstado;
+
+            const { isConfirmed } = await Swal.fire({
+                title: `${icons[chave] || "⚙️"} Confirmar ação`,
+                html: `Você deseja <strong>${textoAcao}</strong> a alavanca<br><em>${nomes[chave] || chave}</em>?`,
+                icon: novoEstado && chave === "SISTEMA_BLOQUEADO" ? "warning" : "question",
+                showCancelButton: true,
+                confirmButtonText: textoAcao,
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: corBotao,
+                background: "#161620",
+                color: "#f1f1f5",
+            });
+
+            if (!isConfirmed) return;
+
+            try {
+                const res = await fetch(`/admin/sistema/toggle/${chave}`, {
+                    method: "POST",
+                    headers: getCsrfHeaders(),
+                });
+                const data = await res.json();
+
+                if (data.sucesso) {
+                    // Aplica o novo estado
+                    e.target.checked = data.ativo;
+                    atualizarBadgeSistema(chave, data.ativo);
+
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "success",
+                        title: data.ativo ? `${nomes[chave]} ativado` : `${nomes[chave]} desativado`,
+                        showConfirmButton: false,
+                        timer: 2500,
+                        background: "#161620",
+                        color: "#f1f1f5",
+                    });
+                } else {
+                    throw new Error(data.erro || "Erro desconhecido");
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Erro",
+                    text: err.message || "Não foi possível alterar a configuração.",
+                    background: "#161620",
+                    color: "#f1f1f5",
+                });
+            }
+        });
+    });
+
+    // Salvar novidades
+    const btnSalvar = document.getElementById("btn-salvar-novidades");
+    if (btnSalvar) {
+        btnSalvar.addEventListener("click", async () => {
+            const texto = document.getElementById("textarea-novidades")?.value?.trim() || "";
+
+            const { isConfirmed } = await Swal.fire({
+                title: "📢 Salvar comunicado?",
+                html: texto
+                    ? `O seguinte comunicado será exibido para todos os usuários:<br><br><em style="color:#d1d5db">"${texto.substring(0, 80)}${texto.length > 80 ? '…' : ''}"</em>`
+                    : "O campo está vazio. Isso <strong>removerá</strong> o comunicado ativo.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Salvar",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#7c3aed",
+                background: "#161620",
+                color: "#f1f1f5",
+            });
+
+            if (!isConfirmed) return;
+
+            try {
+                const res = await fetch("/admin/sistema/novidades", {
+                    method: "POST",
+                    headers: getCsrfHeaders(),
+                    body: JSON.stringify({ texto }),
+                });
+                const data = await res.json();
+
+                if (data.sucesso) {
+                    atualizarBadgeSistema("NOVIDADES", data.ativo);
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "success",
+                        title: data.ativo ? "Comunicado salvo e ativo" : "Comunicado removido",
+                        showConfirmButton: false,
+                        timer: 2500,
+                        background: "#161620",
+                        color: "#f1f1f5",
+                    });
+                }
+            } catch (err) {
+                Swal.fire({ icon: "error", title: "Erro", text: err.message, background: "#161620", color: "#f1f1f5" });
+            }
+        });
+    }
+
+    // Limpar novidades
+    const btnLimpar = document.getElementById("btn-limpar-novidades");
+    if (btnLimpar) {
+        btnLimpar.addEventListener("click", async () => {
+            const { isConfirmed } = await Swal.fire({
+                title: "Remover comunicado?",
+                text: "O comunicado será apagado e não aparecerá mais para os usuários.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Remover",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#dc2626",
+                background: "#161620",
+                color: "#f1f1f5",
+            });
+
+            if (!isConfirmed) return;
+
+            const textarea = document.getElementById("textarea-novidades");
+            if (textarea) textarea.value = "";
+
+            try {
+                const res = await fetch("/admin/sistema/novidades", {
+                    method: "POST",
+                    headers: getCsrfHeaders(),
+                    body: JSON.stringify({ texto: "" }),
+                });
+                const data = await res.json();
+                if (data.sucesso) {
+                    atualizarBadgeSistema("NOVIDADES", false);
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "success",
+                        title: "Comunicado removido",
+                        showConfirmButton: false,
+                        timer: 2000,
+                        background: "#161620",
+                        color: "#f1f1f5",
+                    });
+                }
+            } catch (err) {
+                Swal.fire({ icon: "error", title: "Erro", text: err.message, background: "#161620", color: "#f1f1f5" });
+            }
+        });
+    }
+}
+
+// Atualiza visualmente o badge de status de uma alavanca
+function atualizarBadgeSistema(chave, ativo) {
+    // Badge dentro do card
+    const card = document.getElementById(`card-${chave}`);
+    if (!card) return;
+
+    const badge = card.querySelector(".sistema-badge");
+    if (!badge) return;
+
+    badge.classList.remove("ativo", "inativo", "danger");
+
+    if (ativo) {
+        badge.classList.add("ativo");
+        badge.textContent = chave === "SISTEMA_BLOQUEADO" ? "● BLOQUEADO" : "● Ativo";
+        if (chave === "SISTEMA_BLOQUEADO") badge.classList.add("danger");
+    } else {
+        badge.classList.add("inativo");
+        badge.textContent = "○ Inativo";
+    }
 }

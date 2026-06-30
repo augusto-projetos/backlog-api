@@ -20,6 +20,68 @@
 
     <body>
 
+        <div th:if="${sistemaReadonly ?: false}" 
+            style="background: linear-gradient(90deg, #f59e0b, #d97706); 
+                    color: #0d0d12; text-align: center; padding: 10px 20px; 
+                    font-size: 0.85rem; font-weight: 700; position: sticky; 
+                    top: 0; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+                    display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>📖</span>
+            <span><strong>Modo Somente-Leitura Ativo:</strong> Criações e modificações de itens estão suspensas temporariamente para manutenção.</span>
+        </div>
+
+        <!-- --- ANÚNCIO DO SISTEMA (manutenção / instabilidade / novidades) --- -->
+        <div id="anuncio-sistema" th:if="${(sistemaManutencao ?: false) or (sistemaInstavel ?: false) or (sistemaReadonly ?: false) or sistemaNovidades != null}"
+             style="
+                position:fixed;inset:0;z-index:99999;
+                display:flex;align-items:center;justify-content:center;
+                background:rgba(4,4,6,0.88);backdrop-filter:blur(8px);
+                padding:20px; transition: opacity 0.25s ease;">
+            
+            <div id="anuncio-dados-carrossel" style="display:none;"
+                 th:data-manutencao="${sistemaManutencao ?: false}"
+                 th:data-instavel="${sistemaInstavel ?: false}"
+                 th:data-readonly="${sistemaReadonly ?: false}"
+                 th:data-novidades="${sistemaNovidades}"></div>
+
+            <div style="
+                background:#161620;border-radius:20px;
+                padding:35px 28px;max-width:460px;width:100%;
+                text-align:center;box-shadow:0 12px 50px rgba(0,0,0,0.7);
+                border:1px solid rgba(255,255,255,0.08);
+                display:flex;flex-direction:column;align-items:center;gap:16px;">
+
+                <div id="carrossel-conteudo" style="width:100%; transition: opacity 0.2s ease;">
+                    <span id="slide-icone" style="font-size:3rem">⚙️</span>
+                    <p id="slide-titulo" style="font-size:1.2rem;font-weight:700;color:#fff;margin-top:8px;"></p>
+                    <p id="slide-descricao" style="font-size:0.9rem;color:#9ca3af;line-height:1.6;margin-top:6px;"></p>
+                </div>
+
+                <div id="carrossel-indicadores" style="display:flex; gap:6px; justify-content:center; margin-top:4px;"></div>
+
+                <div style="width:100%;height:5px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;margin-top:4px;">
+                    <div id="anuncio-barra"
+                         style="height:100%;width:100%;border-radius:99px;
+                                background:linear-gradient(90deg,#7c3aed,#e94560);
+                                transition:width 0.05s linear;">
+                    </div>
+                </div>
+                
+                <p id="anuncio-countdown" style="font-size:0.78rem;color:#6b7280; margin:0;"></p>
+                
+                <button id="btn-fechar-anuncio" onclick="fecharAnuncio()" style="
+                    background:linear-gradient(135deg, #7c3aed, #6d28d9);
+                    border:none;color:#fff;border-radius:10px;
+                    padding:12px 28px;cursor:pointer;width:100%;
+                    font-family:inherit;font-size:0.88rem;font-weight:600;
+                    box-shadow:0 4px 12px rgba(124,58,237,0.3);
+                    transition:all .2s;display:none;">
+                    Entendido & Entrar
+                </button>
+            </div>
+        </div>
+        <!-- --- FIM ANÚNCIO --- -->
+
         <header class="app-header">
 
             <div class="header-info">

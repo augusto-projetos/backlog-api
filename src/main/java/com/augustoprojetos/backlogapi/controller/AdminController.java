@@ -4,6 +4,7 @@ import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.service.AdminService;
 import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import com.augustoprojetos.backlogapi.service.AuditLogService;
+import com.augustoprojetos.backlogapi.service.SystemConfigService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,9 @@ public class AdminController {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private SystemConfigService systemConfigService;
+
     // --- PAINEL PRINCIPAL ---
 
     @GetMapping({"", "/"})
@@ -40,6 +44,8 @@ public class AdminController {
         model.addAttribute("conquistas", adminService.listarConquistas());
         // Badge da aba de auditoria
         model.addAttribute("totalAuditLogs", auditLogService.contarTotal());
+        // Configurações do sistema (aba Sistema)
+        model.addAttribute("systemConfigs", systemConfigService.mapaConfigs());
         return "admin/painel";
     }
 
@@ -366,6 +372,45 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<?> getAcoesAuditoria() {
         return ResponseEntity.ok(auditLogService.listarAcoesDistintas());
+    }
+
+    // --- SISTEMA ---
+
+    @GetMapping("/api/sistema/configs")
+    @ResponseBody
+    public ResponseEntity<?> getSistemaConfigs() {
+        return ResponseEntity.ok(systemConfigService.mapaConfigs());
+    }
+
+    @PostMapping("/sistema/toggle/{chave}")
+    @ResponseBody
+    public ResponseEntity<?> toggleSistema(
+            @PathVariable String chave,
+            HttpServletRequest request) {
+        try {
+            systemConfigService.toggle(chave);
+            boolean novoValor = systemConfigService.isAtivo(chave);
+            String descAcao = novoValor ? "SISTEMA_ATIVADO" : "SISTEMA_DESATIVADO";
+            auditLogService.registrarAcaoSistema(descAcao, chave, getClientIp(request));
+            return ResponseEntity.ok(Map.of("sucesso", true, "ativo", novoValor));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/sistema/novidades")
+    @ResponseBody
+    public ResponseEntity<?> atualizarNovidades(
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
+        try {
+            String texto = body.getOrDefault("texto", "").strip();
+            systemConfigService.setValor(SystemConfigService.NOVIDADES, texto);
+            auditLogService.registrarAcaoSistema("NOVIDADES_ATUALIZADAS", texto.isBlank() ? "(removido)" : texto, getClientIp(request));
+            return ResponseEntity.ok(Map.of("sucesso", true, "ativo", !texto.isBlank()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
     }
 
     // --- HELPER: IP DO CLIENTE ---

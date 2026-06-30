@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,62 @@
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
         <link rel="stylesheet" th:href="@{/css/index.css}">
+
+        <!-- Estilos extras para modo bloqueado -->
+        <style>
+            .bloqueio-overlay {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 16px;
+                padding: 28px 20px;
+                background: rgba(24, 10, 10, 0.75);
+                border: 1.5px solid rgba(220, 38, 38, 0.4);
+                border-radius: 18px;
+                box-shadow: 0 0 40px rgba(220, 38, 38, 0.15);
+                max-width: 500px;
+                width: 100%;
+                margin: 20px auto;
+                text-align: center;
+                max-height: 82vh; /* Impede que estufe para fora da viewport */
+                overflow-y: auto;  /* Permite rolar caso o texto seja gigante */
+            }
+            .bloqueio-icon { font-size: 3.2rem; line-height: 1; }
+            .bloqueio-titulo {
+                font-size: 1.35rem;
+                font-weight: 800;
+                color: #ef4444;
+                letter-spacing: -0.4px;
+                margin: 0;
+            }
+            .bloqueio-msg {
+                font-size: 0.88rem;
+                color: #fca5a5;
+                line-height: 1.6;
+                margin: 0;
+            }
+            .bloqueio-badge {
+                font-size: 0.7rem;
+                font-weight: 700;
+                color: #ef4444;
+                background: rgba(220, 38, 38, 0.12);
+                border: 1px solid rgba(220, 38, 38, 0.25);
+                border-radius: 100px;
+                padding: 4px 12px;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }
+            
+            @media (max-width: 480px) {
+                .bloqueio-overlay {
+                    padding: 22px 16px;
+                    max-height: 75vh;
+                }
+                .bloqueio-titulo { font-size: 1.15rem; }
+                .bloqueio-msg { font-size: 0.82rem; }
+            }
+        </style>
     </head>
     <body>
 
@@ -17,12 +73,30 @@
         <main class="container">
             <span class="icon">🎮</span>
             <h1>Meus Backlog</h1>
-            <p>Sua coleção, suas regras.<br>Organize os jogos que você zerou e os filmes que assistiu.</p>
 
-            <div class="btn-group">
-                <a href="/login" class="btn btn-primary">Acessar Sistema</a>
-                <a href="/register" class="btn btn-outline">Criar Conta</a>
-            </div>
+            <!-- Modo NORMAL -->
+            <th:block th:unless="${sistemaBloqueado ?: false}">
+                <p>Sua coleção, suas regras.<br>Organize os jogos que você zerou e os filmes que assistiu.</p>
+
+                <div class="btn-group">
+                    <a href="/login" class="btn btn-primary">Acessar Sistema</a>
+                    <a href="/register" class="btn btn-outline">Criar Conta</a>
+                </div>
+            </th:block>
+
+            <!-- Modo BLOQUEADO -->
+            <th:block th:if="${sistemaBloqueado ?: false}">
+                <div class="bloqueio-overlay">
+                    <span class="bloqueio-icon">🔒</span>
+                    <span class="bloqueio-badge">Sistema Indisponível</span>
+                    <p class="bloqueio-titulo">Sistema bloqueado pelo administrador</p>
+                    <p class="bloqueio-msg">
+                        Por motivos de segurança e proteção dos dados dos usuários,
+                        o acesso ao sistema foi temporariamente suspenso pelo administrador.<br><br>
+                        Tente novamente mais tarde ou entre em contato com o suporte.
+                    </p>
+                </div>
+            </th:block>
         </main>
 
     </body>
