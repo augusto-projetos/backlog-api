@@ -1324,3 +1324,202 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bodyDesbloqueadas) bodyDesbloqueadas.style.maxHeight = 'none';
     if (bodyBloqueadas) { bodyBloqueadas.style.maxHeight = '0'; }
 });
+
+// --- CAPTURADOR GLOBAL DE MODO LEITURA PARA O FETCH ---
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+    try {
+        const response = await originalFetch(...args);
+        
+        // Se o servidor responder com o status 423 (Locked) que configuramos no Java
+        if (response.status === 423) {
+            const data = await response.json();
+            
+            // Dispara o SweetAlert amigável na tela do usuário comum!
+            Swal.fire({
+                icon: 'info',
+                title: '📖 Modo Somente-Leitura',
+                text: data.erro || 'O sistema está temporariamente em manutenção. Criações e edições estão suspensas por alguns instantes.',
+                confirmButtonColor: '#7c3aed',
+                background: '#161620',
+                color: '#f1f1f5'
+            });
+            
+            // Interrompe o fluxo lançando um erro controlado para não quebrar o resto do js
+            throw new Error("Sistema em Modo Somente-Leitura.");
+        }
+        
+        return response;
+    } catch (error) {
+        // Se for o nosso erro do Modo Leitura, não exibe a mensagem de queda de servidor
+        if (error.message === "Sistema em Modo Somente-Leitura.") {
+            throw error;
+        }
+        // Repassa os outros erros normais para o catch original da função
+        throw error;
+    }
+};
+
+// --- LÓGICA DO ANÚNCIO DE SISTEMA (5s) ---
+document.addEventListener("DOMContentLoaded", function() {
+    const overlay = document.getElementById('anuncio-sistema');
+    const dadosEl = document.getElementById('anuncio-dados-carrossel');
+    if (!overlay || !dadosEl) return;
+
+    // 1. GERA A ASSINATURA DE SEGURANÇA CONTRA LOOPS
+    const mActive = dadosEl.getAttribute('data-manutencao') === 'true';
+    const iActive = dadosEl.getAttribute('data-instavel') === 'true';
+    const rActive = dadosEl.getAttribute('data-readonly') === 'true';
+    const nText   = dadosEl.getAttribute('data-novidades') || '';
+    
+    const assinaturaAtual = `${mActive}_${iActive}_${rActive}_${nText}`;
+
+    if (sessionStorage.getItem('anuncio_assinatura') === assinaturaAtual) {
+        overlay.style.display = 'none';
+        return;
+    }
+
+    // 2. MONTA A FILA DE SLIDES BASEADO NO QUE ESTÁ ATIVO NO BANCO DE DADOS
+    const slidesFila = [];
+
+    if (mActive) {
+        slidesFila.push({
+            icone: '🛠️', titulo: 'Sistema em manutenção', cor: '#fbbf24',
+            desc: 'Estamos realizando melhorias estruturais na plataforma. Algumas ações podem apresentar lentidão temporária.'
+        });
+    }
+    if (iActive) {
+        slidesFila.push({
+            icone: '⚠️', titulo: 'Instabilidade identificada', cor: '#f97316',
+            desc: 'Detectamos oscilações no servidor de banco de dados. Nossa equipe já está trabalhando na correção dos bugs!'
+        });
+    }
+    if (nText && nText.trim() !== '') {
+        slidesFila.push({
+            icone: '📢', titulo: 'Comunicado Importante', cor: '#a855f7',
+            desc: nText
+        });
+    }
+    if (rActive) {
+        slidesFila.push({
+            icone: '📖', titulo: 'Modo Somente-Leitura', cor: '#f59e0b',
+            desc: 'O sistema está passando por uma manutenção preventiva. Você pode navegar pelo seu backlog, mas adições e edições estão suspensas temporariamente.'
+        });
+    }
+
+    if (slidesFila.length === 0) {
+        overlay.style.display = 'none';
+        return;
+    }
+
+    // 3. ESTRUTURA VARIÁVEIS DE CONTROLE DO CARROSSEL
+    let slideIndexAtual = 0;
+    const duracaoPorSlide = 5000; // 5 segundos por tela
+    let tempoInicioSlide = Date.now();
+    let intervaloLoop = null;
+
+    const conteudoContainer = document.getElementById('carrossel-conteudo');
+    const iconeEl = document.getElementById('slide-icone');
+    const tituloEl = document.getElementById('slide-titulo');
+    const descEl = document.getElementById('slide-descricao');
+    const barraEl = document.getElementById('anuncio-barra');
+    const countdownEl = document.getElementById('anuncio-countdown');
+    const btnFecharEl = document.getElementById('btn-fechar-anuncio');
+    const indicadoresContainer = document.getElementById('carrossel-indicators') || document.getElementById('carrossel-indicadores');
+
+    // Cria as bolinhas indicadoras na tela (Dots)
+    if (indicadoresContainer) {
+        indicadoresContainer.innerHTML = slidesFila.map((_, idx) => 
+            `<div id="dot-${idx}" style="width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.2); transition:all 0.2s;"></div>`
+        ).join('');
+    }
+
+    // Função que renderiza e atualiza os textos de cada slide aplicando efeito fade
+    function exibirSlide(index) {
+        if (index >= slidesFila.length) return;
+        
+        const dadosSlide = slidesFila[index];
+        
+        // Efeito de transição suave (Fade Out)
+        conteudoContainer.style.opacity = '0';
+        
+        setTimeout(() => {
+            // Injeta as informações do slide atual
+            iconeEl.textContent = dadosSlide.icone;
+            tituloEl.textContent = dadosSlide.titulo;
+            tituloEl.style.color = dadosSlide.cor;
+            descEl.innerHTML = dadosSlide.desc;
+            
+            // Atualiza as bolinhas indicadoras (Dots)
+            slidesFila.forEach((_, idx) => {
+                const dot = document.getElementById(`dot-${idx}`);
+                if (dot) {
+                    dot.style.background = (idx === index) ? '#7c3aed' : 'rgba(255,255,255,0.2)';
+                    dot.style.transform = (idx === index) ? 'scale(1.2)' : 'scale(1)';
+                }
+            });
+
+            // Restaura visibilidade (Fade In)
+            conteudoContainer.style.opacity = '1';
+            
+            // Só reinicia o cronômetro agora, depois que o slide já trocou fisicamente na tela
+            tempoInicioSlide = Date.now(); 
+        }, 180);
+    }
+
+    // Inicializa exibindo o primeiro aviso da fila
+    exibirSlide(slideIndexAtual);
+
+    // 4. LOOP DO CRONÔMETRO DE CONTROLE DA BARRA DE PROGRESSO
+    intervaloLoop = setInterval(() => {
+        // Se o tempoInicioSlide estiver travado temporariamente pelo avanço de slide, ignora o ciclo
+        if (!tempoInicioSlide) return;
+
+        const tempoPassado = Date.now() - tempoInicioSlide;
+        const restante = Math.max(0, duracaoPorSlide - tempoPassado);
+        const porcentagemBarra = (restante / duracaoPorSlide) * 100;
+        
+        if (barraEl) barraEl.style.width = porcentagemBarra + '%';
+        
+        // Formata a contagem regressiva exibindo o painel de paginação de avisos
+        const segundosTexto = Math.ceil(restante / 1000);
+        if (countdownEl) {
+            if (slideIndexAtual < slidesFila.length - 1) {
+                countdownEl.innerHTML = `Aviso <b>${slideIndexAtual + 1}</b> de <b>${slidesFila.length}</b> · Próximo em <b>${segundosTexto}</b>s…`;
+            } else {
+                countdownEl.innerHTML = `Pronto para liberar em <b>${segundosTexto}</b>s…`;
+            }
+        }
+        
+        // Quando a barra chega no final do slide atual (5 segundos se passaram)
+        if (tempoPassado >= duracaoPorSlide) {
+            // Destrói o tempo imediatamente para congelar o loop durante a transição
+            tempoInicioSlide = null; 
+
+            if (slideIndexAtual < slidesFila.length - 1) {
+                // Passa para o próximo aviso da fila de forma cadenciada
+                slideIndexAtual++;
+                exibirSlide(slideIndexAtual);
+            } else {
+                // Chegou ao fim de todos os avisos! Para o relógio e libera o acesso ao sistema
+                clearInterval(intervaloLoop);
+                if (countdownEl) countdownEl.style.display = 'none';
+                if (barraEl) barraEl.parentElement.style.display = 'none';
+                if (indicadoresContainer) indicadoresContainer.style.display = 'none';
+                if (btnFecharEl) btnFecharEl.style.display = 'block'; // Libera o botão de entrar!
+            }
+        }
+    }, 45);
+
+    // Função de fechamento salvando o carimbo para dar paz na navegação interna
+    window.fecharAnuncio = function() {
+        clearInterval(intervaloLoop);
+        sessionStorage.setItem('anuncio_assinatura', signatureGen || assinaturaAtual);
+        
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 250);
+    };
+    
+    // Pequeno fallback dinâmico caso a assinatura precise passar injetada
+    const signatureGen = assinaturaAtual;
+});

@@ -53,6 +53,7 @@
                 <button class="adm-tab" data-tab="auditoria">
                     🔐 Auditoria <span class="audit-badge" th:text="${totalAuditLogs > 0 ? totalAuditLogs : ''}"></span>
                 </button>
+                <button class="adm-tab" data-tab="sistema">⚙️ Sistema</button>
             </nav>
         </div>
 
@@ -485,6 +486,150 @@
 
             <!-- Paginação -->
             <div class="audit-paginacao" id="audit-paginacao"></div>
+
+        </section>
+
+        <!-- --- ABA: SISTEMA --- -->
+        <section id="tab-sistema" class="adm-section">
+
+            <div class="audit-toolbar">
+                <h3 class="audit-title">⚙️ Gerenciamento do Sistema</h3>
+                <p class="audit-subtitle">Controle o comportamento global da plataforma. Cada alteração é registrada no log de auditoria.</p>
+            </div>
+
+            <!-- GRID DE ALAVANCAS -->
+            <div class="sistema-grid">
+
+                <!-- Alavanca: Manutenção -->
+                <div class="sistema-card" id="card-MODO_MANUTENCAO">
+                    <div class="sistema-card-header">
+                        <span class="sistema-icon">🛠️</span>
+                        <div class="sistema-info">
+                            <h4 class="sistema-titulo">Modo Manutenção</h4>
+                            <p class="sistema-desc">Exibe um aviso de 5s antes da home informando que o sistema está em atualização.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="toggle-input sistema-toggle"
+                                   data-chave="MODO_MANUTENCAO"
+                                   th:checked="${systemConfigs['MODO_MANUTENCAO'] == 'true'}">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="sistema-status-bar">
+                        <span class="sistema-badge"
+                              th:classappend="${systemConfigs['MODO_MANUTENCAO'] == 'true'} ? 'ativo' : 'inativo'"
+                              th:text="${systemConfigs['MODO_MANUTENCAO'] == 'true'} ? '● Ativo' : '○ Inativo'">
+                        </span>
+                        <span class="sistema-afeta">Afeta: todos os usuários logados</span>
+                    </div>
+                </div>
+
+                <!-- Alavanca: Instabilidade -->
+                <div class="sistema-card" id="card-MODO_INSTAVEL">
+                    <div class="sistema-card-header">
+                        <span class="sistema-icon">⚠️</span>
+                        <div class="sistema-info">
+                            <h4 class="sistema-titulo">Modo Instabilidade</h4>
+                            <p class="sistema-desc">Exibe aviso de 5s avisando que bugs podem estar presentes e o sistema pode estar instável.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="toggle-input sistema-toggle"
+                                   data-chave="MODO_INSTAVEL"
+                                   th:checked="${systemConfigs['MODO_INSTAVEL'] == 'true'}">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="sistema-status-bar">
+                        <span class="sistema-badge"
+                              th:classappend="${systemConfigs['MODO_INSTAVEL'] == 'true'} ? 'ativo' : 'inativo'"
+                              th:text="${systemConfigs['MODO_INSTAVEL'] == 'true'} ? '● Ativo' : '○ Inativo'">
+                        </span>
+                        <span class="sistema-afeta">Afeta: todos os usuários logados</span>
+                    </div>
+                </div>
+
+                <!-- Alavanca: Bloqueio Total -->
+                <div class="sistema-card sistema-card-danger" id="card-SISTEMA_BLOQUEADO">
+                    <div class="sistema-card-header">
+                        <span class="sistema-icon">🔒</span>
+                        <div class="sistema-info">
+                            <h4 class="sistema-titulo">Bloqueio Total</h4>
+                            <p class="sistema-desc">
+                                <strong style="color:#ef4444">Ação radical.</strong>
+                                Bloqueia o sistema inteiro. Usuários são redirecionados ao index com mensagem de bloqueio por segurança.
+                            </p>
+                        </div>
+                        <label class="toggle-switch toggle-switch-danger">
+                            <input type="checkbox" class="toggle-input sistema-toggle"
+                                   data-chave="SISTEMA_BLOQUEADO"
+                                   th:checked="${systemConfigs['SISTEMA_BLOQUEADO'] == 'true'}">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="sistema-status-bar">
+                        <span class="sistema-badge"
+                              th:classappend="${systemConfigs['SISTEMA_BLOQUEADO'] == 'true'} ? 'ativo danger' : 'inativo'"
+                              th:text="${systemConfigs['SISTEMA_BLOQUEADO'] == 'true'} ? '● BLOQUEADO' : '○ Inativo'">
+                        </span>
+                        <span class="sistema-afeta">Afeta: TODOS (exceto admin)</span>
+                    </div>
+                </div>
+
+                <!-- Alavanca: Modo Somente-Leitura -->
+                <div class="sistema-card" id="card-MODO_READONLY">
+                    <div class="sistema-card-header">
+                        <span class="sistema-icon">📖</span>
+                        <div class="sistema-info">
+                            <h4 class="sistema-titulo">Modo Somente-Leitura</h4>
+                            <p class="sistema-desc">Desativa criação e edição de itens para todos os usuários. O backlog fica em modo visualização.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="toggle-input sistema-toggle"
+                                   data-chave="MODO_READONLY"
+                                   th:checked="${systemConfigs['MODO_READONLY'] == 'true'}">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="sistema-status-bar">
+                        <span class="sistema-badge"
+                              th:classappend="${systemConfigs['MODO_READONLY'] == 'true'} ? 'ativo' : 'inativo'"
+                              th:text="${systemConfigs['MODO_READONLY'] == 'true'} ? '● Ativo' : '○ Inativo'">
+                        </span>
+                        <span class="sistema-afeta">Afeta: todos os usuários logados</span>
+                    </div>
+                </div>
+
+                <!-- Campo: Novidades / Comunicado -->
+                <div class="sistema-card sistema-card-full" id="card-NOVIDADES">
+                    <div class="sistema-card-header">
+                        <span class="sistema-icon">📢</span>
+                        <div class="sistema-info">
+                            <h4 class="sistema-titulo">Comunicado / Novidades</h4>
+                            <p class="sistema-desc">Exibe uma mensagem personalizada como anúncio de 5s antes da home. Deixe vazio para desativar.</p>
+                        </div>
+                        <span class="sistema-badge"
+                              id="badge-NOVIDADES"
+                              th:classappend="${systemConfigs['NOVIDADES'] != null and !#strings.isEmpty(systemConfigs['NOVIDADES'])} ? 'ativo' : 'inativo'"
+                              th:text="${systemConfigs['NOVIDADES'] != null and !#strings.isEmpty(systemConfigs['NOVIDADES'])} ? '● Ativo' : '○ Inativo'">
+                        </span>
+                    </div>
+                    <div class="novidades-form">
+                        <textarea id="textarea-novidades" class="novidades-textarea"
+                                  placeholder="Ex: Nova funcionalidade de timeline lançada! Confira no menu."
+                                  rows="3"
+                                  th:text="${systemConfigs['NOVIDADES']}"></textarea>
+                        <div class="novidades-actions">
+                            <button id="btn-salvar-novidades" class="btn-adm-primary btn-sm-adm">
+                                <i class="fa fa-save"></i> Salvar comunicado
+                            </button>
+                            <button id="btn-limpar-novidades" class="btn-audit-limpar btn-sm-adm">
+                                <i class="fa fa-times"></i> Remover
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
 
         </section>
 

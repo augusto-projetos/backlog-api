@@ -1633,3 +1633,211 @@ body {
     border-color: var(--adm-border, #2a2a3a);
     color: var(--adm-text, #e0e0e0);
 }
+
+/* --- ABA SISTEMA — Gerenciamento de alavancas --- */
+
+.sistema-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 18px;
+    padding: 4px 2px;
+}
+
+.sistema-card-full {
+    grid-column: 1 / -1;
+}
+
+.sistema-card {
+    background: var(--adm-card, #161620);
+    border: 1px solid var(--adm-border, rgba(255,255,255,0.07));
+    border-radius: var(--adm-radius, 14px);
+    padding: 22px 22px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sistema-card:hover {
+    border-color: rgba(124,58,237,0.3);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+
+.sistema-card-danger {
+    border-color: rgba(239,68,68,0.25);
+}
+
+.sistema-card-danger:hover {
+    border-color: rgba(239,68,68,0.5);
+    box-shadow: 0 4px 24px rgba(239,68,68,0.1);
+}
+
+.sistema-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.sistema-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.sistema-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sistema-titulo {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--adm-text, #f1f1f5);
+    margin: 0 0 4px 0;
+}
+
+.sistema-desc {
+    font-size: 0.8rem;
+    color: var(--adm-muted, #9ca3af);
+    line-height: 1.55;
+    margin: 0;
+}
+
+.sistema-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sistema-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.sistema-badge.inativo {
+    background: rgba(255,255,255,0.05);
+    color: var(--adm-muted, #6b7280);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.sistema-badge.ativo {
+    background: rgba(16,185,129,0.12);
+    color: #10b981;
+    border: 1px solid rgba(16,185,129,0.3);
+}
+
+.sistema-badge.ativo.danger {
+    background: rgba(239,68,68,0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.3);
+}
+
+.sistema-afeta {
+    font-size: 0.72rem;
+    color: var(--adm-muted, #6b7280);
+    font-style: italic;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 26px;
+    transition: background 0.25s;
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.25s, background 0.25s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.toggle-input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-color: rgba(168,85,247,0.4);
+}
+
+.toggle-input:checked + .toggle-slider::before {
+    transform: translateY(-50%) translateX(22px);
+}
+
+.toggle-switch-danger .toggle-input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    border-color: rgba(239,68,68,0.4);
+}
+
+/* Textarea de novidades */
+.novidades-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.novidades-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--adm-border, rgba(255,255,255,0.08));
+    border-radius: 10px;
+    color: var(--adm-text, #f1f1f5);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+.novidades-textarea:focus {
+    border-color: rgba(124,58,237,0.5);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+}
+
+.novidades-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-sm-adm {
+    padding: 8px 18px !important;
+    font-size: 0.82rem !important;
+}
+
+@media (max-width: 640px) {
+    .sistema-grid { grid-template-columns: 1fr; }
+    .sistema-card-header { flex-wrap: wrap; }
+}
