@@ -172,6 +172,16 @@ public class AuditLogService {
 
     // --- INTERNAL ---
 
+    public void registrarAcaoSistema(String acao, String detalhe, String ip) {
+        AuditLog log = new AuditLog();
+        log.setAcao(acao);
+        log.setDescricao("Configuração do sistema alterada: " + detalhe);
+        log.setDetalhe(detalhe);
+        log.setAlvoTipo("SISTEMA");
+        log.setIp(ip);
+        salvar(log);
+    }
+
     private void salvar(AuditLog log) {
         try {
             repository.save(log);
