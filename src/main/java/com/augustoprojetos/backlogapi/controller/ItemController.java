@@ -180,8 +180,17 @@ public class ItemController {
     // 5. BUSCAR UM
     @GetMapping("/itens/{id}")
     @ResponseBody
-    public Item buscarPorId(@PathVariable Long id) {
-        return itemRepository.findById(id).orElse(null);
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id,
+                                          @AuthenticationPrincipal User userLogado) {
+        Item item = itemRepository.findById(id).orElse(null);
+        if (item == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Verifica se o item pertence ao usuário logado
+        if (userLogado == null || !item.getUser().getId().equals(userLogado.getId())) {
+            return ResponseEntity.status(403).body(Map.of("erro", "Acesso negado."));
+        }
+        return ResponseEntity.ok(item);
     }
 
     // 6. BUSCAR CAPA
