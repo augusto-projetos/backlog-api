@@ -387,6 +387,22 @@ public class AdminController {
         return ResponseEntity.ok(systemConfigService.mapaConfigs());
     }
 
+    // Retorna a lista de usuários ativos (id, login, email) para o seletor de destinatários do comunicado
+    @GetMapping("/api/usuarios-para-email")
+    @ResponseBody
+    public ResponseEntity<?> getUsuariosParaEmail() {
+        List<Map<String, Object>> lista = adminService.listarUsuariosAtivos().stream()
+                .map(u -> {
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("id",    u.getId());
+                    m.put("login", u.getLogin());
+                    m.put("email", u.getEmail());
+                    return m;
+                })
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(lista);
+    }
+
     @PostMapping("/sistema/toggle/{chave}")
     @ResponseBody
     public ResponseEntity<?> toggleSistema(
@@ -418,31 +434,43 @@ public class AdminController {
         }
     }
 
-    // Dispara o comunicado/novidade por e-mail para todos os usuários ativos (verificados)
+    // Dispara o comunicado por e-mail para os destinatários selecionados pelo admin
     @PostMapping("/sistema/novidades/email")
     @ResponseBody
     public ResponseEntity<?> enviarNovidadesPorEmail(
-            @RequestBody Map<String, String> body,
+            @RequestBody Map<String, Object> body,
             HttpServletRequest request) {
         try {
-            String texto = body.getOrDefault("texto", "").strip();
+            String texto = ((String) body.getOrDefault("texto", "")).strip();
             if (texto.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("erro", "Escreva uma mensagem no campo de comunicado antes de disparar o e-mail."));
             }
 
-            List<String> destinatarios = adminService.listarEmailsUsuariosAtivos();
-            if (destinatarios.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("erro", "Não há usuários ativos para receber o e-mail."));
+            @SuppressWarnings("unchecked")
+            List<String> destinatarios = (List<String>) body.get("destinatarios");
+            if (destinatarios == null || destinatarios.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Nenhum destinatário selecionado."));
             }
 
-            emailService.sendBulkAnnouncementEmail(destinatarios, texto);
+            // Garante que apenas e-mails de usuários ativos sejam aceitos (evita injeção de e-mails externos)
+            List<String> ativos = adminService.listarEmailsUsuariosAtivos();
+            List<String> destinatariosValidados = destinatarios.stream()
+                    .filter(ativos::contains)
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+
+            if (destinatariosValidados.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Nenhum dos e-mails selecionados corresponde a um usuário ativo."));
+            }
+
+            emailService.sendBulkAnnouncementEmail(destinatariosValidados, texto);
             auditLogService.registrarAcaoSistema(
                     "NOVIDADES_EMAIL_DISPARADO",
-                    texto + " (" + destinatarios.size() + " destinatário" + (destinatarios.size() == 1 ? "" : "s") + ")",
+                    texto + " (" + destinatariosValidados.size() + " destinatário" + (destinatariosValidados.size() == 1 ? "" : "s") + ")",
                     getClientIp(request)
             );
 
-            return ResponseEntity.ok(Map.of("sucesso", true, "totalDestinatarios", destinatarios.size()));
+            return ResponseEntity.ok(Map.of("sucesso", true, "totalDestinatarios", destinatariosValidados.size()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }

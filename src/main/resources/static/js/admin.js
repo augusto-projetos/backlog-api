@@ -1636,7 +1636,7 @@ function initSistema() {
         });
     }
 
-    // Disparar novidades por e-mail (comunicado em massa via Brevo)
+    // Disparar novidades por e-mail — abre seletor de destinatários
     const btnEmail = document.getElementById("btn-email-novidades");
     if (btnEmail) {
         btnEmail.addEventListener("click", async () => {
@@ -1653,57 +1653,7 @@ function initSistema() {
                 return;
             }
 
-            const { isConfirmed } = await Swal.fire({
-                title: "📧 Disparar e-mail para todos os usuários?",
-                html: `O comunicado abaixo será enviado por e-mail para <strong>todos os usuários ativos</strong>:<br><br>`
-                    + `<em style="color:#d1d5db">"${texto.substring(0, 120)}${texto.length > 120 ? '…' : ''}"</em>`
-                    + `<br><br><span style="font-size:0.85rem;color:#9ca3af">O envio roda em segundo plano e pode levar alguns minutos dependendo da quantidade de usuários.</span>`,
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: "Disparar e-mail",
-                cancelButtonText: "Cancelar",
-                confirmButtonColor: "#0ea5e9",
-                background: "#161620",
-                color: "#f1f1f5",
-            });
-
-            if (!isConfirmed) return;
-
-            btnEmail.disabled = true;
-            const labelOriginal = btnEmail.innerHTML;
-            btnEmail.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando...';
-
-            try {
-                const res = await fetch("/admin/sistema/novidades/email", {
-                    method: "POST",
-                    headers: getCsrfHeaders(),
-                    body: JSON.stringify({ texto }),
-                });
-                const data = await res.json();
-
-                if (data.sucesso) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "E-mail em disparo!",
-                        html: `Comunicado enviado em segundo plano para <strong>${data.totalDestinatarios}</strong> usuário(s) ativo(s).`,
-                        background: "#161620",
-                        color: "#f1f1f5",
-                    });
-                } else {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Não foi possível disparar",
-                        text: data.erro || "Tente novamente em instantes.",
-                        background: "#161620",
-                        color: "#f1f1f5",
-                    });
-                }
-            } catch (err) {
-                Swal.fire({ icon: "error", title: "Erro", text: err.message, background: "#161620", color: "#f1f1f5" });
-            } finally {
-                btnEmail.disabled = false;
-                btnEmail.innerHTML = labelOriginal;
-            }
+            abrirModalDestinatarios(texto);
         });
     }
 
@@ -1774,4 +1724,216 @@ function atualizarBadgeSistema(chave, ativo) {
         badge.classList.add("inativo");
         badge.textContent = "○ Inativo";
     }
+}
+
+// --- MODAL: SELETOR DE DESTINATÁRIOS DE E-MAIL ---
+
+let _emailUsuariosCached = null; // cache para evitar fetch repetido na mesma sessão
+
+async function abrirModalDestinatarios(textoComunicado) {
+    const modal   = document.getElementById("modal-email-destinatarios");
+    const lista   = document.getElementById("email-sel-lista");
+    const busca   = document.getElementById("email-sel-busca");
+    const contador = document.getElementById("email-sel-contador");
+    const badge   = document.getElementById("email-sel-badge");
+    const aviso   = document.getElementById("email-sel-vazio-aviso");
+
+    // Abre o modal e zera estado
+    modal.classList.remove("hidden");
+    busca.value = "";
+    aviso.classList.add("hidden");
+    lista.innerHTML = `<p class="empty-modal">⏳ Carregando usuários…</p>`;
+    atualizarContador(0);
+
+    // Carrega lista de usuários (com cache)
+    try {
+        if (!_emailUsuariosCached) {
+            const res = await fetch("/admin/api/usuarios-para-email");
+            _emailUsuariosCached = await res.json();
+        }
+    } catch (err) {
+        lista.innerHTML = `<p class="empty-modal">❌ Erro ao carregar usuários. Tente novamente.</p>`;
+        return;
+    }
+
+    const usuarios = _emailUsuariosCached;
+    if (!usuarios || usuarios.length === 0) {
+        lista.innerHTML = `<p class="empty-modal">Nenhum usuário ativo encontrado.</p>`;
+        return;
+    }
+
+    // Renderiza os itens
+    renderizarLista(usuarios, lista);
+
+    // Evento: pesquisa em tempo real
+    busca.oninput = () => filtrarLista(busca.value.trim().toLowerCase());
+
+    // Evento: selecionar todos
+    document.getElementById("email-sel-todos").onclick = () => {
+        document.querySelectorAll(".email-sel-item:not(.oculto)").forEach(el => marcarItem(el, true));
+        atualizarContador();
+    };
+
+    // Evento: tirar todos
+    document.getElementById("email-sel-nenhum").onclick = () => {
+        document.querySelectorAll(".email-sel-item:not(.oculto)").forEach(el => marcarItem(el, false));
+        atualizarContador();
+    };
+
+    // Evento: confirmar
+    document.getElementById("email-sel-confirmar").onclick = () =>
+        confirmarEnvio(textoComunicado, aviso);
+}
+
+function renderizarLista(usuarios, container) {
+    container.innerHTML = "";
+    usuarios.forEach(u => {
+        const item = document.createElement("div");
+        item.className = "email-sel-item";
+        item.dataset.email = u.email;
+        item.dataset.login = u.login.toLowerCase();
+        item.innerHTML = `
+            <div class="email-sel-check"><i class="fa fa-check"></i></div>
+            <div class="email-sel-info">
+                <span class="email-sel-login">${escapeHtml(u.login)}</span>
+                <span class="email-sel-email">${escapeHtml(u.email)}</span>
+            </div>`;
+        item.addEventListener("click", () => {
+            const selecionado = item.classList.contains("selecionado");
+            marcarItem(item, !selecionado);
+            atualizarContador();
+        });
+        container.appendChild(item);
+    });
+}
+
+function marcarItem(el, selecionado) {
+    el.classList.toggle("selecionado", selecionado);
+}
+
+function filtrarLista(termo) {
+    document.querySelectorAll(".email-sel-item").forEach(el => {
+        const login = el.dataset.login || "";
+        const email = el.dataset.email?.toLowerCase() || "";
+        const visivel = !termo || login.includes(termo) || email.includes(termo);
+        el.classList.toggle("oculto", !visivel);
+    });
+
+    // Aviso de nenhum resultado
+    const lista = document.getElementById("email-sel-lista");
+    const vazio = lista.querySelector(".email-sel-vazio");
+    const temVisivel = [...document.querySelectorAll(".email-sel-item:not(.oculto)")].length > 0;
+    if (!temVisivel && !vazio) {
+        const p = document.createElement("p");
+        p.className = "email-sel-vazio";
+        p.textContent = "Nenhum usuário encontrado para esta pesquisa.";
+        lista.appendChild(p);
+    } else if (temVisivel && vazio) {
+        vazio.remove();
+    }
+}
+
+function atualizarContador(n) {
+    const total = n !== undefined
+        ? n
+        : document.querySelectorAll(".email-sel-item.selecionado").length;
+    const el = document.getElementById("email-sel-contador");
+    if (!el) return;
+    el.textContent = total === 0 ? "0 selecionados"
+        : total === 1 ? "1 selecionado"
+        : `${total} selecionados`;
+    el.classList.toggle("tem-selecao", total > 0);
+}
+
+async function confirmarEnvio(textoComunicado, avisoEl) {
+    const selecionados = [...document.querySelectorAll(".email-sel-item.selecionado")]
+        .map(el => el.dataset.email);
+
+    if (selecionados.length === 0) {
+        avisoEl.classList.remove("hidden");
+        return;
+    }
+    avisoEl.classList.add("hidden");
+
+    // Fecha o modal de seleção
+    document.getElementById("modal-email-destinatarios").classList.add("hidden");
+
+    // Monta texto do resumo de destinatários para o SweetAlert
+    const totalAtivos = _emailUsuariosCached?.length || 0;
+    const todosSelecionados = selecionados.length === totalAtivos;
+
+    const resumoDestinatarios = todosSelecionados
+        ? `<strong>todos os ${selecionados.length} usuários ativos</strong>`
+        : selecionados.length <= 5
+            ? selecionados.map(e => `<code style="font-size:0.8rem">${escapeHtml(e)}</code>`).join(", ")
+            : `<strong>${selecionados.length} usuários selecionados</strong>`;
+
+    const { isConfirmed } = await Swal.fire({
+        title: "📧 Confirmar disparo de e-mail?",
+        html: `O comunicado será enviado para ${resumoDestinatarios}:<br><br>`
+            + `<em style="color:#d1d5db">"${escapeHtml(textoComunicado.substring(0, 120))}${textoComunicado.length > 120 ? '…' : ''}"</em>`
+            + `<br><br><span style="font-size:0.82rem;color:#9ca3af">O envio roda em segundo plano. Pode levar alguns minutos.</span>`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Disparar e-mail",
+        cancelButtonText: "Voltar",
+        confirmButtonColor: "#0ea5e9",
+        background: "#161620",
+        color: "#f1f1f5",
+    });
+
+    if (!isConfirmed) {
+        // Reabre o modal se o admin voltar
+        document.getElementById("modal-email-destinatarios").classList.remove("hidden");
+        return;
+    }
+
+    // Dispara
+    const btnEmail = document.getElementById("btn-email-novidades");
+    if (btnEmail) {
+        btnEmail.disabled = true;
+        btnEmail.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando…';
+    }
+
+    try {
+        const res = await fetch("/admin/sistema/novidades/email", {
+            method: "POST",
+            headers: getCsrfHeaders(),
+            body: JSON.stringify({ texto: textoComunicado, destinatarios: selecionados }),
+        });
+        const data = await res.json();
+
+        if (data.sucesso) {
+            Swal.fire({
+                icon: "success",
+                title: "E-mail em disparo!",
+                html: `Comunicado enviado em segundo plano para <strong>${data.totalDestinatarios}</strong> usuário(s).`,
+                background: "#161620",
+                color: "#f1f1f5",
+            });
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Não foi possível disparar",
+                text: data.erro || "Tente novamente em instantes.",
+                background: "#161620",
+                color: "#f1f1f5",
+            });
+        }
+    } catch (err) {
+        Swal.fire({ icon: "error", title: "Erro", text: err.message, background: "#161620", color: "#f1f1f5" });
+    } finally {
+        if (btnEmail) {
+            btnEmail.disabled = false;
+            btnEmail.innerHTML = '<i class="fa fa-paper-plane"></i> Disparar por e-mail';
+        }
+    }
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 }

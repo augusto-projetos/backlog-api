@@ -1872,3 +1872,195 @@ body {
     .sistema-grid { grid-template-columns: 1fr; }
     .sistema-card-header { flex-wrap: wrap; }
 }
+
+/* --- MODAL: SELETOR DE DESTINATÁRIOS DE E-MAIL --- */
+
+.modal-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.email-sel-badge {
+    background: rgba(14, 165, 233, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+}
+
+.email-sel-badge.tem-selecao {
+    background: rgba(14, 165, 233, 0.25);
+    color: #0ea5e9;
+}
+
+/* Barra de ferramentas: busca + botões selecionar/tirar */
+.email-sel-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--adm-border);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.email-sel-busca {
+    flex: 1;
+    min-width: 180px;
+}
+
+.email-sel-busca input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--adm-border);
+    border-radius: 8px;
+    color: var(--adm-text);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    padding: 8px 12px 8px 34px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.email-sel-busca input:focus {
+    border-color: rgba(14, 165, 233, 0.5);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.email-sel-busca i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--adm-muted);
+    font-size: 0.8rem;
+    pointer-events: none;
+}
+
+.email-sel-acoes {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Lista de usuários checkável */
+.email-sel-lista {
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.email-sel-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+    user-select: none;
+}
+
+.email-sel-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.email-sel-item.selecionado {
+    background: rgba(14, 165, 233, 0.08);
+    border-color: rgba(14, 165, 233, 0.25);
+}
+
+.email-sel-item.oculto {
+    display: none;
+}
+
+/* Checkbox estilizado */
+.email-sel-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 2px solid var(--adm-border);
+    background: rgba(255, 255, 255, 0.04);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    color: transparent;
+    font-size: 0.65rem;
+}
+
+.email-sel-item.selecionado .email-sel-check {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+    color: #fff;
+}
+
+.email-sel-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.email-sel-login {
+    font-size: 0.87rem;
+    font-weight: 600;
+    color: var(--adm-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.email-sel-email {
+    font-size: 0.78rem;
+    color: var(--adm-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.email-sel-vazio {
+    text-align: center;
+    color: var(--adm-muted);
+    font-size: 0.88rem;
+    padding: 24px 0;
+}
+
+/* Footer do modal */
+.email-sel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--adm-border);
+    flex-shrink: 0;
+}
+
+.email-sel-aviso {
+    font-size: 0.82rem;
+    color: #f59e0b;
+    font-weight: 500;
+}
+
+.email-sel-aviso.hidden {
+    display: none;
+}
+
+@media (max-width: 540px) {
+    .email-sel-toolbar { flex-direction: column; align-items: stretch; }
+    .email-sel-acoes   { justify-content: stretch; }
+    .email-sel-acoes button { flex: 1; justify-content: center; }
+}
