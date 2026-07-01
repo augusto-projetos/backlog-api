@@ -651,6 +651,44 @@
         </div>
     </div>
 
+    <!-- --- MODAL: SELETOR DE DESTINATÁRIOS DE E-MAIL --- -->
+    <div id="modal-email-destinatarios" class="adm-modal hidden">
+        <div class="adm-modal-box large">
+            <div class="modal-header">
+                <div class="modal-header-info">
+                    <h3>📧 Selecionar destinatários</h3>
+                    <span id="email-sel-contador" class="email-sel-badge">0 selecionados</span>
+                </div>
+                <button class="modal-close" data-modal="modal-email-destinatarios">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="email-sel-toolbar">
+                <div class="busca-wrapper email-sel-busca">
+                    <i class="fa fa-search"></i>
+                    <input type="text" id="email-sel-busca" placeholder="Pesquisar por nome ou e-mail…" autocomplete="off" />
+                </div>
+                <div class="email-sel-acoes">
+                    <button id="email-sel-todos" class="btn-adm-email btn-sm-adm" type="button">
+                        <i class="fa fa-check-square-o"></i> Selecionar todos
+                    </button>
+                    <button id="email-sel-nenhum" class="btn-audit-limpar btn-sm-adm" type="button">
+                        <i class="fa fa-square-o"></i> Tirar todos
+                    </button>
+                </div>
+            </div>
+            <div id="email-sel-lista" class="modal-body email-sel-lista">
+                <p class="empty-modal">⏳ Carregando usuários…</p>
+            </div>
+            <div class="email-sel-footer">
+                <span id="email-sel-vazio-aviso" class="email-sel-aviso hidden">Selecione ao menos um destinatário.</span>
+                <button id="email-sel-confirmar" class="btn-adm-email" type="button">
+                    <i class="fa fa-paper-plane"></i> Confirmar e continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- --- DADOS PARA CHART.JS --- -->
     <script th:inline="javascript">
         const STATS = {
