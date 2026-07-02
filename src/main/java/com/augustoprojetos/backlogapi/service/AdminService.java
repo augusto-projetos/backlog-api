@@ -35,7 +35,7 @@ public class AdminService {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private ConquistaService conquistaService;
     @Autowired private AtividadeLogService atividadeLogService;
-    
+
     @Value("${admin.email}")
     private String adminEmail;
 

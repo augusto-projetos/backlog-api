@@ -899,7 +899,7 @@ async function deletarItemAdmin(itemId) {
 
     if (!confirm.isConfirmed) return;
 
-    const resp = await fetch(`/admin/item/${itemId}`, { 
+    const resp = await fetch(`/admin/item/${itemId}`, {
         method: "DELETE",
         headers: getCsrfHeaders()
     });
@@ -951,7 +951,7 @@ function editarUsuario(dataset) {
         }
     }).then(async result => {
         if (!result.isConfirmed) return;
-        
+
         const resp = await fetch(`/admin/usuario/${dataset.id}/editar`, {
             method: "POST",
             headers: getCsrfHeaders(),
@@ -965,7 +965,7 @@ function editarUsuario(dataset) {
 
 function redefinirSenha(userId, nome) {
     const isDark = isDarkMode();
-    
+
     Swal.fire({
         title: `🔑 Nova senha para ${escapeHtml(nome)}`,
         width: "460px",
@@ -980,7 +980,7 @@ function redefinirSenha(userId, nome) {
                         </button>
                     </div>
                 </div>
-                
+
                 <div>
                     <label style="font-size:0.75rem;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px">CONFIRMAR</label>
                     <div style="position:relative; display:flex; align-items:center;">
@@ -1036,7 +1036,7 @@ function redefinirSenha(userId, nome) {
         }
     }).then(async result => {
         if (!result.isConfirmed) return;
-        
+
         const resp = await fetch(`/admin/usuario/${userId}/senha`, {
             method: "POST",
             headers: getCsrfHeaders(),
@@ -1064,8 +1064,8 @@ function deletarUsuario(userId, nome) {
         color: isDark ? "#e0e0e0" : "#2c3e50",
     }).then(async result => {
         if (!result.isConfirmed) return;
-        
-        const resp = await fetch(`/admin/usuario/${userId}`, { 
+
+        const resp = await fetch(`/admin/usuario/${userId}`, {
             method: "DELETE",
             headers: getCsrfHeaders()
         });
@@ -1080,7 +1080,7 @@ function deletarUsuario(userId, nome) {
 // --- AÇÕES DE CONQUISTAS ---
 function initAcoesConquistas() {
     document.getElementById("btn-nova-conquista")?.addEventListener("click", () => abrirFormConquista(null));
-    
+
     // Delegação de eventos estável para os botões da lista de conquistas
     document.addEventListener("click", (e) => {
         const btnEditConq = e.target.closest(".btn-editar-conquista");
@@ -1233,8 +1233,8 @@ function deletarConquista(id, nome) {
         color: isDark ? "#e0e0e0" : "#2c3e50",
     }).then(async result => {
         if (!result.isConfirmed) return;
-        
-        const resp = await fetch(`/admin/conquista/${id}`, { 
+
+        const resp = await fetch(`/admin/conquista/${id}`, {
             method: "DELETE",
             headers: getCsrfHeaders()
         });

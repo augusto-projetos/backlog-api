@@ -16,7 +16,7 @@ public class BacklogApiApplication {
     public static void main(String[] args) {
         // 1. Carrega o arquivo .env
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-        
+
         // 2. Transforma as variáveis do .env em propriedades padrão do Spring
         Map<String, Object> dotenvProperties = new HashMap<>();
         dotenv.entries().forEach(entry -> {

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lógica de abrir/fechar no celular
     if (btnMobile && containerBusca && btnFechar) {
-        
+
         // Abre a barra flutuante
         btnMobile.addEventListener('click', (e) => {
             e.stopPropagation(); // Evita que feche na mesma hora
@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Fecha se o usuário tocar em qualquer lugar fora da barra
         document.addEventListener('click', (e) => {
-            if (containerBusca.classList.contains('ativa') && 
-                !containerBusca.contains(e.target) && 
+            if (containerBusca.classList.contains('ativa') &&
+                !containerBusca.contains(e.target) &&
                 !btnMobile.contains(e.target)) {
-                
+
                 containerBusca.classList.remove('ativa');
                 dropdown.style.display = 'none';
             }
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const link = document.createElement('a');
                     link.className = 'social-user-item';
                     // Ao clicar, redireciona para a página do perfil público
-                    link.href = `/u/${user.socialUsername}`; 
+                    link.href = `/u/${user.socialUsername}`;
 
                     link.innerHTML = `
                         <div class="social-avatar">${inicial}</div>

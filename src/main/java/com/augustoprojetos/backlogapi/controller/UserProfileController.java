@@ -63,17 +63,17 @@ public class UserProfileController {
 
         return ResponseEntity.ok(response);
     }
-    
+
     // 3. BUSCAR UM PERFIL ESPECÍFICO
     @GetMapping("/{socialUsername}")
     public ResponseEntity<UserProfileDTO> getUserProfile(@PathVariable String socialUsername) {
         Optional<User> userOpt = userRepository.findBySocialUsername(socialUsername);
-        
+
         if (userOpt.isEmpty() || !userOpt.get().isPublic()) {
             // Retorna 404 se não existir OU se for privado
-            return ResponseEntity.notFound().build(); 
+            return ResponseEntity.notFound().build();
         }
-        
+
         return ResponseEntity.ok(new UserProfileDTO(userOpt.get().getId(), userOpt.get().getSocialUsername()));
     }
 
@@ -82,17 +82,17 @@ public class UserProfileController {
     public ResponseEntity<?> getPublicUserBacklog(@PathVariable String socialUsername) {
         // 1. Busca o usuário pelo @
         Optional<User> userOpt = userRepository.findBySocialUsername(socialUsername);
-        
+
         // 2. Trava de segurança: Se não existir ou se for privado, devolve Erro 404
         if (userOpt.isEmpty() || !userOpt.get().isPublic()) {
             return ResponseEntity.notFound().build();
         }
-        
+
         User targetUser = userOpt.get();
-        
+
         // 3. Busca a coleção de itens usando o usuário que acabamos de encontrar
         List<Item> backlog = itemRepository.findByUser(targetUser);
-        
+
         // 4. Devolve a lista de itens pronta para o Frontend desenhar
         return ResponseEntity.ok(backlog);
     }
