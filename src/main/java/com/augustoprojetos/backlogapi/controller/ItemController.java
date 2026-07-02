@@ -3,6 +3,7 @@ package com.augustoprojetos.backlogapi.controller;
 import com.augustoprojetos.backlogapi.dto.ConquistaDesbloqueadaDTO;
 import com.augustoprojetos.backlogapi.service.AtividadeLogService;
 import com.augustoprojetos.backlogapi.service.ConquistaService;
+import com.augustoprojetos.backlogapi.service.IgdbService;
 import com.augustoprojetos.backlogapi.service.TmdbService;
 import org.springframework.ui.Model;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +30,9 @@ public class ItemController {
 
     @Autowired
     private TmdbService tmdbService;
+
+    @Autowired
+    private IgdbService igdbService;
 
     @Autowired
     private ConquistaService conquistaService;
@@ -196,12 +200,16 @@ public class ItemController {
     // 6. BUSCAR CAPA
     @GetMapping("/api/buscar-capa")
     @ResponseBody
-    public List<TmdbService.SearchResult> buscarCapa(
-            @RequestParam String query,
-            @RequestParam(required = false) String tipo) {
+    public List<?> buscarCapa(
+        @RequestParam String query,
+        @RequestParam(required = false) String tipo) {
+
+        // Se for jogo, chama o serviço IGDB
         if (tipo != null && "Jogo".equalsIgnoreCase(tipo)) {
-            return java.util.Collections.emptyList();
+            return igdbService.buscarJogos(query);
         }
+
+        // Se for Filme ou Série, mantém o fluxo tradicional do TmdbService
         return tmdbService.buscarFilmes(query);
     }
 

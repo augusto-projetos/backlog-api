@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Essa função precisa ser global ou estar acessível
+// --- FUNÇÃO PRINCIPAL DE BUSCA DE CAPAS ---
 async function buscarCapaApi() {
     const inputBusca = document.getElementById('buscaCapaInput');
     const divResultados = document.getElementById('resultadosCapas');
@@ -820,23 +820,21 @@ async function buscarCapaApi() {
 
     if (!inputBusca || !divResultados) return;
 
-    // --- BLOQUEIO PARA JOGOS ---
-        if (tipo === 'Jogo') {
-            divResultados.innerHTML = `
-                <div style="text-align:center; padding: 20px; grid-column: 1 / -1;">
-                    <p style="font-size: 3rem; margin: 0;">🎮</p>
-                    <p style="color: #ff6b6b; font-weight: bold; margin-top: 10px;">A busca automática é exclusiva para Filmes e Séries.</p>
-                    <p style="color: #ccc; font-size: 0.9rem;">Para jogos, copie o link da imagem no Google e cole no campo anterior.</p>
-                </div>
-            `;
-            return; // Para a função aqui. Não chama o Java.
-        }
-        // ------------------------------------
-
-    const query = inputBusca.value;
+    const query = inputBusca.value.trim();
     if (!query) return;
 
-    divResultados.innerHTML = '<p style="color:white; text-align:center; grid-column: 1 / -1;">⏳ Buscando na TMDB...</p>';
+    // Função interna rápida para escapar caracteres e evitar o ReferenceError
+    const scapeLocal = (str) => {
+        return str.replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;")
+                  .replace(/'/g, "&#039;");
+    };
+
+    // Texto de carregamento enquanto busca
+    const deOnde = tipo === 'Jogo' ? 'na IGDB...' : 'na TMDB...';
+    divResultados.innerHTML = `<p style="color:white; text-align:center; grid-column: 1 / -1;">⏳ Buscando ${deOnde}</p>`;
 
     try {
         const response = await fetch(`/api/buscar-capa?query=${encodeURIComponent(query)}&tipo=${tipo}`);
@@ -852,15 +850,29 @@ async function buscarCapaApi() {
         }
 
         lista.forEach(filme => {
+            // 1. Título real
+            const tituloReal = filme.titulo || filme.title || filme.name || filme.original_name || 'Sem título';
+
+            // 2. Tratamento do ano
+            const dataBruta = filme.ano || filme.release_date || filme.first_air_date || '';
+            let anoReal = '?';
+
+            if (dataBruta && typeof dataBruta === 'string' && dataBruta.trim() !== '') {
+                anoReal = dataBruta.includes('-') ? dataBruta.split('-')[0] : dataBruta;
+            }
+
+            // 3. Captura da imagem
+            const imagemReal = filme.imagem || filme.poster_path || 'https://placehold.co/150x200?text=Sem+Imagem';
+
             const div = document.createElement('div');
             div.className = 'capa-item';
-            div.onclick = () => selecionarCapa(filme.imagem);
+            div.onclick = () => selecionarCapa(imagemReal);
 
             div.innerHTML = `
-                <img src="${filme.imagem}" alt="${filme.titulo}" style="width:100%; border-radius:4px;">
+                <img src="${imagemReal}" alt="${scapeLocal(tituloReal)}" style="width:100%; border-radius:4px;">
                 <p style="color:#ccc; font-size:0.8rem; margin-top:5px; text-align:center;">
-                    ${filme.ano ? filme.ano.split('-')[0] : '?'} <br>
-                    <b>${filme.titulo}</b>
+                    ${anoReal} <br>
+                    <b>${scapeLocal(tituloReal)}</b>
                 </p>
             `;
             divResultados.appendChild(div);
