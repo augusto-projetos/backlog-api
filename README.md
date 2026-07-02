@@ -111,8 +111,8 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 
 ## 🤝 Autor
 
-Desenvolvido com 🤍 e ☕ por **Luiz Augusto**.  
-*Técnico em Informática (SENAC) - Full Stack Developer & IT Technician*  
+Desenvolvido com 🤍 e ☕ por **Luiz Augusto**.
+*Técnico em Informática (SENAC) - Full Stack Developer & IT Technician*
 *Engenharia de Software | Graduando na Universidade Federal de Lavras (UFLA) - São Sebastião do Paraíso - MG*
 
 ---

@@ -20,10 +20,10 @@
 
     <body>
 
-        <div th:if="${sistemaReadonly ?: false}" 
-            style="background: linear-gradient(90deg, #f59e0b, #d97706); 
-                    color: #0d0d12; text-align: center; padding: 10px 20px; 
-                    font-size: 0.85rem; font-weight: 700; position: sticky; 
+        <div th:if="${sistemaReadonly ?: false}"
+            style="background: linear-gradient(90deg, #f59e0b, #d97706);
+                    color: #0d0d12; text-align: center; padding: 10px 20px;
+                    font-size: 0.85rem; font-weight: 700; position: sticky;
                     top: 0; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
                     display: flex; align-items: center; justify-content: center; gap: 8px;">
             <span>📖</span>
@@ -37,7 +37,7 @@
                 display:flex;align-items:center;justify-content:center;
                 background:rgba(4,4,6,0.88);backdrop-filter:blur(8px);
                 padding:20px; transition: opacity 0.25s ease;">
-            
+
             <div id="anuncio-dados-carrossel" style="display:none;"
                  th:data-manutencao="${sistemaManutencao ?: false}"
                  th:data-instavel="${sistemaInstavel ?: false}"
@@ -66,9 +66,9 @@
                                 transition:width 0.05s linear;">
                     </div>
                 </div>
-                
+
                 <p id="anuncio-countdown" style="font-size:0.78rem;color:#6b7280; margin:0;"></p>
-                
+
                 <button id="btn-fechar-anuncio" onclick="fecharAnuncio()" style="
                     background:linear-gradient(135deg, #7c3aed, #6d28d9);
                     border:none;color:#fff;border-radius:10px;
@@ -110,9 +110,9 @@
                 <div class="search-social-container" id="container-busca-social">
                     <i class="fa-solid fa-magnifying-glass search-icon icone-pc"></i>
                     <input type="text" id="input-busca-social" placeholder="Buscar amigos (@)..." autocomplete="off">
-                    
+
                     <button type="button" id="btn-fechar-busca" class="btn-fechar-busca" style="display: none;" title="Fechar busca">✖</button>
-                    
+
                     <div id="dropdown-busca-social" class="dropdown-social" style="display: none;"></div>
                 </div>
 
@@ -137,7 +137,7 @@
                     <button id="btn-mobile-gaveta" class="btn-theme btn-mobile-gaveta" title="Mais Opções">
                         <span>⚙️</span>
                     </button>
-                    
+
                     <!-- Janela flutuante com as opções (Dropdown Balão) -->
                     <div id="dropdown-ia-opcoes" class="dropdown-ia-balao">
                         <p style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); margin: 0 0 10px 0; text-transform: uppercase; text-align: center;">Recomendações por IA 🤖</p>
@@ -153,7 +153,7 @@
                 <div id="gaveta-opcoes-mobile" class="gaveta-opcoes-wrapper">
                     <div class="gaveta-conteudo">
                         <div class="gaveta-barra-arrastar"></div>
-                        
+
                         <a th:href="@{/meus-links}" class="btn-novo btn-share">
                             🔗 Compartilhar
                         </a>

@@ -11,13 +11,13 @@ public class RateLimitService {
     private final Map<String, Integer> tentativas = new ConcurrentHashMap<>();
     // Guarda o horário da primeira tentativa
     private final Map<String, Long> tempos = new ConcurrentHashMap<>();
-    
+
     private final int MAX_TENTATIVAS = 3;
     private final long TEMPO_BLOQUEIO_MS = 10 * 60 * 1000; // 10 minutos em milissegundos
 
     public boolean isPermitido(String email) {
         long agora = System.currentTimeMillis();
-        
+
         tempos.putIfAbsent(email, agora);
         tentativas.putIfAbsent(email, 0);
 

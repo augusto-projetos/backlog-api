@@ -89,7 +89,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.emailVerified; 
+        return this.emailVerified;
     }
 
     public String getLogin() {

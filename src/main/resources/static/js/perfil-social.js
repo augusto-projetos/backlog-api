@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 1. Validação local (Regex) para evitar chamadas desnecessárias à API
             const regex = /^[a-zA-Z0-9_.]+$/;
-            
+
             if (!socialUsernameInput) {
                 Swal.fire('Atenção', 'O nome de utilizador (@) não pode estar vazio.', 'warning');
                 return;
             }
-            
+
             if (!regex.test(socialUsernameInput)) {
                 Swal.fire('Atenção', 'O @ só pode conter letras, números, pontos ou sublinhados.', 'warning');
                 return;

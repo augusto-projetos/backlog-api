@@ -147,12 +147,12 @@ public class RecomendacaoService {
         prompt.append("Você é um especialista em entretenimento e o motor de recomendações do aplicativo 'Meus Backlog'.\n");
         prompt.append("Analise o perfil de consumo do usuário abaixo e sugira exatamente 3 recomendações inéditas de ");
         prompt.append(tipoSolicitado.toUpperCase()).append(" que combinem perfeitamente com o gosto dele.\n\n");
-        
+
         prompt.append("--- PERFIL DO USUÁRIO ---\n");
         prompt.append("Mídias bem avaliadas pelo usuário: [ ").append(favoritos).append(" ]\n");
         prompt.append("Mídias que ele está assistindo/jogando agora: [ ").append(emAndamento).append(" ]\n");
         prompt.append("Mídias que estão na lista de espera (Backlog): [ ").append(listaDesejos).append(" ]\n\n");
-        
+
         prompt.append("--- REGRAS DE RESPOSTA E FORMATAÇÃO VISUAL ---\n");
         prompt.append("1. Recomende APENAS itens do tipo: ").append(tipoSolicitado).append(".\n");
         prompt.append("2. Não recomende mídias que já estejam listadas no perfil do usuário.\n");

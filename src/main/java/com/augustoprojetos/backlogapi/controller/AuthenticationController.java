@@ -67,7 +67,7 @@ public class AuthenticationController {
 
         // Verifica o rate limit para evitar spam
         if (!rateLimitService.isPermitido(data.email())) {
-            return "redirect:/register?error=spam"; 
+            return "redirect:/register?error=spam";
         }
 
         try {
@@ -75,13 +75,13 @@ public class AuthenticationController {
             newUser.setLogin(data.login());
             newUser.setEmail(data.email());
             newUser.setPassword(data.password());
-            
+
             // Adiciona o @ vindo do formulário
             String arrobaFinal = (socialFormulario != null && !socialFormulario.isEmpty()) ? socialFormulario : data.socialUsername();
             newUser.setSocialUsername(arrobaFinal);
-            
+
             // Garante que inicia como não verificado (bloqueado no login normal)
-            newUser.setEmailVerified(false); 
+            newUser.setEmailVerified(false);
 
             // O UserService vai validar duplicidade de e-mail e @ e lançar RuntimeException se der ruim
             userService.cadastrarUsuario(newUser);
@@ -122,7 +122,7 @@ public class AuthenticationController {
         // Se o usuário existir
         if (userOpt.isPresent()) {
             User user = userOpt.get(); // Extrai o usuário do Optional
-            
+
             // CASO 1: Usuário já está verificado/ativo
             if (user.isEnabled()) {
                 return "redirect:/reenviar-email?error=alreadyVerified";

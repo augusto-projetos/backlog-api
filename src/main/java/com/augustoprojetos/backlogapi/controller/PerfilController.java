@@ -125,12 +125,12 @@ public class PerfilController {
             return ResponseEntity.badRequest().body("{\"message\": \"" + e.getMessage() + "\"}");
         }
     }
-    
+
     // API para Deletar Conta
     @DeleteMapping
     public ResponseEntity<?> deletarConta(@AuthenticationPrincipal User user,
                                           HttpServletRequest request, HttpServletResponse response) {
-                                            
+
         // Registra no audit log antes de deletar (dados somem após a deleção)
         auditLogService.registrarContaDeletada(user.getEmail(), user.getLogin(), request.getRemoteAddr());
 

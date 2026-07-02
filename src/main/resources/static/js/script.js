@@ -1092,7 +1092,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let IsDragging = false;
 
     if (btnGaveta && wrapperGaveta && overlayGaveta && conteudoGaveta) {
-        
+
         // Abre a gaveta subindo o transform para 0
         btnGaveta.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1112,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             conteudoGaveta.style.transition = 'transform 0.35s cubic-bezier(0.32, 0.94, 0.6, 1)';
             conteudoGaveta.style.transform = 'translateY(100%)'; // Desce suavemente a partir de onde estiver
-            
+
             overlayGaveta.style.opacity = '0';
             overlayGaveta.style.pointerEvents = 'none';
 
@@ -1168,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 conteudoGaveta.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
                 conteudoGaveta.style.transform = 'translateY(0)';
             }
-            
+
             startY = 0;
             currentY = 0;
         });
@@ -1200,7 +1200,7 @@ if (btnIaMobile) {
         // Fecha a gaveta mobile primeiro para dar espaço
         if (wrapperGavetaMobile) wrapperGavetaMobile.classList.remove('ativa');
         document.body.style.overflow = '';
-        
+
         // Abre o painel de opções de IA
         dropdownIaOpcoes.classList.add('ativo');
     });
@@ -1222,8 +1222,8 @@ function abrirModalIA(tipo) {
 
     dropdownIaOpcoes.classList.remove('ativo'); // Fecha as opções
     titulo.innerText = `🤖 Recomendações de ${tipo}s`;
-    textoResposta.innerText = ''; 
-    
+    textoResposta.innerText = '';
+
     modal.classList.add('ativo');
     loading.style.display = 'block';
     document.body.style.overflow = 'hidden';
@@ -1256,18 +1256,18 @@ function efeitoDigitacao(elemento, texto) {
     let i = 0;
     let textoAcumulado = '';
     elemento.innerHTML = '';
-    
+
     function digitar() {
         if (i < texto.length) {
             textoAcumulado += texto.charAt(i);
-            
+
             // Renderiza o texto processado com HTML real (negritos, itálicos)
             elemento.innerHTML = converterMarkdownParaHtml(textoAcumulado);
             i++;
-            
+
             const modalBody = document.querySelector('.modal-ia-body');
             if (modalBody) modalBody.scrollTop = modalBody.scrollHeight;
-            
+
             setTimeout(digitar, 12);
         }
     }
@@ -1330,11 +1330,11 @@ const originalFetch = window.fetch;
 window.fetch = async function(...args) {
     try {
         const response = await originalFetch(...args);
-        
+
         // Se o servidor responder com o status 423 (Locked) que configuramos no Java
         if (response.status === 423) {
             const data = await response.json();
-            
+
             // Dispara o SweetAlert amigável na tela do usuário comum!
             Swal.fire({
                 icon: 'info',
@@ -1344,11 +1344,11 @@ window.fetch = async function(...args) {
                 background: '#161620',
                 color: '#f1f1f5'
             });
-            
+
             // Interrompe o fluxo lançando um erro controlado para não quebrar o resto do js
             throw new Error("Sistema em Modo Somente-Leitura.");
         }
-        
+
         return response;
     } catch (error) {
         // Se for o nosso erro do Modo Leitura, não exibe a mensagem de queda de servidor
@@ -1371,7 +1371,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const iActive = dadosEl.getAttribute('data-instavel') === 'true';
     const rActive = dadosEl.getAttribute('data-readonly') === 'true';
     const nText   = dadosEl.getAttribute('data-novidades') || '';
-    
+
     const assinaturaAtual = `${mActive}_${iActive}_${rActive}_${nText}`;
 
     if (sessionStorage.getItem('anuncio_assinatura') === assinaturaAtual) {
@@ -1429,7 +1429,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Cria as bolinhas indicadoras na tela (Dots)
     if (indicadoresContainer) {
-        indicadoresContainer.innerHTML = slidesFila.map((_, idx) => 
+        indicadoresContainer.innerHTML = slidesFila.map((_, idx) =>
             `<div id="dot-${idx}" style="width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.2); transition:all 0.2s;"></div>`
         ).join('');
     }
@@ -1437,19 +1437,19 @@ document.addEventListener("DOMContentLoaded", function() {
     // Função que renderiza e atualiza os textos de cada slide aplicando efeito fade
     function exibirSlide(index) {
         if (index >= slidesFila.length) return;
-        
+
         const dadosSlide = slidesFila[index];
-        
+
         // Efeito de transição suave (Fade Out)
         conteudoContainer.style.opacity = '0';
-        
+
         setTimeout(() => {
             // Injeta as informações do slide atual
             iconeEl.textContent = dadosSlide.icone;
             tituloEl.textContent = dadosSlide.titulo;
             tituloEl.style.color = dadosSlide.cor;
             descEl.innerHTML = dadosSlide.desc;
-            
+
             // Atualiza as bolinhas indicadoras (Dots)
             slidesFila.forEach((_, idx) => {
                 const dot = document.getElementById(`dot-${idx}`);
@@ -1461,9 +1461,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // Restaura visibilidade (Fade In)
             conteudoContainer.style.opacity = '1';
-            
+
             // Só reinicia o cronômetro agora, depois que o slide já trocou fisicamente na tela
-            tempoInicioSlide = Date.now(); 
+            tempoInicioSlide = Date.now();
         }, 180);
     }
 
@@ -1478,9 +1478,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const tempoPassado = Date.now() - tempoInicioSlide;
         const restante = Math.max(0, duracaoPorSlide - tempoPassado);
         const porcentagemBarra = (restante / duracaoPorSlide) * 100;
-        
+
         if (barraEl) barraEl.style.width = porcentagemBarra + '%';
-        
+
         // Formata a contagem regressiva exibindo o painel de paginação de avisos
         const segundosTexto = Math.ceil(restante / 1000);
         if (countdownEl) {
@@ -1490,11 +1490,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 countdownEl.innerHTML = `Pronto para liberar em <b>${segundosTexto}</b>s…`;
             }
         }
-        
+
         // Quando a barra chega no final do slide atual (5 segundos se passaram)
         if (tempoPassado >= duracaoPorSlide) {
             // Destrói o tempo imediatamente para congelar o loop durante a transição
-            tempoInicioSlide = null; 
+            tempoInicioSlide = null;
 
             if (slideIndexAtual < slidesFila.length - 1) {
                 // Passa para o próximo aviso da fila de forma cadenciada
@@ -1515,11 +1515,11 @@ document.addEventListener("DOMContentLoaded", function() {
     window.fecharAnuncio = function() {
         clearInterval(intervaloLoop);
         sessionStorage.setItem('anuncio_assinatura', signatureGen || assinaturaAtual);
-        
+
         overlay.style.opacity = '0';
         setTimeout(() => overlay.style.display = 'none', 250);
     };
-    
+
     // Pequeno fallback dinâmico caso a assinatura precise passar injetada
     const signatureGen = assinaturaAtual;
 });

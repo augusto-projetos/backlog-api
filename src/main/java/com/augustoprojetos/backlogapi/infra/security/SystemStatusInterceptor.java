@@ -30,11 +30,11 @@ public class SystemStatusInterceptor implements HandlerInterceptor {
 
         // 3. Sistema Bloqueado: bloqueia todas as rotas, exceto login e home
         if (configService.isBloqueado()) {
-            boolean rotaLoginOuEssencial = uri.equals("/") 
-                    || uri.equals("/login") 
-                    || uri.startsWith("/logout") 
+            boolean rotaLoginOuEssencial = uri.equals("/")
+                    || uri.equals("/login")
+                    || uri.startsWith("/logout")
                     || uri.startsWith("/health");
-            
+
             if (!rotaLoginOuEssencial) {
                 response.sendRedirect("/");
                 return false;
@@ -48,11 +48,11 @@ public class SystemStatusInterceptor implements HandlerInterceptor {
                 if (uri.startsWith("/admin/sistema")) {
                     return true;
                 }
-                
+
                 // Se for uma requisição de API/AJAX do usuário comum tentando mexer no backlog
                 if (uri.startsWith("/api") || uri.startsWith("/admin/api") || request.getHeader("X-Requested-With") != null || "application/json".equalsIgnoreCase(request.getContentType())) {
                     // Retorna status 423 (Locked)
-                    response.setStatus(423); 
+                    response.setStatus(423);
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"readonly\":true,\"erro\":\"O sistema está temporariamente em Modo Somente-Leitura. Suas alterações não foram salvas.\"}");
                 } else {
@@ -69,7 +69,7 @@ public class SystemStatusInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView mav) {
         if (mav == null) return;
-        
+
         // Garante que o painel de admin não injete os banners de aviso para o próprio admin
         if (isAdmin()) return;
 
@@ -95,10 +95,10 @@ public class SystemStatusInterceptor implements HandlerInterceptor {
 
     // Método auxiliar para garantir rotas públicas de login livres
     private boolean isPublicResource(String uri) {
-        return uri.startsWith("/css/") 
-                || uri.startsWith("/js/") 
+        return uri.startsWith("/css/")
+                || uri.startsWith("/js/")
                 || uri.startsWith("/img/")
-                || uri.startsWith("/favicon.ico") 
+                || uri.startsWith("/favicon.ico")
                 || uri.startsWith("/health");
     }
 }

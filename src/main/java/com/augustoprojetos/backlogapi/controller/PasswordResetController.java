@@ -33,7 +33,7 @@ public class PasswordResetController {
     // Recebe o e-mail da tela "Esqueci minha senha"
     @PostMapping("/recuperar-senha")
     public String processForgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
-        
+
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isPresent()) {

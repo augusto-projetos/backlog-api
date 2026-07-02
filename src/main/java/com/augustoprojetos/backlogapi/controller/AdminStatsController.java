@@ -39,7 +39,7 @@ public class AdminStatsController {
             @RequestParam(name = "usuarioId", required = false) Long usuarioId) {
 
         List<String> tiposFiltroRaw = (tipos != null && !tipos.isEmpty())
-        ? tipos.stream().map(String::toUpperCase).collect(Collectors.toList()) 
+        ? tipos.stream().map(String::toUpperCase).collect(Collectors.toList())
         : List.of("FILME", "SERIE", "JOGO");
 
         // Se o front enviar "SERIE", incluímos também "SÉRIE" com acento para bater com o toUpperCase() do banco
@@ -70,7 +70,7 @@ public class AdminStatsController {
             @RequestParam(name = "usuarioId", required = false) Long usuarioId) {
 
         List<String> tiposFiltro = (tipos != null && !tipos.isEmpty())
-                ? tipos.stream().map(String::toUpperCase).collect(Collectors.toList()) 
+                ? tipos.stream().map(String::toUpperCase).collect(Collectors.toList())
                 : List.of("FILME","SERIE","SÉRIE","JOGO");
 
         List<String> statusFiltro = (statusList != null && !statusList.isEmpty())
@@ -106,9 +106,9 @@ public class AdminStatsController {
             @RequestParam(name = "ate", defaultValue = "10") Double ate) {
 
         List<String> tiposFiltro = (tipos != null && !tipos.isEmpty())
-                ? tipos.stream().map(String::toUpperCase).collect(Collectors.toList()) 
+                ? tipos.stream().map(String::toUpperCase).collect(Collectors.toList())
                 : List.of("FILME","SERIE","SÉRIE","JOGO");
-        
+
         List<String> statusFiltro = (statusList != null && !statusList.isEmpty())
                 ? statusList.stream().map(String::toUpperCase).collect(Collectors.toList())
                 : List.of("CONCLUIDO", "ASSISTIDO", "ZERADO", "ASSISTINDO", "JOGANDO", "BACKLOG", "DROPADO");
