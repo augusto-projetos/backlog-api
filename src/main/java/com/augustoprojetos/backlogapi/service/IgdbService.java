@@ -63,6 +63,7 @@ public class IgdbService {
                     }
 
                     TmdbMovie movieRecord = new TmdbMovie(
+                            null, // Jogos não usam o id do TMDB
                             game.getName(),
                             game.getName(),
                             game.getName(),
