@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Controller
 public class ItemController {
@@ -122,6 +123,7 @@ public class ItemController {
 
         itemAtualizado.setId(id);
         itemAtualizado.setUser(userLogado);
+
         Item salvo = itemRepository.save(itemAtualizado);
 
         // Detecta o que mudou e registra o evento mais específico
@@ -211,6 +213,93 @@ public class ItemController {
 
         // Se for Filme ou Série, mantém o fluxo tradicional do TmdbService
         return tmdbService.buscarFilmes(query);
+    }
+
+    // 7. LISTAR FILMES SEM DURAÇÃO CADASTRADA (para o preenchimento em lote)
+    @GetMapping("/itens/filmes-sem-duracao")
+    @ResponseBody
+    public List<Item> listarFilmesSemDuracao(@AuthenticationPrincipal User userLogado) {
+        return itemRepository.findByUser(userLogado).stream()
+                .filter(i -> "Filme".equalsIgnoreCase(i.getTipo()) && i.getDuracaoMinutos() == null)
+                .collect(Collectors.toList());
+    }
+
+    // 8. BUSCAR SUGESTÕES DE DURAÇÃO NO TMDB
+    @PostMapping("/itens/sugestoes-duracao")
+    @ResponseBody
+    public List<Map<String, Object>> buscarSugestoesDuracao(
+            @RequestBody List<Long> ids,
+            @AuthenticationPrincipal User userLogado) {
+
+        List<Item> itens = itemRepository.findAllById(ids).stream()
+                .filter(i -> i.getUser().getId().equals(userLogado.getId()))
+                .filter(i -> "Filme".equalsIgnoreCase(i.getTipo()))
+                .collect(Collectors.toList());
+
+        // Busca cada filme em paralelo pra não demorar uma eternidade em acervos grandes
+        List<CompletableFuture<Map<String, Object>>> buscas = itens.stream()
+                .map(item -> CompletableFuture.supplyAsync(() -> {
+                    Integer minutosSugeridos = null;
+                    try {
+                        minutosSugeridos = tmdbService.buscarDuracaoFilme(item.getTitulo());
+                    } catch (Exception ignored) {
+                        // Falha silenciosa: item fica sem sugestão, usuário preenche na mão
+                    }
+                    Map<String, Object> resultado = new HashMap<>();
+                    resultado.put("id", item.getId());
+                    resultado.put("titulo", item.getTitulo());
+                    resultado.put("minutosSugeridos", minutosSugeridos);
+                    return resultado;
+                }))
+                .collect(Collectors.toList());
+
+        return buscas.stream()
+                .map(future -> {
+                    try {
+                        return future.get(8, TimeUnit.SECONDS);
+                    } catch (Exception e) {
+                        Map<String, Object> semSugestao = new HashMap<>();
+                        semSugestao.put("minutosSugeridos", null);
+                        return semSugestao;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 9. SALVAR EM LOTE APENAS OS FILMES QUE O USUÁRIO SELECIONOU/CONFIRMOU
+    public static class AtualizacaoDuracaoDTO {
+        private Long id;
+        private Integer duracaoMinutos;
+
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+        public Integer getDuracaoMinutos() { return duracaoMinutos; }
+        public void setDuracaoMinutos(Integer duracaoMinutos) { this.duracaoMinutos = duracaoMinutos; }
+    }
+
+    @PutMapping("/itens/duracao-lote")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> salvarDuracaoLote(
+            @RequestBody List<AtualizacaoDuracaoDTO> atualizacoes,
+            @AuthenticationPrincipal User userLogado) {
+
+        int atualizados = 0;
+        for (AtualizacaoDuracaoDTO dto : atualizacoes) {
+            Item item = itemRepository.findById(dto.getId()).orElse(null);
+            if (item != null
+                    && item.getUser().getId().equals(userLogado.getId())
+                    && "Filme".equalsIgnoreCase(item.getTipo())
+                    && dto.getDuracaoMinutos() != null
+                    && dto.getDuracaoMinutos() >= 0) {
+                item.setDuracaoMinutos(dto.getDuracaoMinutos());
+                itemRepository.save(item);
+                atualizados++;
+            }
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("atualizados", atualizados);
+        return ResponseEntity.ok(response);
     }
 
     // --- Helpers ---

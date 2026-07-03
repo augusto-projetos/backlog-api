@@ -31,6 +31,15 @@ public class Item {
     @Size(max = 500, message = "O link da imagem é muito longo")
     private String imagemUrl;
 
+    // 🎬 Duração do filme em minutos, informada manualmente pelo usuário.
+    @Min(value = 0, message = "A duração não pode ser negativa")
+    private Integer duracaoMinutos;
+
+    // 🎮 Minutos jogados informados manualmente pelo usuário, usados para
+    // calcular o tempo gasto quando o item é do tipo "Jogo".
+    @Min(value = 0, message = "Os minutos jogados não podem ser negativos")
+    private Integer minutosJogados;
+
     @ManyToOne // Diz: "Muitos itens podem pertencer a UM usuário"
     @JoinColumn(name = "user_id") // Cria a coluna 'user_id' no banco
     private User user;

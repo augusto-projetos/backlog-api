@@ -79,7 +79,7 @@ public class AdminController {
                 "nome",          uc.getConquista().getNome(),
                 "icone",         uc.getConquista().getIcone(),
                 "xp",            uc.getConquista().getXp(),
-                "desbloquedaEm", uc.getDesbloquedaEm() != null ? uc.getDesbloquedaEm().toString() : ""
+                "desbloqueadaEm", uc.getDesbloqueadaEm() != null ? uc.getDesbloqueadaEm().toString() : ""
             )).toList();
             return ResponseEntity.ok(lista);
         } catch (RuntimeException e) {

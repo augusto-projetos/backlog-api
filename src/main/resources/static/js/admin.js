@@ -38,13 +38,14 @@ function initTabs() {
 // --- GRÁFICOS COM FILTROS ---
 
 // Instâncias dos gráficos (mantidas para destroy/rebuild)
-const chartInstances = { tipo: null, status: null, notas: null };
+const chartInstances = { tipo: null, status: null, notas: null, tempo: null };
 
 // Estado atual de filtros de cada gráfico
 const chartFilters = {
     tipo:   { tipos: ["FILME","SERIE","JOGO"], usuario: "" },
     status: { status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], tipos: ["FILME","SERIE","JOGO"], usuario: "" },
-    notas:  { tipos: ["FILME","SERIE","JOGO"], status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], usuario: "", de: 0, ate: 10 }
+    notas:  { tipos: ["FILME","SERIE","JOGO"], status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], usuario: "", de: 0, ate: 10 },
+    tempo:  { usuario: "" }
 };
 
 function isDarkMode() {
@@ -197,6 +198,88 @@ function buildGraficoNotas(data) {
     requestAnimationFrame(() => chartInstances.notas && chartInstances.notas.resize());
 }
 
+// Formata minutos exatamente como pedido:
+//  - menos de 60min  -> "30 min"
+//  - múltiplo de 60  -> "2h"
+//  - resto           -> "1h 30min"
+function formatarTempoAdmin(minutosTotais) {
+    const minutos = Math.round(minutosTotais || 0);
+    if (minutos < 60) return `${minutos} min`;
+
+    const horas = Math.floor(minutos / 60);
+    const restoMin = minutos % 60;
+    return restoMin === 0 ? `${horas}h` : `${horas}h ${restoMin}min`;
+}
+
+function buildGraficoTempo(data) {
+    const { textColor, gridColor } = getChartTheme();
+
+    const minutosFilmes = data ? (data.minutosFilmes ?? 0) : (STATS.minutosFilmes ?? 0);
+    const minutosJogos  = data ? (data.minutosJogos  ?? 0) : (STATS.minutosJogos  ?? 0);
+
+    const elFilmes = document.getElementById("admTempoFilmesValor");
+    const elJogos  = document.getElementById("admTempoJogosValor");
+    if (elFilmes) elFilmes.textContent = formatarTempoAdmin(minutosFilmes);
+    if (elJogos)  elJogos.textContent  = formatarTempoAdmin(minutosJogos);
+
+    const canvas = document.getElementById("graficoTempo");
+    const isEmpty = (minutosFilmes + minutosJogos) === 0;
+
+    if (chartInstances.tempo) { chartInstances.tempo.destroy(); chartInstances.tempo = null; }
+
+    setChartEmptyState(canvas, isEmpty);
+    if (isEmpty) return;
+
+    const ctx = canvas.getContext("2d");
+    const gradFilmes = ctx.createLinearGradient(0, 0, 400, 0);
+    gradFilmes.addColorStop(0, "#e94560");
+    gradFilmes.addColorStop(1, "#ff6b9d");
+
+    const gradJogos = ctx.createLinearGradient(0, 0, 400, 0);
+    gradJogos.addColorStop(0, "#08d9d6");
+    gradJogos.addColorStop(1, "#0f766e");
+
+    chartInstances.tempo = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: ["🎬 Filmes", "🎮 Jogos"],
+            datasets: [{
+                label: "Tempo",
+                // A barra usa horas (fração) só pra ficar visualmente proporcional;
+                // o texto exibido (tooltip/cards) sempre usa formatarTempoAdmin()
+                data: [minutosFilmes / 60, minutosJogos / 60],
+                backgroundColor: [gradFilmes, gradJogos],
+                borderRadius: 10, borderSkipped: false, barThickness: 42
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => {
+                            const minutosOriginais = c.datasetIndex === 0 ? minutosFilmes : minutosJogos;
+                            return formatarTempoAdmin(minutosOriginais) + " investidos";
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Horas", color: textColor, font: { family: "Poppins", size: 12, weight: "bold" } },
+                    ticks: { color: textColor, font: { family: "Poppins" } },
+                    grid: { color: gridColor }
+                },
+                y: { ticks: { color: textColor, font: { family: "Poppins", size: 13 } }, grid: { display: false } }
+            }
+        }
+    });
+    requestAnimationFrame(() => chartInstances.tempo && chartInstances.tempo.resize());
+}
+
 // Exibe ou oculta o estado vazio no canvas
 function setChartEmptyState(canvas, isEmpty) {
     const card = canvas.closest(".chart-card");
@@ -249,6 +332,9 @@ async function fetchChartData(chartName) {
         if (f.usuario) params.set("usuarioId", f.usuario);
         params.set("de", f.de);
         params.set("ate", f.ate);
+    }
+    if (chartName === "tempo") {
+        if (f.usuario) params.set("usuarioId", f.usuario);
     }
 
     try {
@@ -323,6 +409,9 @@ async function applyFilters(chartName) {
         chartFilters.notas.de      = parseFloat(popover.querySelector('[name="notas-de"]').value) || 0;
         chartFilters.notas.ate     = parseFloat(popover.querySelector('[name="notas-ate"]').value) || 10;
     }
+    if (chartName === "tempo") {
+        chartFilters.tempo.usuario = popover.querySelector('[name="tempo-usuario"]').value;
+    }
 
     popover.classList.add("hidden");
     // Esconde o backdrop ao aplicar o filtro (mobile)
@@ -334,6 +423,7 @@ async function applyFilters(chartName) {
     if (chartName === "tipo")   buildGraficoTipo(data);
     if (chartName === "status") buildGraficoStatus(data);
     if (chartName === "notas")  buildGraficoNotas(data);
+    if (chartName === "tempo")  buildGraficoTempo(data);
 }
 
 // --- Limpar filtros ---
@@ -353,6 +443,7 @@ function clearFilters(chartName) {
     if (chartName === "tipo")   chartFilters.tipo   = { tipos: ["FILME","SERIE","JOGO"], usuario: "" };
     if (chartName === "status") chartFilters.status = { status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], tipos: ["FILME","SERIE","JOGO"], usuario: "" };
     if (chartName === "notas")  chartFilters.notas  = { tipos: ["FILME","SERIE","JOGO"], status: ["CONCLUIDO","ASSISTINDO","BACKLOG","DROPADO"], usuario: "", de: 0, ate: 10 };
+    if (chartName === "tempo")  chartFilters.tempo  = { usuario: "" };
 
     document.getElementById(`filter-tags-${chartName}`).innerHTML = "";
 
@@ -364,6 +455,7 @@ function clearFilters(chartName) {
     if (chartName === "tipo")   buildGraficoTipo(null);
     if (chartName === "status") buildGraficoStatus(null);
     if (chartName === "notas")  buildGraficoNotas(null);
+    if (chartName === "tempo")  buildGraficoTempo(null);
 }
 
 // --- Init ---
@@ -373,6 +465,7 @@ function initGraficos() {
     buildGraficoTipo(null);
     buildGraficoStatus(null);
     buildGraficoNotas(null);
+    buildGraficoTempo(null);
     initFilterControls();
 }
 
@@ -552,7 +645,7 @@ async function renderModalConquistas(userId, nomeUsuario, isDark) {
                 <span class="gc-icone">${escapeHtml(c.icone)}</span>
                 <div class="gc-info">
                     <strong>${escapeHtml(c.nome)}</strong>
-                    <small>+${c.xp} XP · ${fmtData(c.desbloquedaEm)}</small>
+                    <small>+${c.xp} XP · ${fmtData(c.desbloqueadaEm)}</small>
                 </div>
                 <button class="gc-btn gc-btn-revogar"
                         onclick="gcRevogar(${userId}, ${c.id}, '${escapeHtml(c.nome)}', ${c.xp}, '${escapeHtml(c.icone)}', this)"

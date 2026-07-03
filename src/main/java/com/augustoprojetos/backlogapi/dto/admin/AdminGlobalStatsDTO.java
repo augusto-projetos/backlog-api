@@ -16,4 +16,6 @@ public class AdminGlobalStatsDTO {
     private long totalBacklog;
     private long totalDropados;
     private Map<String, Long> distribNotas;
+    private long minutosFilmes;
+    private long minutosJogos;
 }

@@ -30,7 +30,23 @@
                     <option value="Filme">Filme</option>
                     <option value="Série">Série</option>
                 </select>
+                <small id="dica-tempo-serie" class="dica-tempo" style="display:none;">
+                    ⏳ Cálculo de tempo assistido para séries estará disponível em breve!
+                </small>
             </div>
+
+            <div class="form-group" id="grupo-duracao-filme" style="display:none;">
+                <label for="duracaoMinutos">Duração (em minutos, opcional):</label>
+                <input type="number" id="duracaoMinutos" name="duracaoMinutos" min="0" step="1" placeholder="Ex: 120">
+                <small class="dica-tempo">🎬 Usado para calcular seu tempo investido no dashboard (ex: 120 = 2h).</small>
+            </div>
+
+            <div class="form-group" id="grupo-minutos-jogados" style="display:none;">
+                <label for="minutosJogados">Minutos jogados (opcional):</label>
+                <input type="number" id="minutosJogados" name="minutosJogados" min="0" step="1" placeholder="Ex: 1500">
+                <small class="dica-tempo">🎮 Usado para calcular seu tempo investido no dashboard.</small>
+            </div>
+
 
             <div class="form-group">
                 <label for="status">Status:</label>

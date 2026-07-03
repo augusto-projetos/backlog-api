@@ -1,6 +1,7 @@
 package com.augustoprojetos.backlogapi.dto.tmdb;
 
 public record TmdbMovie(
+        Long id,
         String title,
         String original_name,
         String name,

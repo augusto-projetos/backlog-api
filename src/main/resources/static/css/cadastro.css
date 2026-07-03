@@ -401,3 +401,12 @@ h1 {
         font-size: 0.7rem; /* Texto menorzinho */
     }
 }
+
+/* --- Dicas sobre o Tempo Gasto (novo sistema de gamificação) --- */
+.dica-tempo {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted, #7f8c8d);
+    font-style: italic;
+}

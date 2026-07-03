@@ -2,6 +2,25 @@
 let graficoNotasInstance = null;
 let dadosGlobaisDashboard = null;
 
+// Função auxiliar para pegar o token CSRF das metatags
+function getCsrfHeaders() {
+    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+
+    if (!tokenMeta || !headerMeta) {
+        console.warn("CSRF Tokens não encontrados. Verifique o <head> do HTML.");
+        return { 'Content-Type': 'application/json' };
+    }
+
+    const token = tokenMeta.getAttribute('content');
+    const header = headerMeta.getAttribute('content');
+
+    return {
+        'Content-Type': 'application/json',
+        [header]: token
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     carregarDashboard();
 });
@@ -92,9 +111,113 @@ async function carregarDashboard() {
 
         renderizarGraficoNotas(dados);
 
+        // --- TEMPO INVESTIDO (Filmes/Jogos) ---
+        renderizarTempoGasto(dados);
+
     } catch (erro) {
         console.error("Erro no dashboard:", erro);
     }
+}
+
+// --- FUNÇÃO PARA DESENHAR O CARD/GRÁFICO DE TEMPO GASTO ---
+let graficoTempoInstance = null;
+
+// Formata minutos exatamente como pedido:
+//  - menos de 60min  -> "30 min"
+//  - múltiplo de 60  -> "2h"
+//  - resto           -> "1h 30min"
+function formatarTempo(minutosTotais) {
+    const minutos = Math.round(minutosTotais || 0);
+    if (minutos < 60) return `${minutos} min`;
+
+    const horas = Math.floor(minutos / 60);
+    const restoMin = minutos % 60;
+    return restoMin === 0 ? `${horas}h` : `${horas}h ${restoMin}min`;
+}
+
+function renderizarTempoGasto(dados) {
+    const minutosFilmes = dados.minutosFilmes || 0;
+    const minutosJogos = dados.minutosJogos || 0;
+
+    const elFilmes = document.getElementById('tempoFilmesValor');
+    const elJogos = document.getElementById('tempoJogosValor');
+    const elFrase = document.getElementById('tempoFrase');
+
+    if (elFilmes) elFilmes.textContent = formatarTempo(minutosFilmes);
+    if (elJogos) elJogos.textContent = formatarTempo(minutosJogos);
+
+    // Frase "premium" que engaja o usuário, escolhida com base em quem lidera
+    if (elFrase) {
+        if (minutosFilmes === 0 && minutosJogos === 0) {
+            elFrase.textContent = '📈 Adicione filmes e jogos para começar a acompanhar seu tempo investido!';
+        } else if (minutosFilmes >= minutosJogos) {
+            elFrase.textContent = `🍿 Você já passou ${formatarTempo(minutosFilmes)} assistindo filmes!`;
+        } else {
+            elFrase.textContent = `🎮 Você já passou ${formatarTempo(minutosJogos)} jogando!`;
+        }
+    }
+
+    const canvasTempo = document.getElementById('graficoTempo');
+    if (!canvasTempo) return;
+    const ctxTempo = canvasTempo.getContext('2d');
+
+    if (graficoTempoInstance) {
+        graficoTempoInstance.destroy();
+    }
+
+    // Gradientes combinando com os cards acima
+    const gradFilmes = ctxTempo.createLinearGradient(0, 0, 400, 0);
+    gradFilmes.addColorStop(0, '#ff2e63');
+    gradFilmes.addColorStop(1, '#ff6b9d');
+
+    const gradJogos = ctxTempo.createLinearGradient(0, 0, 400, 0);
+    gradJogos.addColorStop(0, '#08d9d6');
+    gradJogos.addColorStop(1, '#0f766e');
+
+    graficoTempoInstance = new Chart(ctxTempo, {
+        type: 'bar',
+        data: {
+            labels: ['🎬 Filmes', '🎮 Jogos'],
+            datasets: [{
+                label: 'Tempo',
+                // A barra usa horas (fração) só pra ficar visualmente proporcional;
+                // o texto exibido (tooltip/cards) sempre usa formatarTempo()
+                data: [minutosFilmes / 60, minutosJogos / 60],
+                backgroundColor: [gradFilmes, gradJogos],
+                borderRadius: 10,
+                borderSkipped: false,
+                barThickness: 42
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const minutosOriginais = context.datasetIndex === 0 ? minutosFilmes : minutosJogos;
+                            return formatarTempo(minutosOriginais) + ' investidos';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Horas', color: '#7f8c8d', font: { size: 12, weight: 'bold' } },
+                    ticks: { color: '#7f8c8d' },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    ticks: { color: '#7f8c8d', font: { size: 13 } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
 }
 
 // --- FUNÇÃO PARA DESENHAR O GRÁFICO DE NOTAS/ESTRELAS ---
@@ -217,4 +340,188 @@ function renderizarGraficoNotas(dados) {
             }
         }
     });
+}
+
+// ===================================================================
+// PREENCHIMENTO EM LOTE DA DURAÇÃO DOS FILMES
+// (o usuário decide, item por item, se aceita a sugestão do TMDB ou não)
+// ===================================================================
+
+let filmesSemDuracaoCache = [];
+
+function escaparHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto ?? '';
+    return div.innerHTML;
+}
+
+async function abrirModalTempoLote() {
+    const overlay = document.getElementById('modalTempoLote');
+    overlay.classList.add('aberto');
+
+    document.getElementById('tempoLoteLoading').style.display = 'block';
+    document.getElementById('tempoLoteVazio').style.display = 'none';
+    document.getElementById('tempoLoteAcoes').style.display = 'none';
+    document.getElementById('tempoLoteLista').innerHTML = '';
+
+    try {
+        const resposta = await fetch('/itens/filmes-sem-duracao');
+        if (!resposta.ok) throw new Error('Erro ao buscar filmes sem duração');
+
+        filmesSemDuracaoCache = await resposta.json();
+        document.getElementById('tempoLoteLoading').style.display = 'none';
+
+        if (filmesSemDuracaoCache.length === 0) {
+            document.getElementById('tempoLoteVazio').style.display = 'block';
+            return;
+        }
+
+        renderizarListaTempoLote(filmesSemDuracaoCache);
+        document.getElementById('tempoLoteAcoes').style.display = 'flex';
+    } catch (erro) {
+        console.error(erro);
+        document.getElementById('tempoLoteLoading').textContent = 'Erro ao carregar filmes. Tente novamente.';
+    }
+}
+
+function fecharModalTempoLote() {
+    document.getElementById('modalTempoLote').classList.remove('aberto');
+}
+
+function renderizarListaTempoLote(filmes) {
+    const lista = document.getElementById('tempoLoteLista');
+    lista.innerHTML = filmes.map(item => `
+        <div class="tempo-lote-item" data-id="${item.id}">
+            <label class="tempo-lote-checkbox">
+                <input type="checkbox" class="chk-aplicar">
+            </label>
+            <div class="tempo-lote-info">
+                <span class="tempo-lote-titulo">${escaparHtml(item.titulo)}</span>
+                <span class="tempo-lote-status">Digite os minutos ou busque no TMDB</span>
+            </div>
+            <input type="number" class="tempo-lote-input" min="0" step="1" placeholder="min">
+        </div>
+    `).join('');
+}
+
+function alternarSelecionarTodos(checkboxMestre) {
+    document.querySelectorAll('#tempoLoteLista .chk-aplicar').forEach(chk => {
+        chk.checked = checkboxMestre.checked;
+    });
+}
+
+async function buscarSugestoesTmdb() {
+    const btn = document.getElementById('btnBuscarTmdbLote');
+    const idsPendentes = filmesSemDuracaoCache.map(f => f.id);
+    if (idsPendentes.length === 0) return;
+
+    btn.disabled = true;
+    btn.textContent = '🔍 Buscando no TMDB...';
+
+    try {
+        const resposta = await fetch('/itens/sugestoes-duracao', {
+            method: 'POST',
+            headers: getCsrfHeaders(),
+            body: JSON.stringify(idsPendentes)
+        });
+
+        if (!resposta.ok) throw new Error('Erro ao buscar sugestões (status ' + resposta.status + ')');
+        const sugestoes = await resposta.json();
+
+        sugestoes.forEach(sugestao => {
+            const linha = document.querySelector(`.tempo-lote-item[data-id="${sugestao.id}"]`);
+            if (!linha) return;
+
+            const input = linha.querySelector('.tempo-lote-input');
+            const checkbox = linha.querySelector('.chk-aplicar');
+            const status = linha.querySelector('.tempo-lote-status');
+
+            if (sugestao.minutosSugeridos != null) {
+                input.value = sugestao.minutosSugeridos;
+                checkbox.checked = true;
+                status.textContent = `✅ Sugestão do TMDB: ${formatarTempo(sugestao.minutosSugeridos)}`;
+                linha.classList.add('aplicado');
+            } else {
+                status.textContent = '❓ Não encontrado no TMDB — digite manualmente';
+            }
+        });
+    } catch (erro) {
+        console.error(erro);
+        if (window.Swal) {
+            Swal.fire('Ops!', 'Não foi possível buscar as sugestões agora. Tente novamente.', 'error');
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🌐 Buscar automaticamente no TMDB';
+    }
+}
+
+async function atualizarTempoGastoAposSalvar() {
+    try {
+        const resposta = await fetch('/api/dashboard');
+        if (!resposta.ok) return;
+        const dados = await resposta.json();
+        dadosGlobaisDashboard = dados;
+        renderizarTempoGasto(dados);
+    } catch (erro) {
+        console.error('Erro ao atualizar o card de Tempo Investido:', erro);
+    }
+}
+
+async function salvarDuracaoLote() {
+    const linhas = document.querySelectorAll('#tempoLoteLista .tempo-lote-item');
+    const atualizacoes = [];
+
+    linhas.forEach(linha => {
+        const checkbox = linha.querySelector('.chk-aplicar');
+        const input = linha.querySelector('.tempo-lote-input');
+        if (checkbox.checked && input.value !== '' && Number(input.value) >= 0) {
+            atualizacoes.push({
+                id: Number(linha.dataset.id),
+                duracaoMinutos: parseInt(input.value, 10)
+            });
+        }
+    });
+
+    if (atualizacoes.length === 0) {
+        if (window.Swal) {
+            Swal.fire('Nada selecionado', 'Marque a caixinha dos filmes que você quer salvar.', 'info');
+        }
+        return;
+    }
+
+    try {
+        const resposta = await fetch('/itens/duracao-lote', {
+            method: 'PUT',
+            headers: getCsrfHeaders(),
+            body: JSON.stringify(atualizacoes)
+        });
+
+        if (!resposta.ok) throw new Error('Erro ao salvar (status ' + resposta.status + ')');
+        const resultado = await resposta.json();
+
+        // Remove da lista/cache os que acabaram de ser salvos
+        const idsSalvos = new Set(atualizacoes.map(a => a.id));
+        filmesSemDuracaoCache = filmesSemDuracaoCache.filter(f => !idsSalvos.has(f.id));
+
+        if (filmesSemDuracaoCache.length === 0) {
+            document.getElementById('tempoLoteLista').innerHTML = '';
+            document.getElementById('tempoLoteAcoes').style.display = 'none';
+            document.getElementById('tempoLoteVazio').style.display = 'block';
+        } else {
+            renderizarListaTempoLote(filmesSemDuracaoCache);
+        }
+
+        // Atualiza só o card/gráfico de Tempo Investido
+        atualizarTempoGastoAposSalvar();
+
+        if (window.Swal) {
+            Swal.fire('Feito! 🎬', `${resultado.atualizados} filme(s) atualizado(s) com sucesso.`, 'success');
+        }
+    } catch (erro) {
+        console.error(erro);
+        if (window.Swal) {
+            Swal.fire('Ops!', 'Não foi possível salvar agora. Tente novamente.', 'error');
+        }
+    }
 }

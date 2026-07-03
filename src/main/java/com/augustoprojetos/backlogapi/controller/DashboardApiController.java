@@ -98,6 +98,24 @@ public class DashboardApiController {
 
         stats.setNotas(mapaNotas);
 
+        // 6. Processa o TEMPO GASTO (Filmes e Jogos informados manualmente pelo
+        // usuário, sempre em minutos). Séries ainda não entram.
+        List<com.augustoprojetos.backlogapi.entity.Item> itensUsuario = itemRepository.findByUser(user);
+
+        long minutosFilmes = itensUsuario.stream()
+                .filter(i -> "Filme".equalsIgnoreCase(i.getTipo()) && i.getDuracaoMinutos() != null)
+                .mapToLong(com.augustoprojetos.backlogapi.entity.Item::getDuracaoMinutos)
+                .sum();
+
+        long minutosJogos = itensUsuario.stream()
+                .filter(i -> "Jogo".equalsIgnoreCase(i.getTipo()) && i.getMinutosJogados() != null)
+                .mapToLong(com.augustoprojetos.backlogapi.entity.Item::getMinutosJogados)
+                .sum();
+
+        stats.setMinutosFilmes(minutosFilmes);
+        stats.setMinutosJogos(minutosJogos);
+        stats.setTempoSeriesDisponivel(false);
+
         return ResponseEntity.ok(stats);
     }
 }

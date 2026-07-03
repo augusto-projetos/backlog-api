@@ -61,7 +61,7 @@ public class ConquistaController {
             m.put("descricao",     uc.getConquista().getDescricao());
             m.put("icone",         uc.getConquista().getIcone());
             m.put("xp",            uc.getConquista().getXp());
-            m.put("desbloquedaEm", uc.getDesbloquedaEm().toString());
+            m.put("desbloqueadaEm", uc.getDesbloqueadaEm().toString());
             return m;
         }).toList();
 

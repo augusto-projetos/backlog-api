@@ -3,6 +3,8 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
         <title>Dashboard - Meus Backlog</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -39,6 +41,46 @@
         <main>
             <div class="dashboard-container">
 
+                <div class="chart-card chart-tempo-card">
+                    <h3 class="chart-title">⏱️ Tempo Investido</h3>
+
+                    <div class="tempo-stats-grid">
+                        <div class="tempo-stat-pill tempo-pill-filmes">
+                            <span class="tempo-pill-icon">🎬</span>
+                            <div class="tempo-pill-texto">
+                                <span class="tempo-pill-valor" id="tempoFilmesValor">0h</span>
+                                <span class="tempo-pill-label">em Filmes</span>
+                            </div>
+                        </div>
+
+                        <div class="tempo-stat-pill tempo-pill-jogos">
+                            <span class="tempo-pill-icon">🎮</span>
+                            <div class="tempo-pill-texto">
+                                <span class="tempo-pill-valor" id="tempoJogosValor">0h</span>
+                                <span class="tempo-pill-label">em Jogos</span>
+                            </div>
+                        </div>
+
+                        <div class="tempo-stat-pill tempo-pill-series tempo-pill-em-breve">
+                            <span class="tempo-pill-icon">📺</span>
+                            <div class="tempo-pill-texto">
+                                <span class="tempo-pill-valor">Em breve</span>
+                                <span class="tempo-pill-label">em Séries</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="canvas-container canvas-tempo">
+                        <canvas id="graficoTempo"></canvas>
+                    </div>
+
+                    <p class="tempo-frase" id="tempoFrase"></p>
+
+                    <button type="button" class="btn-preencher-lote" onclick="abrirModalTempoLote()">
+                        🎬 Preencher tempo dos filmes
+                    </button>
+                </div>
+
                 <div class="chart-card">
                     <h3 class="chart-title">Acervo por Tipo</h3>
                     <div class="canvas-container">
@@ -62,6 +104,43 @@
 
             </div>
         </main>
+
+        <!-- Modal: Preenchimento em lote da duração dos filmes -->
+        <div id="modalTempoLote" class="tempo-lote-overlay">
+            <div class="tempo-lote-modal">
+                <div class="tempo-lote-header">
+                    <h3>🎬 Preencher tempo dos filmes</h3>
+                    <button type="button" class="tempo-lote-fechar" onclick="fecharModalTempoLote()">✖</button>
+                </div>
+
+                <p class="tempo-lote-subtitulo">
+                    Filmes sem duração cadastrada. Busque sugestões no TMDB e escolha quais aplicar,
+                    ou digite os minutos manualmente. Nada é salvo até você clicar em "Salvar selecionados".
+                </p>
+
+                <div id="tempoLoteLoading" class="tempo-lote-loading">Carregando seus filmes...</div>
+                <div id="tempoLoteVazio" class="tempo-lote-vazio" style="display:none;">
+                    🎉 Todos os seus filmes já têm duração cadastrada!
+                </div>
+
+                <div id="tempoLoteLista" class="tempo-lote-lista"></div>
+
+                <div id="tempoLoteAcoes" class="tempo-lote-acoes" style="display:none;">
+                    <label class="tempo-lote-selecionar-todos">
+                        <input type="checkbox" id="chkSelecionarTodos" onchange="alternarSelecionarTodos(this)">
+                        Selecionar todos
+                    </label>
+                    <div class="tempo-lote-botoes">
+                        <button type="button" class="btn-secundario" id="btnBuscarTmdbLote" onclick="buscarSugestoesTmdb()">
+                            🌐 Buscar automaticamente no TMDB
+                        </button>
+                        <button type="button" class="btn-primario" onclick="salvarDuracaoLote()">
+                            💾 Salvar selecionados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <script th:src="@{/js/theme-toggle.js}"></script>
         <script th:src="@{/js/rating-toggle.js}"></script>
