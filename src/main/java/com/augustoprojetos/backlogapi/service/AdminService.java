@@ -228,6 +228,20 @@ public class AdminService {
         stats.setTotalDropados(totalDropados);
         stats.setDistribNotas(distribNotas);
 
+        // Tempo gasto global (Filmes e Jogos informados manualmente pelos
+        // usuários, sempre em minutos)
+        long minutosFilmes = todosItens.stream()
+                .filter(i -> "Filme".equalsIgnoreCase(i.getTipo()) && i.getDuracaoMinutos() != null)
+                .mapToLong(i -> i.getDuracaoMinutos())
+                .sum();
+        long minutosJogos = todosItens.stream()
+                .filter(i -> "Jogo".equalsIgnoreCase(i.getTipo()) && i.getMinutosJogados() != null)
+                .mapToLong(i -> i.getMinutosJogados())
+                .sum();
+
+        stats.setMinutosFilmes(minutosFilmes);
+        stats.setMinutosJogos(minutosJogos);
+
         return stats;
     }
 

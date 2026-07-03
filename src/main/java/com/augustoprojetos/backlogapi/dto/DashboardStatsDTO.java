@@ -18,6 +18,12 @@ public class DashboardStatsDTO {
     // Mapa de Notas
     private Map<String, Long> notas;
 
+    // --- Tempo Gasto (em minutos) ---
+    private long minutosFilmes;
+    private long minutosJogos;
+    // Séries ainda não entram na conta: a funcionalidade estará disponível em breve
+    private boolean tempoSeriesDisponivel = false;
+
     // Getters e Setters
     public long getTotalJogos() { return totalJogos; }
     public void setTotalJogos(long totalJogos) { this.totalJogos = totalJogos; }
@@ -42,4 +48,13 @@ public class DashboardStatsDTO {
 
     public Map<String, Long> getNotas() { return notas; }
     public void setNotas(Map<String, Long> notas) { this.notas = notas; }
+
+    public long getMinutosFilmes() { return minutosFilmes; }
+    public void setMinutosFilmes(long minutosFilmes) { this.minutosFilmes = minutosFilmes; }
+
+    public long getMinutosJogos() { return minutosJogos; }
+    public void setMinutosJogos(long minutosJogos) { this.minutosJogos = minutosJogos; }
+
+    public boolean isTempoSeriesDisponivel() { return tempoSeriesDisponivel; }
+    public void setTempoSeriesDisponivel(boolean tempoSeriesDisponivel) { this.tempoSeriesDisponivel = tempoSeriesDisponivel; }
 }
