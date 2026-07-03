@@ -356,6 +356,34 @@
     color: #fff;
 }
 
+/* --- Botão "Salvar selecionados" vira uma barra de progresso enquanto salva --- */
+.btn-salvar-lote {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.btn-salvar-lote-progresso {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.35);
+    transition: width 0.25s ease;
+    z-index: 0;
+}
+
+.btn-salvar-lote-label {
+    position: relative;
+    z-index: 1;
+}
+
+.btn-salvar-lote:disabled {
+    cursor: wait;
+    opacity: 1;
+}
+
 @media (max-width: 600px) {
     .tempo-lote-item {
         grid-template-columns: auto 1fr;
@@ -366,6 +394,7 @@
     }
 }
 
+/* Garante que os alertas do SweetAlert2 sempre apareçam ACIMA do modal */
 .swal2-container {
     z-index: 3000 !important;
 }

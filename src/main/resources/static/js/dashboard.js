@@ -470,58 +470,94 @@ async function atualizarTempoGastoAposSalvar() {
 
 async function salvarDuracaoLote() {
     const linhas = document.querySelectorAll('#tempoLoteLista .tempo-lote-item');
-    const atualizacoes = [];
+    const selecionados = [];
 
     linhas.forEach(linha => {
         const checkbox = linha.querySelector('.chk-aplicar');
         const input = linha.querySelector('.tempo-lote-input');
         if (checkbox.checked && input.value !== '' && Number(input.value) >= 0) {
-            atualizacoes.push({
+            selecionados.push({
                 id: Number(linha.dataset.id),
                 duracaoMinutos: parseInt(input.value, 10)
             });
         }
     });
 
-    if (atualizacoes.length === 0) {
+    if (selecionados.length === 0) {
         if (window.Swal) {
             Swal.fire('Nada selecionado', 'Marque a caixinha dos filmes que você quer salvar.', 'info');
         }
         return;
     }
 
-    try {
-        const resposta = await fetch('/itens/duracao-lote', {
-            method: 'PUT',
-            headers: getCsrfHeaders(),
-            body: JSON.stringify(atualizacoes)
-        });
+    const btn = document.getElementById('btnSalvarLote');
+    const label = document.getElementById('btnSalvarLoteLabel');
+    const progresso = document.getElementById('btnSalvarLoteProgresso');
+    const btnBuscar = document.getElementById('btnBuscarTmdbLote');
 
-        if (!resposta.ok) throw new Error('Erro ao salvar (status ' + resposta.status + ')');
-        const resultado = await resposta.json();
+    const total = selecionados.length;
+    let salvosComSucesso = 0;
+    const idsComSucesso = new Set();
 
-        // Remove da lista/cache os que acabaram de ser salvos
-        const idsSalvos = new Set(atualizacoes.map(a => a.id));
-        filmesSemDuracaoCache = filmesSemDuracaoCache.filter(f => !idsSalvos.has(f.id));
+    // Trava os botões e zera a barra antes de começar
+    btn.disabled = true;
+    if (btnBuscar) btnBuscar.disabled = true;
+    progresso.style.width = '0%';
+    label.textContent = `💾 Salvando... 0/${total}`;
 
-        if (filmesSemDuracaoCache.length === 0) {
-            document.getElementById('tempoLoteLista').innerHTML = '';
-            document.getElementById('tempoLoteAcoes').style.display = 'none';
-            document.getElementById('tempoLoteVazio').style.display = 'block';
+    // Salva um filme por vez (em sequência), atualizando a barra a cada resposta
+    for (let i = 0; i < total; i++) {
+        const item = selecionados[i];
+        try {
+            const resposta = await fetch(`/itens/${item.id}/duracao`, {
+                method: 'PUT',
+                headers: getCsrfHeaders(),
+                body: JSON.stringify({ duracaoMinutos: item.duracaoMinutos })
+            });
+
+            if (resposta.ok) {
+                salvosComSucesso++;
+                idsComSucesso.add(item.id);
+            }
+        } catch (erro) {
+            console.error('Erro ao salvar o filme', item.id, erro);
+        }
+
+        const feitos = i + 1;
+        const percentual = Math.round((feitos / total) * 100);
+        progresso.style.width = percentual + '%';
+        label.textContent = `💾 Salvando... ${feitos}/${total}`;
+    }
+
+    // Remove da lista/cache só os que realmente foram salvos com sucesso
+    filmesSemDuracaoCache = filmesSemDuracaoCache.filter(f => !idsComSucesso.has(f.id));
+
+    if (filmesSemDuracaoCache.length === 0) {
+        document.getElementById('tempoLoteLista').innerHTML = '';
+        document.getElementById('tempoLoteAcoes').style.display = 'none';
+        document.getElementById('tempoLoteVazio').style.display = 'block';
+    } else {
+        renderizarListaTempoLote(filmesSemDuracaoCache);
+    }
+
+    // Atualiza só o card/gráfico de Tempo Investido
+    atualizarTempoGastoAposSalvar();
+
+    // Restaura o botão ao estado normal
+    btn.disabled = false;
+    if (btnBuscar) btnBuscar.disabled = false;
+    progresso.style.width = '0%';
+    label.textContent = '💾 Salvar selecionados';
+
+    if (window.Swal) {
+        if (salvosComSucesso === total) {
+            Swal.fire('Feito! 🎬', `${salvosComSucesso} filme(s) atualizado(s) com sucesso.`, 'success');
         } else {
-            renderizarListaTempoLote(filmesSemDuracaoCache);
-        }
-
-        // Atualiza só o card/gráfico de Tempo Investido
-        atualizarTempoGastoAposSalvar();
-
-        if (window.Swal) {
-            Swal.fire('Feito! 🎬', `${resultado.atualizados} filme(s) atualizado(s) com sucesso.`, 'success');
-        }
-    } catch (erro) {
-        console.error(erro);
-        if (window.Swal) {
-            Swal.fire('Ops!', 'Não foi possível salvar agora. Tente novamente.', 'error');
+            Swal.fire(
+                'Concluído parcialmente',
+                `${salvosComSucesso} de ${total} filme(s) foram salvos. Os que falharam continuam na lista para você tentar de novo.`,
+                'warning'
+            );
         }
     }
 }
