@@ -109,6 +109,59 @@
             <!-- Gráficos -->
             <div class="charts-grid">
 
+                <!-- Tempo Investido (Global) -->
+                <div class="chart-card chart-full chart-tempo-card">
+                    <div class="chart-header">
+                        <h4 class="chart-title">⏱️ Tempo Investido (Global)</h4>
+                        <div class="chart-filter-wrap">
+                            <button class="btn-chart-filter" data-chart="tempo" title="Filtrar gráfico">
+                                <i class="fa fa-sliders"></i>
+                            </button>
+                            <div class="filter-popover hidden" id="filter-popover-tempo">
+                                <div class="filter-popover-header">
+                                    <span>Filtros</span>
+                                    <button class="filter-clear-btn" data-chart="tempo">Limpar</button>
+                                </div>
+                                <div class="filter-group">
+                                    <p class="filter-group-label">Usuário</p>
+                                    <select class="filter-select" name="tempo-usuario">
+                                        <option value="">Todos os usuários</option>
+                                        <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.login}"></option>
+                                    </select>
+                                </div>
+                                <button class="filter-apply-btn" data-chart="tempo">Aplicar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-active-tags" id="filter-tags-tempo"></div>
+
+                    <div class="tempo-stats-grid">
+                        <div class="tempo-stat-pill tempo-pill-filmes">
+                            <span class="tempo-pill-icon">🎬</span>
+                            <div class="tempo-pill-texto">
+                                <span class="tempo-pill-valor" id="admTempoFilmesValor">0h</span>
+                                <span class="tempo-pill-label">em Filmes</span>
+                            </div>
+                        </div>
+                        <div class="tempo-stat-pill tempo-pill-jogos">
+                            <span class="tempo-pill-icon">🎮</span>
+                            <div class="tempo-pill-texto">
+                                <span class="tempo-pill-valor" id="admTempoJogosValor">0h</span>
+                                <span class="tempo-pill-label">em Jogos</span>
+                            </div>
+                        </div>
+                        <div class="tempo-stat-pill tempo-pill-series tempo-pill-em-breve">
+                            <span class="tempo-pill-icon">📺</span>
+                            <div class="tempo-pill-texto">
+                                <span class="tempo-pill-valor">Em breve</span>
+                                <span class="tempo-pill-label">em Séries</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="canvas-container canvas-tempo"><canvas id="graficoTempo"></canvas></div>
+                </div>
+
                 <!-- Acervo por Tipo -->
                 <div class="chart-card">
                     <div class="chart-header">
@@ -700,7 +753,9 @@
             backlog:     /*[[${stats.totalBacklog}]]*/ 0,
             dropados:    /*[[${stats.totalDropados}]]*/ 0,
             notasLabels: /*[[${stats.distribNotas.keySet()}]]*/ [],
-            notasValues: /*[[${stats.distribNotas.values()}]]*/ []
+            notasValues: /*[[${stats.distribNotas.values()}]]*/ [],
+            minutosFilmes: /*[[${stats.minutosFilmes}]]*/ 0,
+            minutosJogos:  /*[[${stats.minutosJogos}]]*/ 0
         };
     </script>
     <script th:src="@{/js/theme-toggle.js}"></script>
