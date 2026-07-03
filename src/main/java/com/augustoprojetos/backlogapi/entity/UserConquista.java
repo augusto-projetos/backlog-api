@@ -31,11 +31,11 @@ public class UserConquista {
     private Conquista conquista;
 
     @Column(nullable = false)
-    private LocalDateTime desbloquedaEm;
+    private LocalDateTime desbloqueadaEm;
 
     public UserConquista(User user, Conquista conquista) {
         this.user = user;
         this.conquista = conquista;
-        this.desbloquedaEm = LocalDateTime.now();
+        this.desbloqueadaEm = LocalDateTime.now();
     }
 }
