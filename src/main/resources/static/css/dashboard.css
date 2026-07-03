@@ -27,6 +27,95 @@
     width: 100%;
 }
 
+/* --- Card "Tempo Investido" (Gamification & Data) --- */
+.chart-tempo-card {
+    grid-column: 1 / -1;
+}
+
+.tempo-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.tempo-stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    transition: transform 0.25s ease;
+}
+
+.tempo-stat-pill:hover {
+    transform: translateY(-3px);
+}
+
+.tempo-pill-filmes {
+    background: linear-gradient(135deg, #ff2e63, #ff6b9d);
+}
+
+.tempo-pill-jogos {
+    background: linear-gradient(135deg, #08d9d6, #0f766e);
+}
+
+.tempo-pill-series {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: 2px dashed var(--border-color);
+    box-shadow: none;
+}
+
+.tempo-pill-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+.tempo-pill-texto {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.tempo-pill-valor {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.tempo-pill-label {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.tempo-pill-em-breve .tempo-pill-valor {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.canvas-tempo {
+    height: 220px;
+}
+
+.tempo-frase {
+    text-align: center;
+    margin-top: 14px;
+    margin-bottom: 0;
+    font-weight: 600;
+    font-style: italic;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+    .tempo-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* --- Botão Voltar --- */
 .btn-voltar {
     display: inline-flex;
@@ -71,4 +160,212 @@
         flex: 1;
         justify-content: center;
     }
+}
+
+/* --- Botão "Preencher tempo dos filmes" --- */
+.btn-preencher-lote {
+    display: block;
+    margin: 16px auto 0;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #e94560, #ff6b9d);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-preencher-lote:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(233, 69, 96, 0.45);
+}
+
+/* --- Modal: Preenchimento em lote da duração dos filmes --- */
+.tempo-lote-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.tempo-lote-overlay.aberto {
+    display: flex;
+}
+
+.tempo-lote-modal {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 22px;
+    border-radius: 14px;
+    width: 92%;
+    max-width: 620px;
+    max-height: 82vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #e94560;
+}
+
+.tempo-lote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.tempo-lote-header h3 {
+    margin: 0;
+}
+
+.tempo-lote-fechar {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+.tempo-lote-subtitulo {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 0 0 16px;
+    line-height: 1.4;
+}
+
+.tempo-lote-loading,
+.tempo-lote-vazio {
+    text-align: center;
+    padding: 30px 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.tempo-lote-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 45vh;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.tempo-lote-item {
+    display: grid;
+    grid-template-columns: auto 1fr 90px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+}
+
+.tempo-lote-item.aplicado {
+    border-color: #08d9d6;
+}
+
+.tempo-lote-checkbox input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.tempo-lote-info {
+    min-width: 0;
+}
+
+.tempo-lote-titulo {
+    display: block;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tempo-lote-status {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.tempo-lote-input {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-main);
+    text-align: center;
+}
+
+.tempo-lote-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 14px;
+}
+
+.tempo-lote-selecionar-todos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.tempo-lote-botoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tempo-lote-botoes button {
+    flex: 1;
+    min-width: 160px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-secundario {
+    background: transparent;
+    border: 2px solid #08d9d6 !important;
+    color: #08d9d6;
+}
+
+.btn-secundario:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primario {
+    background: linear-gradient(135deg, #08d9d6, #0f766e);
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .tempo-lote-item {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+    }
+    .tempo-lote-input {
+        grid-column: 1 / -1;
+    }
+}
+
+.swal2-container {
+    z-index: 3000 !important;
 }
