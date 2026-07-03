@@ -164,6 +164,15 @@ function atualizarStatusDinamico() {
         optAndamento.innerText = "Assistindo";
         optAndamento.value = "Assistindo";
     }
+
+    // --- Campos/dicas do sistema de Tempo Gasto ---
+    const grupoMinutosJogados = document.getElementById('grupo-minutos-jogados');
+    const grupoDuracaoFilme = document.getElementById('grupo-duracao-filme');
+    const dicaSerie = document.getElementById('dica-tempo-serie');
+
+    if (grupoMinutosJogados) grupoMinutosJogados.style.display = (tipo === 'Jogo') ? 'block' : 'none';
+    if (grupoDuracaoFilme) grupoDuracaoFilme.style.display = (tipo === 'Filme') ? 'block' : 'none';
+    if (dicaSerie) dicaSerie.style.display = (tipo === 'Série') ? 'block' : 'none';
 }
 
 // --- Funções ---
@@ -206,6 +215,16 @@ async function carregarDadosParaEdicao(id) {
             document.getElementById('nota').value = item.nota;
             document.getElementById('resenha').value = item.resenha;
 
+            const campoMinutosJogados = document.getElementById('minutosJogados');
+            if (campoMinutosJogados) {
+                campoMinutosJogados.value = (item.minutosJogados !== null && item.minutosJogados !== undefined) ? item.minutosJogados : '';
+            }
+
+            const campoDuracaoFilme = document.getElementById('duracaoMinutos');
+            if (campoDuracaoFilme) {
+                campoDuracaoFilme.value = (item.duracaoMinutos !== null && item.duracaoMinutos !== undefined) ? item.duracaoMinutos : '';
+            }
+
             travarCamposPeloStatus();
 
             // Tratamento especial para imagem (caso venha nulo)
@@ -234,13 +253,25 @@ async function salvarItem(event) {
     const campoImagem = document.getElementById('imagemUrl');
     const imagemUrl = campoImagem ? campoImagem.value : "";
 
+    const campoMinutosJogados = document.getElementById('minutosJogados');
+    const minutosJogados = (tipo === 'Jogo' && campoMinutosJogados && campoMinutosJogados.value !== '')
+        ? parseInt(campoMinutosJogados.value, 10)
+        : null;
+
+    const campoDuracaoFilme = document.getElementById('duracaoMinutos');
+    const duracaoMinutos = (tipo === 'Filme' && campoDuracaoFilme && campoDuracaoFilme.value !== '')
+        ? parseInt(campoDuracaoFilme.value, 10)
+        : null;
+
     const dados = {
         titulo: titulo,
         tipo: tipo,
         status: status,
         nota: parseFloat(nota),
         resenha: resenha,
-        imagemUrl: imagemUrl
+        imagemUrl: imagemUrl,
+        minutosJogados: minutosJogados,
+        duracaoMinutos: duracaoMinutos
     };
 
     try {
