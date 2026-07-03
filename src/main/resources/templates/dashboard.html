@@ -134,8 +134,9 @@
                         <button type="button" class="btn-secundario" id="btnBuscarTmdbLote" onclick="buscarSugestoesTmdb()">
                             🌐 Buscar automaticamente no TMDB
                         </button>
-                        <button type="button" class="btn-primario" onclick="salvarDuracaoLote()">
-                            💾 Salvar selecionados
+                        <button type="button" class="btn-primario btn-salvar-lote" id="btnSalvarLote" onclick="salvarDuracaoLote()">
+                            <div class="btn-salvar-lote-progresso" id="btnSalvarLoteProgresso"></div>
+                            <span class="btn-salvar-lote-label" id="btnSalvarLoteLabel">💾 Salvar selecionados</span>
                         </button>
                     </div>
                 </div>

@@ -12,6 +12,7 @@ import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -299,6 +300,40 @@ public class ItemController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("atualizados", atualizados);
+        return ResponseEntity.ok(response);
+    }
+
+    // 10. SALVAR A DURAÇÃO DE UM ÚNICO FILME
+    @PutMapping("/itens/{id}/duracao")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> salvarDuracaoUnica(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body,
+            @AuthenticationPrincipal User userLogado) {
+
+        Map<String, Object> response = new HashMap<>();
+        Item item = itemRepository.findById(id).orElse(null);
+
+        if (item == null || !item.getUser().getId().equals(userLogado.getId())) {
+            response.put("sucesso", false);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+
+        if (!"Filme".equalsIgnoreCase(item.getTipo())) {
+            response.put("sucesso", false);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        Object minutosObj = body.get("duracaoMinutos");
+        if (!(minutosObj instanceof Number numero) || numero.intValue() < 0) {
+            response.put("sucesso", false);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        item.setDuracaoMinutos(numero.intValue());
+        itemRepository.save(item);
+
+        response.put("sucesso", true);
         return ResponseEntity.ok(response);
     }
 
