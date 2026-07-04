@@ -33,4 +33,23 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     // Conta itens de um usuário com tipo e status dentro de uma lista
     long countByUserAndTipoAndStatusIn(User user, String tipo, List<String> statusList);
+
+    // --- Queries de tempo (horas) para o sistema de conquistas ---
+
+    // Soma os minutos de duração dos filmes concluídos (assistidos) de um usuário
+    @Query("SELECT COALESCE(SUM(i.duracaoMinutos), 0) FROM Item i " +
+           "WHERE i.user = :user AND i.tipo = :tipo AND i.status IN :statusList AND i.duracaoMinutos IS NOT NULL")
+    long sumDuracaoMinutosByUserAndTipoAndStatusIn(@Param("user") User user,
+                                                    @Param("tipo") String tipo,
+                                                    @Param("statusList") List<String> statusList);
+
+    // Soma os minutos jogados em TODOS os jogos cadastrados por um usuário (qualquer status)
+    @Query("SELECT COALESCE(SUM(i.minutosJogados), 0) FROM Item i " +
+           "WHERE i.user = :user AND i.tipo = :tipo AND i.minutosJogados IS NOT NULL")
+    long sumMinutosJogadosByUserAndTipo(@Param("user") User user, @Param("tipo") String tipo);
+
+    // Maior quantidade de minutos jogados em um ÚNICO jogo cadastrado por um usuário
+    @Query("SELECT COALESCE(MAX(i.minutosJogados), 0) FROM Item i " +
+           "WHERE i.user = :user AND i.tipo = :tipo AND i.minutosJogados IS NOT NULL")
+    long maxMinutosJogadosByUserAndTipo(@Param("user") User user, @Param("tipo") String tipo);
 }

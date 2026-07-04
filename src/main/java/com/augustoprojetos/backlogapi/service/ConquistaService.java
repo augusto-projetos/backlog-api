@@ -44,7 +44,14 @@ public class ConquistaService {
     //   TMDB_CAPA            - usuário tem >= 1 item com imagemUrl do themoviedb.org
     //   AI_USADA             - detectado no momento da chamada à IA (disparo direto)
     //   SHARE_LINK_CRIADO    - usuário tem >= 1 share_token no banco
+    //   HORAS_FILMES         - soma de duracaoMinutos dos filmes concluídos >= criterioValor (em MINUTOS)
+    //   HORAS_JOGOS_TOTAL    - soma de minutosJogados de TODOS os jogos cadastrados >= criterioValor (em MINUTOS)
+    //   HORAS_JOGO_UNICO     - maior minutosJogados entre os jogos cadastrados (1 jogo só) >= criterioValor (em MINUTOS)
     //   MANUAL               - concedida manualmente pelo admin
+    //
+    // IMPORTANTE: para os critérios de HORAS_*, criterioValor é sempre em MINUTOS
+    // (ex.: 10 horas = 600). Isso porque Item.duracaoMinutos e Item.minutosJogados
+    // são armazenados em minutos.
     // ---------------------------------------------------------------
 
     @PostConstruct
@@ -72,6 +79,43 @@ public class ConquistaService {
         upsertConquista("DUREZA_TOTAL",    "Dureza Total",                 "Dropou 30 itens. A vida é curta pra mídia ruim.",             "🗑️", 150, "TOTAL_DROPADOS",    30);
         upsertConquista("ARBITRO_SUPREMO", "Árbitro Supremo",              "Deu nota 10 para 25 itens. Seu critério é impecável.",        "🎖️", 250, "NOTA10_TOTAL",      25);
         upsertConquista("EXPANSAO_TOTAL",  "Expansão Total",               "Cadastrou 100 itens no backlog. O acervo cresce!",            "📚", 150, "TOTAL_ITENS",       100);
+
+        // -----------------------------------------------------------
+        // Conquistas de HORAS assistidas em filmes concluídos
+        // -----------------------------------------------------------
+        upsertConquista("HORAS_FILME_10",  "Pipoca Quentinha",             "Acumulou 10 horas assistindo filmes concluídos.",             "🍿", 60,  "HORAS_FILMES", h(10));
+        upsertConquista("HORAS_FILME_25",  "Sessão da Tarde",              "Acumulou 25 horas assistindo filmes concluídos.",             "📽️", 80,  "HORAS_FILMES", h(25));
+        upsertConquista("HORAS_FILME_50",  "Fim de Semana de Cinema",      "Acumulou 50 horas assistindo filmes concluídos.",             "🎦", 100, "HORAS_FILMES", h(50));
+        upsertConquista("HORAS_FILME_100", "Cinéfilo de Carteirinha",      "Acumulou 100 horas assistindo filmes concluídos.",            "🎟️", 130, "HORAS_FILMES", h(100));
+        upsertConquista("HORAS_FILME_200", "Maratonista das Telonas",      "Acumulou 200 horas assistindo filmes concluídos.",            "🏆", 160, "HORAS_FILMES", h(200));
+        upsertConquista("HORAS_FILME_350", "Morador do Cinema",            "Acumulou 350 horas assistindo filmes concluídos.",            "🎬", 200, "HORAS_FILMES", h(350));
+        upsertConquista("HORAS_FILME_500", "Lenda das Telonas",            "Acumulou 500 horas assistindo filmes concluídos.",            "🌟", 250, "HORAS_FILMES", h(500));
+
+        // -----------------------------------------------------------
+        // Conquistas de HORAS totais cadastradas em jogos
+        // -----------------------------------------------------------
+        upsertConquista("HORAS_JOGO_TOTAL_20",   "Recruta Gamer",                 "Cadastrou 20 horas jogadas no total.",                        "🎮", 70,  "HORAS_JOGOS_TOTAL", h(20));
+        upsertConquista("HORAS_JOGO_TOTAL_50",   "Grinder Iniciante",             "Cadastrou 50 horas jogadas no total.",                        "⏫", 90,  "HORAS_JOGOS_TOTAL", h(50));
+        upsertConquista("HORAS_JOGO_TOTAL_100",  "Cem Por Cento Dedicado",        "Cadastrou 100 horas jogadas no total.",                       "💯", 120, "HORAS_JOGOS_TOTAL", h(100));
+        upsertConquista("HORAS_JOGO_TOTAL_250",  "Veterano dos Consoles",         "Cadastrou 250 horas jogadas no total.",                       "🕹️", 150, "HORAS_JOGOS_TOTAL", h(250));
+        upsertConquista("HORAS_JOGO_TOTAL_500",  "Mestre do Save Point",          "Cadastrou 500 horas jogadas no total.",                       "💾", 200, "HORAS_JOGOS_TOTAL", h(500));
+        upsertConquista("HORAS_JOGO_TOTAL_1000", "Rank Diamante da Vida Real",    "Cadastrou 1000 horas jogadas no total.",                      "💎", 280, "HORAS_JOGOS_TOTAL", h(1000));
+        upsertConquista("HORAS_JOGO_TOTAL_2000", "NPC do Próprio Backlog",        "Cadastrou 2000 horas jogadas no total.",                      "🤖", 350, "HORAS_JOGOS_TOTAL", h(2000));
+
+        // -----------------------------------------------------------
+        // Conquistas de HORAS investidas em um ÚNICO jogo
+        // -----------------------------------------------------------
+        upsertConquista("HORAS_JOGO_UNICO_10",  "Só Mais Uma Partida",           "Registrou 10 horas jogadas em um único jogo.",                "🕐", 60,  "HORAS_JOGO_UNICO", h(10));
+        upsertConquista("HORAS_JOGO_UNICO_25",  "Investimento Sério",            "Registrou 25 horas jogadas em um único jogo.",                "📈", 80,  "HORAS_JOGO_UNICO", h(25));
+        upsertConquista("HORAS_JOGO_UNICO_50",  "Casamento com o Jogo",          "Registrou 50 horas jogadas em um único jogo.",                "💍", 110, "HORAS_JOGO_UNICO", h(50));
+        upsertConquista("HORAS_JOGO_UNICO_100", "Cem Horas, Uma Vida",           "Registrou 100 horas jogadas em um único jogo.",               "⏳", 150, "HORAS_JOGO_UNICO", h(100));
+        upsertConquista("HORAS_JOGO_UNICO_200", "Platina de Suor e Lágrimas",    "Registrou 200 horas jogadas em um único jogo.",               "🏅", 200, "HORAS_JOGO_UNICO", h(200));
+        upsertConquista("HORAS_JOGO_UNICO_500", "Isso Já Não É Hobby, É Residência", "Registrou 500 horas jogadas em um único jogo.",           "🏠", 280, "HORAS_JOGO_UNICO", h(500));
+    }
+
+    // Converte horas para minutos, usado para deixar o seed mais legível
+    private static int h(int horas) {
+        return horas * 60;
     }
 
     private void upsertConquista(String chave, String nome, String descricao,
@@ -147,6 +191,18 @@ public class ConquistaService {
         // Detecta share link: quantos tokens este usuário já gerou
         long shareLinksGerados = shareTokenRepository.findByUser(user).size();
 
+        // Minutos assistidos de filmes concluídos (para conquistas HORAS_FILMES)
+        long minutosFilmesAssistidos = itemRepository.sumDuracaoMinutosByUserAndTipoAndStatusIn(
+            user, "Filme",
+            List.of("Zerado / Assistido", "concluido", "Zerado", "Assistido")
+        );
+
+        // Minutos jogados somando TODOS os jogos cadastrados (para conquistas HORAS_JOGOS_TOTAL)
+        long minutosJogosTotal = itemRepository.sumMinutosJogadosByUserAndTipo(user, "Jogo");
+
+        // Maior quantidade de minutos jogados em um único jogo (para conquistas HORAS_JOGO_UNICO)
+        long minutosJogoUnicoMax = itemRepository.maxMinutosJogadosByUserAndTipo(user, "Jogo");
+
         // Itera TODAS as conquistas (fixas + criadas pelo admin)
         for (Conquista c : conquistaRepository.findAll()) {
             if (userConquistaRepository.existsByUserAndConquista_Chave(user, c.getChave())) {
@@ -174,6 +230,9 @@ public class ConquistaService {
                 case "NOTA10_TOTAL"      -> nota10Total        >= limiar;
                 case "TMDB_CAPA"         -> itensComCapaTmdb   >= limiar;
                 case "SHARE_LINK_CRIADO" -> shareLinksGerados  >= limiar;
+                case "HORAS_FILMES"      -> minutosFilmesAssistidos >= limiar;
+                case "HORAS_JOGOS_TOTAL" -> minutosJogosTotal       >= limiar;
+                case "HORAS_JOGO_UNICO"  -> minutosJogoUnicoMax     >= limiar;
                 default                  -> false;
             };
 
