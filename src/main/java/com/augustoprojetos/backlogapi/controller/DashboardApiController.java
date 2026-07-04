@@ -102,13 +102,16 @@ public class DashboardApiController {
         // usuário, sempre em minutos). Séries ainda não entram.
         List<com.augustoprojetos.backlogapi.entity.Item> itensUsuario = itemRepository.findByUser(user);
 
+        // Itens em Backlog ou Dropados não contam tempo investido
         long minutosFilmes = itensUsuario.stream()
                 .filter(i -> "Filme".equalsIgnoreCase(i.getTipo()) && i.getDuracaoMinutos() != null)
+                .filter(this::contaNoTempoInvestido)
                 .mapToLong(com.augustoprojetos.backlogapi.entity.Item::getDuracaoMinutos)
                 .sum();
 
         long minutosJogos = itensUsuario.stream()
                 .filter(i -> "Jogo".equalsIgnoreCase(i.getTipo()) && i.getMinutosJogados() != null)
+                .filter(this::contaNoTempoInvestido)
                 .mapToLong(com.augustoprojetos.backlogapi.entity.Item::getMinutosJogados)
                 .sum();
 
@@ -117,5 +120,14 @@ public class DashboardApiController {
         stats.setTempoSeriesDisponivel(false);
 
         return ResponseEntity.ok(stats);
+    }
+
+    // Método auxiliar para verificar se o item deve contar no tempo investido
+    private boolean contaNoTempoInvestido(com.augustoprojetos.backlogapi.entity.Item item) {
+        String status = item.getStatus();
+        if (status == null) return true;
+        String statusLower = status.toLowerCase();
+        return !statusLower.contains("backlog") && !statusLower.contains("dropado") &&
+                !statusLower.contains("assistindo") && !statusLower.contains("jogando");
     }
 }
