@@ -1503,7 +1503,7 @@ function renderizarTabelaAudit(registros, total) {
         <tr>
             <td class="audit-data">${formatarDataAudit(r.criadoEm)}</td>
             <td><span class="audit-acao-badge ${categoriaAcao(r.acao)}">${formatarAcao(r.acao)}</span></td>
-            <td>${escapeHtml(r.descricao)}</td>
+            <td class="audit-descricao">${escapeHtml(r.descricao)}</td>
             <td class="audit-detalhe">${r.detalhe ? escapeHtml(r.detalhe) : '<span style="opacity:0.4">—</span>'}</td>
         </tr>
     `).join("");

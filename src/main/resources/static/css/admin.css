@@ -1670,11 +1670,23 @@ body {
     white-space: nowrap;
 }
 
+#tabela-auditoria td {
+    vertical-align: top;
+}
+
+.audit-descricao {
+    font-size: 0.85rem;
+    max-width: 320px;
+    word-break: break-word;
+    white-space: normal;
+}
+
 .audit-detalhe {
     font-size: 0.78rem;
     color: var(--adm-muted, #6b7280);
     max-width: 220px;
     word-break: break-word;
+    white-space: normal;
 }
 
 .audit-paginacao {
