@@ -1,20 +1,23 @@
 package com.augustoprojetos.backlogapi.controller;
 
 import com.augustoprojetos.backlogapi.dto.DashboardStatsDTO;
+import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import com.augustoprojetos.backlogapi.repository.UserRepository;
+import com.augustoprojetos.backlogapi.util.NotaScaleUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import java.util.List;
 
@@ -31,10 +34,7 @@ public class DashboardApiController {
     @GetMapping
     public ResponseEntity<DashboardStatsDTO> getEstatisticas() {
         // 1. Pega o usuário logado
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-
-        User user = userRepository.findByEmail(email).orElse(null);
+        User user = usuarioLogado();
 
         // 2. Cria o DTO vazio
         DashboardStatsDTO stats = new DashboardStatsDTO();
@@ -69,34 +69,17 @@ public class DashboardApiController {
             }
         }
 
-        // 5. Processa as NOTAS
+        // 5. Processa as NOTAS (somente notas com itens, da maior para a menor)
         List<Object[]> listaNotas = itemRepository.countItensPorNota(user.getId());
 
-        // Cria uma lista temporária para ordenar corretamente
-        List<Map.Entry<Double, Long>> listaOrdenada = new ArrayList<>();
-
+        Map<Double, Long> contagemPorNota = new LinkedHashMap<>();
         for (Object[] obj : listaNotas) {
             Double nota = (Double) obj[0];
             Long qtd = (Long) obj[1];
-            // Adiciona na lista temporária usando Map.entry
-            listaOrdenada.add(new java.util.AbstractMap.SimpleEntry<>(nota, qtd));
+            contagemPorNota.put(nota, qtd);
         }
 
-        // Ordenação: Compara os Doubles de forma decrescente (10.0 -> 0.0)
-        listaOrdenada.sort((a, b) -> Double.compare(b.getKey(), a.getKey()));
-
-        // Joga para o LinkedHashMap (que respeita a ordem de inserção da lista acima)
-        Map<String, Long> mapaNotas = new LinkedHashMap<>();
-        for (Map.Entry<Double, Long> entry : listaOrdenada) {
-            Double nota = entry.getKey();
-            Long qtd = entry.getValue();
-
-            // Formata: Se for 10.0 vira "10", senão fica "9.5"
-            String label = (nota % 1 == 0) ? String.valueOf(nota.intValue()) : String.valueOf(nota);
-            mapaNotas.put(label, qtd);
-        }
-
-        stats.setNotas(mapaNotas);
+        stats.setNotas(NotaScaleUtil.apenasComItens(contagemPorNota));
 
         // 6. Processa o TEMPO GASTO (Filmes e Jogos informados manualmente pelo
         // usuário, sempre em minutos). Séries ainda não entram.
@@ -120,6 +103,70 @@ public class DashboardApiController {
         stats.setTempoSeriesDisponivel(false);
 
         return ResponseEntity.ok(stats);
+    }
+
+    // --- ENDPOINTS FILTRÁVEIS POR TIPO ---
+
+    // Retorna: { zerados: N, jogando: N, backlog: N, dropados: N }
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getStatusFiltrado(
+            @RequestParam(name = "tipo", required = false) List<String> tipos) {
+
+        User user = usuarioLogado();
+        if (user == null) return ResponseEntity.notFound().build();
+
+        List<Item> itens = filtrarPorTipo(itemRepository.findByUser(user), tipos);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("zerados", itens.stream().filter(this::isConcluido).count());
+        result.put("jogando", itens.stream().filter(this::isEmAndamento).count());
+        result.put("backlog", itens.stream().filter(i -> i.getStatus() != null && i.getStatus().contains("Backlog")).count());
+        result.put("dropados", itens.stream().filter(i -> i.getStatus() != null && i.getStatus().contains("Dropado")).count());
+        return ResponseEntity.ok(result);
+    }
+
+    // Retorna: { "10": 5, "9.5": 3, ..., "0.5": 0 } - sempre com a escala completa
+    @GetMapping("/notas")
+    public ResponseEntity<Map<String, Object>> getNotasFiltrado(
+            @RequestParam(name = "tipo", required = false) List<String> tipos) {
+
+        User user = usuarioLogado();
+        if (user == null) return ResponseEntity.notFound().build();
+
+        List<Item> itens = filtrarPorTipo(itemRepository.findByUser(user), tipos);
+
+        Map<Double, Long> contagemPorNota = itens.stream()
+                .filter(i -> i.getNota() != null && i.getNota() > 0)
+                .collect(Collectors.groupingBy(Item::getNota, Collectors.counting()));
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        NotaScaleUtil.apenasComItens(contagemPorNota).forEach(result::put);
+        return ResponseEntity.ok(result);
+    }
+
+    // --- Helpers ---
+
+    private User usuarioLogado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByEmail(auth.getName()).orElse(null);
+    }
+
+    // Filtra os itens pelo(s) tipo(s) informado(s).
+    private List<Item> filtrarPorTipo(List<Item> itens, List<String> tipos) {
+        if (tipos == null || tipos.isEmpty()) return itens;
+        return itens.stream()
+                .filter(i -> i.getTipo() != null && tipos.stream().anyMatch(t -> t.equalsIgnoreCase(i.getTipo())))
+                .collect(Collectors.toList());
+    }
+
+    private boolean isConcluido(Item item) {
+        String status = item.getStatus();
+        return status != null && (status.contains("Zerado") || status.contains("Assistido"));
+    }
+
+    private boolean isEmAndamento(Item item) {
+        String status = item.getStatus();
+        return status != null && (status.contains("Jogando") || status.contains("Assistindo"));
     }
 
     // Método auxiliar para verificar se o item deve contar no tempo investido

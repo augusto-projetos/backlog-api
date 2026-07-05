@@ -52,6 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tituloA = a.querySelector('h3').textContent.trim();
                 const tituloB = b.querySelector('h3').textContent.trim();
                 return tituloA.localeCompare(tituloB);
+            } else if (ordem === 'tempo-maior' || ordem === 'tempo-menor') {
+                // Só Filmes (duração) e Jogos (horas jogadas) têm tempo cadastrado.
+                // Itens sem tempo (ex.: Séries, ou Filmes/Jogos sem duração informada) ficam sempre no final, independente da direção escolhida.
+                const tempoAttrA = a.getAttribute('data-tempo');
+                const tempoAttrB = b.getAttribute('data-tempo');
+                const tempoA = (tempoAttrA === '' || tempoAttrA === null) ? null : parseInt(tempoAttrA, 10);
+                const tempoB = (tempoAttrB === '' || tempoAttrB === null) ? null : parseInt(tempoAttrB, 10);
+
+                if (tempoA === null && tempoB === null) return 0;
+                if (tempoA === null) return 1;
+                if (tempoB === null) return -1;
+
+                return ordem === 'tempo-maior' ? tempoB - tempoA : tempoA - tempoB;
             } else {
                 // Buscamos o valor numérico puro direto do atributo oculto 'data-nota'
                 const notaA = parseFloat(a.querySelector('.nota').getAttribute('data-nota')) || 0;

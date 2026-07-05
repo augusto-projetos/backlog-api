@@ -162,7 +162,7 @@ function buildGraficoNotas(data) {
     const values = data ? Object.values(data) : Array.from(STATS.notasValues);
 
     const canvas = document.getElementById("graficoNotas");
-    const isEmpty = !labels || labels.length === 0;
+    const isEmpty = !labels || labels.length === 0 || values.every(v => !v);
 
     // Destroi instância anterior antes de alterar visibilidade do container
     if (chartInstances.notas) { chartInstances.notas.destroy(); chartInstances.notas = null; }

@@ -21,6 +21,37 @@
     font-size: 1.1rem;
 }
 
+/* --- Cabeçalho do card com filtro de tipo (Status dos Itens / Distribuição de Notas) --- */
+.chart-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.chart-card-header .chart-title {
+    margin-bottom: 0;
+    text-align: left;
+}
+
+.chart-filter-select {
+    background-color: var(--bg-main, #fff);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+}
+
+.chart-filter-select:focus {
+    outline: none;
+    border-color: var(--accent-color, #08d9d6);
+}
+
 .canvas-container {
     position: relative;
     height: 300px;

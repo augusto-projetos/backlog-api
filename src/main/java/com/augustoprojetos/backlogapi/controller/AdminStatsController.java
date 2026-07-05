@@ -3,6 +3,7 @@ package com.augustoprojetos.backlogapi.controller;
 import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import com.augustoprojetos.backlogapi.repository.UserRepository;
+import com.augustoprojetos.backlogapi.util.NotaScaleUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -129,23 +130,12 @@ public class AdminStatsController {
                 .filter(i -> i.getNota() >= deVal && i.getNota() <= ateVal)
                 .toList();
 
-        Map<String, Object> result = items.stream()
-                .collect(Collectors.groupingBy(
-                        i -> {
-                            double n = i.getNota();
-                            return n == Math.floor(n) ? String.valueOf((int) n) : String.valueOf(n);
-                        },
-                        Collectors.counting()
-                ))
-                .entrySet().stream()
-                .sorted((a, b) -> Double.compare(
-                        Double.parseDouble(b.getKey()),
-                        Double.parseDouble(a.getKey())))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> (Object) e.getValue(),
-                        (x, y) -> x,
-                        LinkedHashMap::new));
+        // Agrupa por nota (valor numérico)
+        Map<Double, Long> contagemPorNota = items.stream()
+                .collect(Collectors.groupingBy(Item::getNota, Collectors.counting()));
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        NotaScaleUtil.apenasComItens(contagemPorNota).forEach(result::put);
 
         return ResponseEntity.ok(result);
     }
