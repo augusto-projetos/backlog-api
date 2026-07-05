@@ -1,6 +1,8 @@
 // Variáveis Globais
 let graficoNotasInstance = null;
+let graficoStatusInstance = null;
 let dadosGlobaisDashboard = null;
+let dadosNotasAtuais = null;
 
 // Função auxiliar para pegar o token CSRF das metatags
 function getCsrfHeaders() {
@@ -23,11 +25,12 @@ function getCsrfHeaders() {
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarDashboard();
+    initFiltrosGraficos();
 });
 
 window.addEventListener('ratingModeChanged', () => {
-    if (dadosGlobaisDashboard) {
-        renderizarGraficoNotas(dadosGlobaisDashboard);
+    if (dadosNotasAtuais) {
+        renderizarGraficoNotas(dadosNotasAtuais);
     }
 });
 
@@ -70,45 +73,15 @@ async function carregarDashboard() {
         });
 
         // --- GRÁFICO 2: BARRAS (Status) ---
-        const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
-        new Chart(ctxStatus, {
-            type: 'bar',
-            data: {
-                labels: ['Zerado / Assistido', 'Jogando / Assistindo', 'Backlog', 'Dropado'],
-                datasets: [{
-                    label: 'Quantidade',
-                    data: [dados.totalZerados, dados.totalJogando, dados.totalBacklog, dados.totalDropados],
-                    backgroundColor: [
-                        '#2ecc71', // Verde
-                        '#3498db', // Azul
-                        '#95a5a6', // Cinza
-                        '#e74c3c'  // Vermelho
-                    ],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#7f8c8d' },
-                        grid: { color: 'rgba(255,255,255,0.05)' }
-                    },
-                    x: {
-                        ticks: { color: '#7f8c8d' },
-                        grid: { display: false }
-                    }
-                }
-            }
+        renderizarGraficoStatus({
+            zerados: dados.totalZerados,
+            jogando: dados.totalJogando,
+            backlog: dados.totalBacklog,
+            dropados: dados.totalDropados
         });
 
         // --- GRÁFICO 3: DISTRIBUIÇÃO DE NOTAS/ESTRELAS ---
-
+        dadosNotasAtuais = dados;
         renderizarGraficoNotas(dados);
 
         // --- TEMPO INVESTIDO (Filmes/Jogos) ---
@@ -116,6 +89,92 @@ async function carregarDashboard() {
 
     } catch (erro) {
         console.error("Erro no dashboard:", erro);
+    }
+}
+
+// --- GRÁFICO DE STATUS (com suporte a filtro por tipo) ---
+function renderizarGraficoStatus(dadosStatus) {
+    const canvasStatus = document.getElementById('graficoStatus');
+    if (!canvasStatus) return;
+    const ctxStatus = canvasStatus.getContext('2d');
+
+    if (graficoStatusInstance) {
+        graficoStatusInstance.destroy();
+    }
+
+    graficoStatusInstance = new Chart(ctxStatus, {
+        type: 'bar',
+        data: {
+            labels: ['✅ Zerado / Assistido', '▶️ Jogando / Assistindo', '📋 Backlog', '❌ Dropado'],
+            datasets: [{
+                label: 'Quantidade',
+                data: [dadosStatus.zerados, dadosStatus.jogando, dadosStatus.backlog, dadosStatus.dropados],
+                backgroundColor: [
+                    '#2ecc71', // Verde
+                    '#3498db', // Azul
+                    '#95a5a6', // Cinza
+                    '#e74c3c'  // Vermelho
+                ],
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#7f8c8d', precision: 0, stepSize: 1 },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                x: {
+                    ticks: { color: '#7f8c8d' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// --- FILTROS DE TIPO DOS GRÁFICOS (Status dos Itens / Distribuição de Notas) ---
+function initFiltrosGraficos() {
+    const filtroStatus = document.getElementById('filtroTipoStatus');
+    const filtroNotas = document.getElementById('filtroTipoNotas');
+
+    if (filtroStatus) {
+        filtroStatus.addEventListener('change', async () => {
+            const tipo = filtroStatus.value;
+            try {
+                const url = tipo ? `/api/dashboard/status?tipo=${encodeURIComponent(tipo)}` : '/api/dashboard/status';
+                const resposta = await fetch(url);
+                if (!resposta.ok) throw new Error('Erro ao buscar status filtrado');
+                const dadosStatus = await resposta.json();
+                renderizarGraficoStatus(dadosStatus);
+            } catch (erro) {
+                console.error('Erro ao filtrar gráfico de status:', erro);
+            }
+        });
+    }
+
+    if (filtroNotas) {
+        filtroNotas.addEventListener('change', async () => {
+            const tipo = filtroNotas.value;
+            try {
+                const url = tipo ? `/api/dashboard/notas?tipo=${encodeURIComponent(tipo)}` : '/api/dashboard/notas';
+                const resposta = await fetch(url);
+                if (!resposta.ok) throw new Error('Erro ao buscar notas filtradas');
+                const notas = await resposta.json();
+                // renderizarGraficoNotas espera um objeto com a chave "notas"
+                const payload = { notas };
+                dadosNotasAtuais = payload;
+                renderizarGraficoNotas(payload);
+            } catch (erro) {
+                console.error('Erro ao filtrar gráfico de notas:', erro);
+            }
+        });
     }
 }
 

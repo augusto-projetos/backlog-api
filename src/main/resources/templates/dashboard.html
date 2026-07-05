@@ -89,14 +89,30 @@
                 </div>
 
                 <div class="chart-card">
-                    <h3 class="chart-title">Status dos Itens</h3>
+                    <div class="chart-card-header">
+                        <h3 class="chart-title">Status dos Itens</h3>
+                        <select id="filtroTipoStatus" class="chart-filter-select" title="Filtrar por tipo">
+                            <option value="">🌪️ Todos</option>
+                            <option value="Jogo">🎮 Jogos</option>
+                            <option value="Filme">🎬 Filmes</option>
+                            <option value="Série">📺 Séries</option>
+                        </select>
+                    </div>
                     <div class="canvas-container">
                         <canvas id="graficoStatus"></canvas>
                     </div>
                 </div>
 
                 <div class="chart-card">
-                    <h3 class="chart-title">Distribuição de Notas</h3>
+                    <div class="chart-card-header">
+                        <h3 class="chart-title">Distribuição de Notas</h3>
+                        <select id="filtroTipoNotas" class="chart-filter-select" title="Filtrar por tipo">
+                            <option value="">🌪️ Todos</option>
+                            <option value="Jogo">🎮 Jogos</option>
+                            <option value="Filme">🎬 Filmes</option>
+                            <option value="Série">📺 Séries</option>
+                        </select>
+                    </div>
                     <div class="canvas-container">
                         <canvas id="graficoNotas"></canvas>
                     </div>
