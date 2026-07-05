@@ -395,8 +395,17 @@ async function carregarItens() {
                 htmlAvaliacao = `Nota: ${item.nota}/10`;
             }
 
+            // Tempo do item (em minutos) usado para ordenar por "Maior/Menor Tempo".
+            // Só faz sentido para Filmes (duração) e Jogos (horas jogadas); Séries e itens sem tempo cadastrado ficam sem valor (vão para o final na ordenação).
+            let tempoItem = '';
+            if (item.tipo === 'Filme' && item.duracaoMinutos !== null && item.duracaoMinutos !== undefined) {
+                tempoItem = item.duracaoMinutos;
+            } else if (item.tipo === 'Jogo' && item.minutosJogados !== null && item.minutosJogados !== undefined) {
+                tempoItem = item.minutosJogados;
+            }
+
             const card = `
-                <div class="card">
+                <div class="card" data-tempo="${tempoItem}">
                     <div class="card-img-wrapper">
                         <img src="${imagem}">
                     </div>
