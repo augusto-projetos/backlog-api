@@ -12,13 +12,13 @@ import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import com.augustoprojetos.backlogapi.repository.ShareTokenRepository;
 import com.augustoprojetos.backlogapi.repository.UserConquistaRepository;
 import com.augustoprojetos.backlogapi.repository.UserRepository;
+import com.augustoprojetos.backlogapi.util.NotaScaleUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -204,17 +204,10 @@ public class AdminService {
                 .filter(i -> i.getStatus().contains("Dropado")).count();
 
         // Distribuição de notas global
-        Map<String, Long> distribNotas = new LinkedHashMap<>();
-        todosItens.stream()
+        Map<Double, Long> contagemPorNota = todosItens.stream()
                 .filter(i -> i.getNota() != null && i.getNota() > 0)
-                .collect(Collectors.groupingBy(i -> {
-                    double n = i.getNota();
-                    return (n % 1 == 0) ? String.valueOf((int) n) : String.valueOf(n);
-                }, Collectors.counting()))
-                .entrySet().stream()
-                .sorted((a, b) -> Double.compare(
-                        Double.parseDouble(b.getKey()), Double.parseDouble(a.getKey())))
-                .forEach(e -> distribNotas.put(e.getKey(), e.getValue()));
+                .collect(Collectors.groupingBy(Item::getNota, Collectors.counting()));
+        Map<String, Long> distribNotas = NotaScaleUtil.apenasComItens(contagemPorNota);
 
         stats.setTotalUsuarios(totalUsuarios);
         stats.setTotalPendentes(totalPendentes);
