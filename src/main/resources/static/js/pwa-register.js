@@ -1,4 +1,4 @@
-/**
+/*
  * Registro do Service Worker e captura do evento de instalação do PWA.
  * Incluído em todas as páginas para que o app fique instalável em qualquer ponto de entrada.
  */
@@ -34,5 +34,15 @@
 
   window.addEventListener("appinstalled", () => {
     window.deferredPwaInstallPrompt = null;
+  });
+
+  // Ao fazer logout, limpa o cache de páginas do Service Worker (stale-while-revalidate).
+  // Sem isso, no mesmo aparelho, a próxima conta que logar poderia ver por um instante
+  // a última tela em cache da conta anterior antes da rede atualizar.
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (form && form.action && form.action.indexOf("/logout") !== -1 && "caches" in window) {
+      caches.keys().then((keys) => keys.forEach((key) => caches.delete(key)));
+    }
   });
 })();
