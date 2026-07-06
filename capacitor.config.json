@@ -1,0 +1,17 @@
+{
+  "appId": "com.augustoprojetos.backlogapi",
+  "appName": "Meus Backlog",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://meus-backlog.onrender.com",
+    "cleartext": false,
+    "androidScheme": "https",
+    "allowNavigation": [
+      "meus-backlog.onrender.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

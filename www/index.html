@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+        <title>Meus Backlog</title>
+        <style>
+            html, body {
+                margin: 0;
+                height: 100%;
+                background: #1a1a2e;
+                color: #e6e8ee;
+                font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+            .msg {
+                max-width: 280px;
+            }
+            .dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #ff2e63;
+                display: inline-block;
+                margin-top: 16px;
+                animation: pulse 1s ease-in-out infinite;
+            }
+            @keyframes pulse {
+                0%, 100% { opacity: 0.3; transform: scale(0.85); }
+                50% { opacity: 1; transform: scale(1); }
+            }
+        </style>
+    </head>
+    <body>
+        <!--
+          Esta página NÃO é a interface do app. Ela só é exibida se o Capacitor
+          não conseguir carregar a URL remota configurada em "server.url" no
+          capacitor.config.json (ex: sem internet no primeiro acesso).
+          Todo o conteúdo real do app vem do backend Spring Boot em produção.
+        -->
+        <div class="msg">
+            <p>Não foi possível conectar ao Meus Backlog.</p>
+            <p>Verifique sua conexão com a internet e tente novamente.</p>
+            <span class="dot"></span>
+        </div>
+    </body>
+</html>
