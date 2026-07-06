@@ -158,8 +158,16 @@ function buildGraficoStatus(data) {
 
 function buildGraficoNotas(data) {
     const { textColor, gridColor } = getChartTheme();
-    const labels = data ? Object.keys(data) : Array.from(STATS.notasLabels);
-    const values = data ? Object.values(data) : Array.from(STATS.notasValues);
+
+    let labels, values;
+    if (data) {
+        const entradas = Object.entries(data).sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
+        labels = entradas.map(e => e[0]);
+        values = entradas.map(e => e[1]);
+    } else {
+        labels = Array.from(STATS.notasLabels);
+        values = Array.from(STATS.notasValues);
+    }
 
     const canvas = document.getElementById("graficoNotas");
     const isEmpty = !labels || labels.length === 0 || values.every(v => !v);
