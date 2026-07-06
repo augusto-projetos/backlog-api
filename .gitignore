@@ -37,3 +37,24 @@ schema-gerado.sql
 
 ### Node.js ###
 node_modules/
+
+### Capacitor / Android (gerado por "npx cap add android") ###
+# A pasta android/ deve ser versionada (contém customizações nativas),
+# mas os artefatos de build e configs locais da máquina, não.
+android/app/build/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/captures/
+*.apk
+*.aab
+CAPACITOR_SETUP.md
+
+# Keystores de assinatura NUNCA devem ir para o repositório
+*.keystore
+*.jks
+key.properties
