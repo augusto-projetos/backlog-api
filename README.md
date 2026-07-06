@@ -96,6 +96,14 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 
 ---
 
+## 📱 App Instalável (PWA) e Android (Capacitor)
+
+O Meus Backlog é um **PWA** (pode ser instalado direto do navegador, com ícone, tela cheia e cache offline do app shell).
+
+Também há uma configuração pronta para empacotar o mesmo site como **app Android nativo** via [Capacitor](https://capacitorjs.com/), permitindo publicação na Google Play. Veja o passo a passo completo em [`CAPACITOR_SETUP.md`](./CAPACITOR_SETUP.md).
+
+---
+
 ## 🛣️ Roadmap & Futuro
 
 - [x] V1.0: CRUD Básico.

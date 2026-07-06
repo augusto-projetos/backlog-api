@@ -2,6 +2,9 @@
 <html lang="pt-br">
     <head>
         <meta charset="UTF-8">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="preconnect" href="https://cloud.umami.is">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="_csrf" th:content="${_csrf.token}"/>
         <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -11,6 +14,11 @@
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
         <link rel="stylesheet" th:href="@{/css/cadastro.css}">
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+        <!-- PWA -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#ff2e63">
+        <link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+        <script defer th:src="@{/js/pwa-register.js}"></script>
     </head>
     <body>
 

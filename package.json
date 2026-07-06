@@ -1,10 +1,25 @@
 {
+  "name": "backlog-api",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Meus Backlog - PWA + wrapper nativo Android via Capacitor",
+  "scripts": {
+    "prepare": "husky",
+    "cap:add:android": "cap add android",
+    "cap:sync": "cap sync android",
+    "cap:open:android": "cap open android",
+    "cap:build:debug": "cd android && (./gradlew assembleDebug || gradlew.bat assembleDebug)",
+    "cap:build:release": "cd android && (./gradlew bundleRelease || gradlew.bat bundleRelease)"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
     "husky": "^9.1.7"
-  },
-  "scripts": {
-    "prepare": "husky"
   }
 }

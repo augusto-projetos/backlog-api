@@ -2,6 +2,9 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="UTF-8">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="preconnect" href="https://cloud.umami.is">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="description" content="Painel de Controle Administrativo — Meus Backlog">
         <meta name="_csrf" th:content="${_csrf.token}"/>
@@ -14,6 +17,11 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
         <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <!-- PWA -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#ff2e63">
+        <link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+        <script defer th:src="@{/js/pwa-register.js}"></script>
     </head>
 
     <body>

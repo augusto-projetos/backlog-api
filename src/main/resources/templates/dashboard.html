@@ -2,6 +2,9 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="UTF-8">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="preconnect" href="https://cloud.umami.is">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="_csrf" th:content="${_csrf.token}"/>
         <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -15,6 +18,11 @@
         <link rel="stylesheet" th:href="@{/css/style.css}">
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- PWA -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#ff2e63">
+        <link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png">
+        <script defer th:src="@{/js/pwa-register.js}"></script>
     </head>
     <body>
 
