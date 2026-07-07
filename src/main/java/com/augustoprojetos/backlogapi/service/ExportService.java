@@ -32,9 +32,9 @@ public class ExportService {
         List<Item> itens = itemRepository.findByUser(user);
 
         try (Workbook workbook = new XSSFWorkbook();
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
-            Sheet sheet = workbook.createSheet("Meus Backlog");
+            Sheet sheet = workbook.createSheet("Meu Backlog");
 
             // --- ESTILOS ---
 
@@ -65,7 +65,7 @@ public class ExportService {
             centerStyle.setAlignment(HorizontalAlignment.CENTER);
 
             // --- CABEÇALHO ---
-            String[] colunas = {"Título", "Tipo", "Status", "Nota", "Resenha"};
+            String[] colunas = { "Título", "Tipo", "Status", "Nota", "Resenha" };
             Row headerRow = sheet.createRow(0);
             headerRow.setHeightInPoints(25); // Altura maior no header
 
@@ -114,7 +114,6 @@ public class ExportService {
         cell.setCellStyle(style);
     }
 
-
     // --- GERADOR DE PDF ESTILIZADO ---
     public ByteArrayInputStream gerarPDF(User user) {
         Document document = new Document(PageSize.A4, 20, 20, 20, 20); // Margens menores
@@ -132,7 +131,7 @@ public class ExportService {
 
             // --- TÍTULO ---
             Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, corPrincipal);
-            Paragraph titulo = new Paragraph("Relatório - Meus Backlog", fontTitulo);
+            Paragraph titulo = new Paragraph("Relatório - Meu Backlog", fontTitulo);
             titulo.setAlignment(Element.ALIGN_CENTER);
             titulo.setSpacingAfter(20);
             document.add(titulo);
@@ -140,10 +139,10 @@ public class ExportService {
             // --- TABELA ---
             PdfPTable table = new PdfPTable(5);
             table.setWidthPercentage(100);
-            table.setWidths(new float[]{3.5f, 2f, 2f, 1.5f, 5f});
+            table.setWidths(new float[] { 3.5f, 2f, 2f, 1.5f, 5f });
 
             // Cabeçalho
-            String[] headers = {"Título", "Tipo", "Status", "Nota", "Resenha"};
+            String[] headers = { "Título", "Tipo", "Status", "Nota", "Resenha" };
             Font fontHeader = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, corTextoHeader);
 
             for (String header : headers) {
@@ -194,7 +193,7 @@ public class ExportService {
 
             // Rodapé
             Font fontFooter = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, Color.GRAY);
-            Paragraph footer = new Paragraph("Gerado automaticamente pelo sistema Meus Backlog", fontFooter);
+            Paragraph footer = new Paragraph("Gerado automaticamente pelo sistema Meu Backlog", fontFooter);
             footer.setAlignment(Element.ALIGN_RIGHT);
             footer.setSpacingBefore(10);
             document.add(footer);

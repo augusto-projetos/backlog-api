@@ -63,19 +63,19 @@ public class PasswordResetService {
     @Async
     public void sendResetEmail(String userEmail, String token) {
         // URLs do seu projeto no Render
-        String resetUrl = "https://meus-backlog.onrender.com/resetar-senha?token=" + token;
-        String logoUrl = "https://meus-backlog.onrender.com/img/logo.png?t=" + System.currentTimeMillis();
+        String resetUrl = "https://meu-backlog.onrender.com/resetar-senha?token=" + token;
+        String logoUrl = "https://meu-backlog.onrender.com/img/logo.png?t=" + System.currentTimeMillis();
 
         // Montando o HTML do E-mail
-        String htmlMsg =
-                "<div style='font-family: Arial, sans-serif; background-color: #1a1a2e; color: #ffffff; padding: 40px 20px; text-align: center; border-radius: 10px; max-width: 600px; margin: 0 auto; border: 1px solid #333;'>"
-                        + "  <img src='" + logoUrl + "' alt='Meus Backlog Logo' style='max-width: 250px; margin-bottom: 20px;'>"
-                        + "  <h2 style='color: #ffffff; margin-bottom: 10px;'>Recuperação de Senha</h2>"
-                        + "  <p style='font-size: 16px; color: #cccccc; line-height: 1.5;'>Você solicitou a redefinição de sua senha.<br>Clique no botão abaixo para criar uma nova senha:</p>"
-                        + "  <a href='" + resetUrl + "' style='display: inline-block; padding: 14px 28px; margin: 25px 0; background-color: #e94560; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Redefinir Minha Senha</a>"
-                        + "  <p style='font-size: 14px; color: #888888; margin-top: 30px;'>Este link expira com segurança em 15 minutos.</p>"
-                        + "  <p style='font-size: 12px; color: #555555; margin-top: 10px;'>Se você não solicitou essa alteração, apenas ignore este e-mail.</p>"
-                        + "</div>";
+        String htmlMsg = "<div style='font-family: Arial, sans-serif; background-color: #1a1a2e; color: #ffffff; padding: 40px 20px; text-align: center; border-radius: 10px; max-width: 600px; margin: 0 auto; border: 1px solid #333;'>"
+                + "  <img src='" + logoUrl + "' alt='Meu Backlog Logo' style='max-width: 250px; margin-bottom: 20px;'>"
+                + "  <h2 style='color: #ffffff; margin-bottom: 10px;'>Recuperação de Senha</h2>"
+                + "  <p style='font-size: 16px; color: #cccccc; line-height: 1.5;'>Você solicitou a redefinição de sua senha.<br>Clique no botão abaixo para criar uma nova senha:</p>"
+                + "  <a href='" + resetUrl
+                + "' style='display: inline-block; padding: 14px 28px; margin: 25px 0; background-color: #e94560; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Redefinir Minha Senha</a>"
+                + "  <p style='font-size: 14px; color: #888888; margin-top: 30px;'>Este link expira com segurança em 15 minutos.</p>"
+                + "  <p style='font-size: 12px; color: #555555; margin-top: 10px;'>Se você não solicitou essa alteração, apenas ignore este e-mail.</p>"
+                + "</div>";
 
         try {
             // Configurando a requisição HTTP
@@ -87,9 +87,9 @@ public class PasswordResetService {
 
             // Montando o JSON que o Brevo exige
             String jsonBody = "{"
-                    + "\"sender\": {\"name\": \"Meus Backlog\", \"email\": \"meusbacklog@gmail.com\"},"
+                    + "\"sender\": {\"name\": \"Meu Backlog\", \"email\": \"meusbacklog@gmail.com\"},"
                     + "\"to\": [{\"email\": \"" + userEmail + "\"}],"
-                    + "\"subject\": \"Recuperação de Senha - Meus Backlog\","
+                    + "\"subject\": \"Recuperação de Senha - Meu Backlog\","
                     + "\"htmlContent\": \"" + htmlMsg.replace("\"", "\\\"") + "\"" // Escapa as aspas pro JSON não quebrar
                     + "}";
 

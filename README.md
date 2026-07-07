@@ -18,7 +18,7 @@
 
 ## 🚀 Sobre o Projeto
 
-O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V6.0**) marca a maior evolução do sistema, transformando-o de um gerenciador pessoal em uma verdadeira **Rede Social de Colecionadores**, com perfis públicos, sistema de buscas e autenticação blindada com verificação de e-mail.
+O **Meu Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V6.0**) marca a maior evolução do sistema, transformando-o de um gerenciador pessoal em uma verdadeira **Rede Social de Colecionadores**, com perfis públicos, sistema de buscas e autenticação blindada com verificação de e-mail.
 
 ### ✨ Destaques da Versão 7.0 (Inteligência Artificial & Gamificação)
 * 🤖 **Dual-Engine AI (Mecanismo de Failover):** Sistema de recomendação inteligente integrado nativamente via chamadas REST HTTP puras. Utiliza o **Google Gemini 2.5 Flash** como motor principal e conta com uma arquitetura de contingência (*Failover redundante*) direcionada para a infraestrutura da **Groq Cloud (Meta Llama 3.1)** caso o servidor principal sofra instabilidades (erros 503/429), garantindo disponibilidade contínua de forma 100% transparente para o usuário.
@@ -69,7 +69,7 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 
 1.  **Clone o repositório:**
     ```bash
-    git clone https://github.com/seu-usuario/meus-backlog.git
+    git clone https://github.com/augusto-projetos/backlog-api.git
     ```
 
 2.  **Configure o Banco de Dados:**
@@ -98,7 +98,7 @@ O **Meus Backlog** é uma aplicação **Fullstack** robusta que simula um ambien
 
 ## 📱 App Instalável (PWA) e Android (Capacitor)
 
-O Meus Backlog é um **PWA** (pode ser instalado direto do navegador, com ícone, tela cheia e cache offline do app shell).
+O Meu Backlog é um **PWA** (pode ser instalado direto do navegador, com ícone, tela cheia e cache offline do app shell).
 
 Também há uma configuração pronta para empacotar o mesmo site como **app Android nativo** via [Capacitor](https://capacitorjs.com/), permitindo publicação na Google Play. Veja o passo a passo completo em [`CAPACITOR_SETUP.md`](./CAPACITOR_SETUP.md).
 

@@ -2,7 +2,7 @@
   "name": "backlog-api",
   "version": "0.0.1",
   "private": true,
-  "description": "Meus Backlog - PWA + wrapper nativo Android via Capacitor",
+  "description": "Meu Backlog - PWA + wrapper nativo Android via Capacitor",
   "scripts": {
     "prepare": "husky",
     "cap:add:android": "cap add android",
