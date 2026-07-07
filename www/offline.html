@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+        <title>Meus Backlog</title>
+        <style>
+            html, body {
+                margin: 0;
+                height: 100%;
+                background: #1a1a2e;
+                color: #e6e8ee;
+                font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+            }
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+                box-sizing: border-box;
+            }
+            .card {
+                max-width: 320px;
+                text-align: center;
+            }
+            .icon {
+                width: 84px;
+                height: 84px;
+                border-radius: 22px;
+                background: #0f0f1a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 24px;
+            }
+            .icon svg { width: 42px; height: 42px; }
+            h1 {
+                font-size: 20px;
+                margin: 0 0 8px;
+            }
+            p {
+                font-size: 14px;
+                line-height: 1.5;
+                color: #a7abb8;
+                margin: 0 0 24px;
+            }
+            button {
+                border: none;
+                border-radius: 999px;
+                padding: 12px 28px;
+                font-size: 15px;
+                font-weight: 600;
+                color: #fff;
+                background: linear-gradient(45deg, #ff2e63, #ff6b6b);
+                box-shadow: 0 5px 25px rgba(255, 46, 99, 0.35);
+                cursor: pointer;
+            }
+            button:active { transform: scale(0.97); }
+            .status {
+                margin-top: 16px;
+                font-size: 12px;
+                color: #6d7180;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ff2e63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h.01"></path>
+                    <path d="M2 8.82a15 15 0 0 1 20 0"></path>
+                    <path d="M5 12.859a10 10 0 0 1 14 0"></path>
+                    <path d="M8.5 16.429a5 5 0 0 1 7 0"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+            </div>
+            <h1>Sem conexão</h1>
+            <p>Não foi possível conectar ao Meus Backlog. Verifique sua internet e tente novamente.</p>
+            <button id="btn-retry">Tentar novamente</button>
+            <div class="status" id="status"></div>
+        </div>
+
+        <script>
+            // Mantenha esta URL igual ao "server.url" do capacitor.config.json.
+            var APP_URL = "https://meus-backlog.onrender.com/";
+
+            var statusEl = document.getElementById("status");
+
+            function tryReload() {
+                statusEl.textContent = "Conectando...";
+                window.location.href = APP_URL;
+            }
+
+            document.getElementById("btn-retry").addEventListener("click", tryReload);
+
+            // Assim que a internet voltar sozinha, tenta reconectar automaticamente.
+            window.addEventListener("online", tryReload);
+        </script>
+    </body>
+</html>
