@@ -69,7 +69,7 @@ O **Meu Backlog** é uma aplicação **Fullstack** robusta que simula um ambient
 
 1.  **Clone o repositório:**
     ```bash
-    git clone https://github.com/seu-usuario/meu-backlog.git
+    git clone https://github.com/augusto-projetos/backlog-api.git
     ```
 
 2.  **Configure o Banco de Dados:**
