@@ -21,7 +21,7 @@ public class AtividadeLogService {
     public void registrarContaCriada(User user) {
         salvar(AtividadeLog.of(user,
                 "CONTA_CRIADA",
-                "Criou a conta no Meus Backlog 🎉"));
+                "Criou a conta no Meu Backlog 🎉"));
     }
 
     public void registrarItemAdicionado(User user, Item item) {

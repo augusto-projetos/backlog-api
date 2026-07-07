@@ -1,5 +1,5 @@
 /*
- * Service Worker - Meus Backlog PWA
+ * Service Worker - Meu Backlog PWA
  *
  * Estratégia:
  * - App shell (CSS/JS/ícones/manifest): "cache first, fallback to network"

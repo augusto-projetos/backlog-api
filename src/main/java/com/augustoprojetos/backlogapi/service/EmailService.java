@@ -20,21 +20,22 @@ public class EmailService {
     public void sendVerificationEmail(String userEmail, String token) {
         try {
             // Magic Link
-            String verificationLink = "https://meus-backlog.onrender.com/auth/verify?token=" + token;
+            String verificationLink = "https://meu-backlog.onrender.com/auth/verify?token=" + token;
 
             // Corpo do e-mail em HTML
             String htmlMsg = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>"
-                    + "<h2 style='color: #333;'>Bem-vindo ao Meus Backlog! 🚀</h2>"
+                    + "<h2 style='color: #333;'>Bem-vindo ao Meu Backlog! 🚀</h2>"
                     + "<p>Falta pouco para você começar a organizar seus projetos. Para ativar sua conta e acessar o sistema, clique no botão abaixo:</p>"
                     + "<div style='text-align: center; margin: 30px 0;'>"
-                    + "<a href='" + verificationLink + "' style='background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verificar e Entrar</a>"
+                    + "<a href='" + verificationLink
+                    + "' style='background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verificar e Entrar</a>"
                     + "</div>"
                     + "<p style='font-size: 14px; color: #777;'>Ou copie e cole o link abaixo no seu navegador:</p>"
                     + "<p style='font-size: 14px; color: #4CAF50; word-break: break-all;'>" + verificationLink + "</p>"
                     + "<p style='font-size: 12px; color: #999; margin-top: 30px;'>*Este link expira em 24 horas. Se você não criou esta conta, apenas ignore este e-mail.</p>"
                     + "</div>";
 
-            dispararEmail(userEmail, "Verifique seu e-mail - Meus Backlog", htmlMsg);
+            dispararEmail(userEmail, "Verifique seu e-mail - Meu Backlog", htmlMsg);
 
             System.out.println("✅ E-mail de verificação disparado com sucesso para: " + userEmail);
 
@@ -50,15 +51,15 @@ public class EmailService {
         String mensagemEscapada = escapeHtml(mensagem).replace("\n", "<br>");
 
         String htmlMsg = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>"
-                + "<h2 style='color: #333;'>📢 Novidades do Meus Backlog</h2>"
+                + "<h2 style='color: #333;'>📢 Novidades do Meu Backlog</h2>"
                 + "<p style='color: #444; line-height: 1.6;'>" + mensagemEscapada + "</p>"
-                + "<p style='font-size: 12px; color: #999; margin-top: 30px;'>Você está recebendo este e-mail porque possui uma conta ativa no Meus Backlog.</p>"
+                + "<p style='font-size: 12px; color: #999; margin-top: 30px;'>Você está recebendo este e-mail porque possui uma conta ativa no Meu Backlog.</p>"
                 + "</div>";
 
         int enviados = 0;
         for (String destinatario : destinatarios) {
             try {
-                dispararEmail(destinatario, "📢 Novidades - Meus Backlog", htmlMsg);
+                dispararEmail(destinatario, "📢 Novidades - Meu Backlog", htmlMsg);
                 enviados++;
                 Thread.sleep(150); // pequeno intervalo para evitar rate-limit da API do Brevo
             } catch (InterruptedException ie) {
@@ -82,7 +83,7 @@ public class EmailService {
         headers.set("accept", "application/json");
 
         String jsonBody = "{"
-                + "\"sender\": {\"name\": \"Meus Backlog\", \"email\": \"meusbacklog@gmail.com\"},"
+                + "\"sender\": {\"name\": \"Meu Backlog\", \"email\": \"meusbacklog@gmail.com\"},"
                 + "\"to\": [{\"email\": \"" + destinatario + "\"}],"
                 + "\"subject\": \"" + assunto.replace("\"", "\\\"") + "\","
                 + "\"htmlContent\": \"" + htmlMsg.replace("\"", "\\\"") + "\"" // Escapa as aspas
@@ -92,7 +93,8 @@ public class EmailService {
         restTemplate.postForEntity("https://api.brevo.com/v3/smtp/email", request, String.class);
     }
 
-    // Escapa caracteres HTML para evitar quebra de layout/injeção quando o texto vem do admin
+    // Escapa caracteres HTML para evitar quebra de layout/injeção quando o texto
+    // vem do admin
     private String escapeHtml(String texto) {
         return texto
                 .replace("&", "&amp;")

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Meus Backlog</string>
-    <string name="title_activity_main">Meus Backlog</string>
+    <string name="app_name">Meu Backlog</string>
+    <string name="title_activity_main">Meu Backlog</string>
     <string name="package_name">com.augustoprojetos.backlogapi</string>
     <string name="custom_url_scheme">com.augustoprojetos.backlogapi</string>
 </resources>

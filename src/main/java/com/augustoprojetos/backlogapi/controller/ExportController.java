@@ -36,7 +36,7 @@ public class ExportController {
 
         // Cabeçalhos HTTP para forçar o download
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=meus-backlog.xlsx");
+        headers.add("Content-Disposition", "attachment; filename=meu-backlog.xlsx");
 
         return ResponseEntity.ok()
                 .headers(headers)
@@ -52,7 +52,7 @@ public class ExportController {
         ByteArrayInputStream in = exportService.gerarPDF(user);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=meus-backlog.pdf");
+        headers.add("Content-Disposition", "attachment; filename=meu-backlog.pdf");
 
         return ResponseEntity.ok()
                 .headers(headers)
