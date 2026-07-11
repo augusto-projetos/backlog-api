@@ -5,7 +5,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="preconnect" href="https://cloud.umami.is">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <title>Meu Perfil - Backlog</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
         <meta name="_csrf" th:content="${_csrf.token}"/>
@@ -130,13 +130,17 @@
             </p>
 
             <div class="export-buttons">
-                <a th:href="@{/api/export/pdf}" class="btn-export btn-pdf" target="_blank">
+                <button type="button" class="btn-export btn-pdf"
+                        th:data-export-url="@{/api/export/pdf}"
+                        data-export-filename="meu-backlog.pdf">
                     <i class="fa-solid fa-file-pdf"></i> Baixar PDF
-                </a>
+                </button>
 
-                <a th:href="@{/api/export/excel}" class="btn-export btn-excel" target="_blank">
+                <button type="button" class="btn-export btn-excel"
+                        th:data-export-url="@{/api/export/excel}"
+                        data-export-filename="meu-backlog.xlsx">
                     <i class="fa-solid fa-file-excel"></i> Baixar Excel
-                </a>
+                </button>
             </div>
 
             <hr class="divisor">
@@ -241,5 +245,6 @@
         <script th:src="@{/js/search-scroll.js}"></script>
         <script th:src="@{/js/theme-toggle.js}"></script>
         <script th:src="@{/js/perfil-social.js}"></script>
+        <script th:src="@{/js/exportar.js}"></script>
     </body>
 </html>
