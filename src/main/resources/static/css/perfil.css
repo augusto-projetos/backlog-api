@@ -1,6 +1,7 @@
 /* --- LAYOUT GERAL --- */
 body {
     background-color: var(--bg-body);
+    padding-top: var(--safe-top, 0px);
 }
 
 .perfil-container,
@@ -154,13 +155,23 @@ body {
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
-    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
     color: white;
 }
 
 .btn-export:hover {
     transform: translateY(-3px); /* Pulo leve */
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-export:disabled,
+.btn-export.is-loading {
+    opacity: 0.7;
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
 }
 
 /* Cores Específicas */
@@ -429,8 +440,8 @@ body {
 /* --- BOTÃO VOLTAR AO TOPO --- */
 #btn-topo {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: calc(30px + var(--safe-bottom, 0px));
+    right: calc(30px + var(--safe-right, 0px));
     background-color: #e94560;
     color: white;
     border: none;
