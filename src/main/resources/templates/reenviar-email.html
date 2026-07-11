@@ -46,6 +46,7 @@
             <!-- Fim das mensagens -->
 
             <form th:action="@{/auth/reenviar-email}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <input type="email" name="email" placeholder="Digite seu e-mail" required>
                 <button type="submit" style="margin-top: 15px;">Reenviar E-mail</button>
             </form>

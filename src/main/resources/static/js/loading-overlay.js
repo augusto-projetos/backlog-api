@@ -11,7 +11,7 @@
 	var style = document.createElement("style");
 	style.id = "app-loading-styles";
 	style.textContent =
-	  "#" + OVERLAY_ID + "{position:fixed;inset:0;z-index:99999;display:none;" +
+	  "#" + OVERLAY_ID + "{position:fixed;inset:0;z-index:1040;display:none;" +
 	  "align-items:center;justify-content:center;flex-direction:column;gap:16px;" +
 	  "background:rgba(15,15,26,.88);}" +
 	  "#" + OVERLAY_ID + ".is-visible{display:flex;}" +

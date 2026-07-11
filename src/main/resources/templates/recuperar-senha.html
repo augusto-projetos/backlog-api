@@ -29,6 +29,7 @@
             </p>
 
             <form th:action="@{/recuperar-senha}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <input type="email" name="email" placeholder="Seu e-mail" required>
                 <button type="submit">Enviar link de recuperação</button>
             </form>
