@@ -1,7 +1,10 @@
 (function () {
   var OVERLAY_ID = "app-loading-overlay";
   var SLOW_HINT_DELAY_MS = 4000;
+  // Segurança extra: nunca deixa o overlay preso por mais que isso
+  var MAX_VISIBLE_MS = 20000;
   var hintTimer = null;
+  var safetyTimer = null;
 
   function injectStyles() {
 	if (document.getElementById("app-loading-styles")) return;
@@ -46,13 +49,21 @@
 	hintTimer = setTimeout(function () {
 	  hint.classList.add("is-shown");
 	}, SLOW_HINT_DELAY_MS);
+
+	// Rede de segurança: se por algum motivo ninguém chamar hideLoading(),
+	// o overlay some sozinho e não trava o usuário para sempre.
+	clearTimeout(safetyTimer);
+	safetyTimer = setTimeout(hideLoading, MAX_VISIBLE_MS);
   }
 
   function hideLoading() {
 	var overlay = document.getElementById(OVERLAY_ID);
 	if (overlay) overlay.classList.remove("is-visible");
 	clearTimeout(hintTimer);
+	clearTimeout(safetyTimer);
   }
+
+  window.AppLoading = { show: showLoading, hide: hideLoading };
 
   // Se o usuário voltar via cache do navegador (bfcache), garante que não fique um
   // overlay "preso" na tela.
@@ -82,4 +93,30 @@
 	if (!form || form.tagName !== "FORM" || form.target === "_blank") return;
 	showLoading();
   });
+
+  var swalObserver = new MutationObserver(function (mutations) {
+	for (var i = 0; i < mutations.length; i++) {
+	  var added = mutations[i].addedNodes;
+	  for (var j = 0; j < added.length; j++) {
+		var node = added[j];
+		if (node.nodeType === 1 && (
+			node.classList.contains("swal2-container") ||
+			(node.querySelector && node.querySelector(".swal2-container"))
+		)) {
+		  hideLoading();
+		  return;
+		}
+	  }
+	}
+  });
+
+  function iniciarObservadorSwal() {
+	swalObserver.observe(document.body, { childList: true });
+  }
+
+  if (document.body) {
+	iniciarObservadorSwal();
+  } else {
+	document.addEventListener("DOMContentLoaded", iniciarObservadorSwal);
+  }
 })();
