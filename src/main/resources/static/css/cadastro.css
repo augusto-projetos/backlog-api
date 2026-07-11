@@ -1,7 +1,7 @@
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--bg-body);
-    padding: 20px;
+    padding: calc(20px + var(--safe-top, 0px)) 20px calc(20px + var(--safe-bottom, 0px)) 20px;
     margin: 0;
 }
 

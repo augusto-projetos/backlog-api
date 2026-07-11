@@ -162,8 +162,8 @@
 /* --- Toast de Conquista --- */
 .conquista-toast {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    bottom: calc(24px + var(--safe-bottom, 0px));
+    right: calc(24px + var(--safe-right, 0px));
     z-index: 9999;
     animation: slideInToast 0.4s cubic-bezier(.4,0,.2,1);
 }

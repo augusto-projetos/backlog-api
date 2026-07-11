@@ -52,7 +52,7 @@ body {
     display: flex !important;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 28px !important;
+    padding: calc(16px + var(--safe-top, 0px)) 28px 16px !important;
     position: sticky;
     top: 0;
     margin-top: 0 !important;
@@ -1327,6 +1327,7 @@ body {
         border-radius: 16px 16px 0 0;
         z-index: 9999;
         box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.35);
+        padding-bottom: calc(16px + var(--safe-bottom, 0px));
     }
 }
 

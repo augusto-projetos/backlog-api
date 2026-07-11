@@ -10,6 +10,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    /* Empurra todo o conteúdo para baixo da status bar no app Android (edge-to-edge) */
+    padding-top: var(--safe-top, 0px);
     transition:
         background-color 0.3s,
         color 0.3s;
@@ -534,8 +536,8 @@ main {
 /* --- BOTÃO VOLTAR AO TOPO --- */
 #btn-topo {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: calc(30px + var(--safe-bottom, 0px));
+    right: calc(30px + var(--safe-right, 0px));
     background-color: #e94560;
     color: white;
     border: none;
@@ -1091,7 +1093,7 @@ main {
         width: 100%;
         background-color: var(--bg-card);
         border-radius: 24px 24px 0 0;
-        padding: 20px 25px 40px 25px;
+        padding: 20px 25px calc(40px + var(--safe-bottom, 0px)) 25px;
         box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
         display: flex;
         flex-direction: column;
@@ -1150,7 +1152,7 @@ main {
     .dropdown-ia-balao {
         position: fixed;
         top: auto;
-        bottom: 20px;
+        bottom: calc(20px + var(--safe-bottom, 0px));
         left: 5%;
         right: 5%;
         width: 90%;

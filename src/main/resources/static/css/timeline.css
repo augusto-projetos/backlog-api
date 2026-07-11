@@ -1,7 +1,3 @@
-/* ================================================================
-   timeline.css — Linha do Tempo (usuário e admin)
-   ================================================================ */
-
 /* --- Layout --- */
 
 .timeline-container {
@@ -353,8 +349,8 @@
 /* --- Botão voltar ao topo --- */
 #btn-topo {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: calc(30px + var(--safe-bottom, 0px));
+    right: calc(30px + var(--safe-right, 0px));
     background-color: #e94560;
     color: white;
     border: none;
