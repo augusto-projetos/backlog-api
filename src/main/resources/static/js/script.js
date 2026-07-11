@@ -299,6 +299,8 @@ async function salvarItem(event) {
             // Dispara toasts de conquistas ANTES de redirecionar
             const novas = data.conquistasDesbloqueadas || [];
 
+            if (window.AppLoading) window.AppLoading.hide();
+
             Swal.fire({
                 title: 'Sucesso!',
                 text: 'Item salvo com sucesso!',
@@ -323,6 +325,7 @@ async function salvarItem(event) {
             }
             mensagemErro += '</ul>';
 
+            if (window.AppLoading) window.AppLoading.hide();
             Swal.fire({
                 title: 'Erro de Validação!',
                 html: mensagemErro,
@@ -332,11 +335,13 @@ async function salvarItem(event) {
         }
         // QUALQUER OUTRO ERRO
         else {
+            if (window.AppLoading) window.AppLoading.hide();
             Swal.fire('Erro!', 'Ocorreu um erro inesperado no servidor.', 'error');
         }
 
     } catch (erro) {
         console.error('Erro:', erro);
+        if (window.AppLoading) window.AppLoading.hide();
         Swal.fire('Erro!', 'Falha na comunicação com o sistema.', 'error');
     }
 }
@@ -714,6 +719,8 @@ if (formSenhaPerfil) {
                 body: JSON.stringify({ senhaAntiga, novaSenha })
             });
 
+            if (window.AppLoading) window.AppLoading.hide();
+
             if (response.ok) {
                 Swal.fire('Sucesso!', 'Senha atualizada!', 'success');
                 formSenhaPerfil.reset();
@@ -727,6 +734,7 @@ if (formSenhaPerfil) {
                 Swal.fire('Erro!', erro.message, 'error');
             }
         } catch (err) {
+            if (window.AppLoading) window.AppLoading.hide();
             Swal.fire('Erro!', 'Falha de conexão.', 'error');
         }
     });
@@ -778,6 +786,8 @@ if (formApelido) { // Só entra se ele existir na página
                 body: JSON.stringify({ novoApelido })
             });
 
+            if (window.AppLoading) window.AppLoading.hide();
+
             if (response.ok) {
                 Swal.fire({
                     title: 'Sucesso!',
@@ -788,6 +798,7 @@ if (formApelido) { // Só entra se ele existir na página
                 Swal.fire('Erro!', 'Não foi possível atualizar o apelido.', 'error');
             }
         } catch (err) {
+            if (window.AppLoading) window.AppLoading.hide();
             Swal.fire('Erro!', 'Falha na comunicação.', 'error');
         }
     });
