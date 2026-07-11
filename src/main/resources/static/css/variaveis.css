@@ -7,6 +7,10 @@
     --text-muted: #7f8c8d;
     --border-color: #ddd;
     --card-shadow: rgba(0, 0, 0, 0.05);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
 }
 
 /* --- VARIÁVEIS PARA MODO ESCURO --- */
@@ -18,4 +22,8 @@
     --text-muted: #a0a0a0;
     --border-color: #333;
     --card-shadow: rgba(0, 0, 0, 0.4);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
 }
