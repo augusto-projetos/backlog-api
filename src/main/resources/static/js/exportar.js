@@ -89,11 +89,11 @@ async function salvarESeCompartilharNoDispositivo(blob, nomeArquivo) {
         data: base64Data,
         directory: 'CACHE'
     });
-
+    
     await Share.share({
         title: nomeArquivo,
-        url: arquivoSalvo.uri,
-        dialogTitle: 'Salvar ou compartilhar arquivo'
+        dialogTitle: 'Salvar ou compartilhar arquivo',
+        files: [arquivoSalvo.uri]
     });
 }
 
