@@ -118,8 +118,13 @@ public class ItemController {
         // Carrega o item anterior para comparar campos
         Item anterior = itemRepository.findById(id).orElse(null);
 
+        // Item inexistente: evita criar um registro "fantasma" com ID manual
+        if (anterior == null) {
+            return ResponseEntity.notFound().build();
+        }
+
         // Verifica se o item pertence ao usuário logado
-        if (anterior != null && !anterior.getUser().getId().equals(userLogado.getId())) {
+        if (!anterior.getUser().getId().equals(userLogado.getId())) {
             return ResponseEntity.status(403).body(Map.of("erro", "Acesso negado."));
         }
 
@@ -130,30 +135,27 @@ public class ItemController {
         Item salvo = itemRepository.save(itemAtualizado);
 
         // Detecta o que mudou e registra o evento mais específico
-        if (anterior != null) {
-            boolean statusMudou = !igual(anterior.getStatus(), salvo.getStatus());
-            boolean notaMudou   = !igual(anterior.getNota(), salvo.getNota());
-            boolean resenhaMudou = !igual(anterior.getResenha(), salvo.getResenha());
+        boolean statusMudou = !igual(anterior.getStatus(), salvo.getStatus());
+        boolean notaMudou   = !igual(anterior.getNota(), salvo.getNota());
+        boolean resenhaMudou = !igual(anterior.getResenha(), salvo.getResenha());
 
-            if (statusMudou) {
-                atividadeLogService.registrarStatusAlterado(userLogado, salvo, anterior.getStatus());
+        if (statusMudou) {
+            atividadeLogService.registrarStatusAlterado(userLogado, salvo, anterior.getStatus());
+        }
+        if (notaMudou) {
+            atividadeLogService.registrarNotaAlterada(userLogado, salvo, anterior.getNota());
+        }
+        if (resenhaMudou) {
+            boolean resenhaEraVazia = anterior.getResenha() == null || anterior.getResenha().isBlank();
+            if (resenhaEraVazia && salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
+                atividadeLogService.registrarResenhaAdicionada(userLogado, salvo);
+            } else if (salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
+                atividadeLogService.registrarResenhaEditada(userLogado, salvo);
             }
-            if (notaMudou) {
-                atividadeLogService.registrarNotaAlterada(userLogado, salvo, anterior.getNota());
-            }
-            if (resenhaMudou) {
-                boolean resenhaEraVazia = anterior.getResenha() == null || anterior.getResenha().isBlank();
-                if (resenhaEraVazia && salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
-                    atividadeLogService.registrarResenhaAdicionada(userLogado, salvo);
-                } else if (salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
-                    atividadeLogService.registrarResenhaEditada(userLogado, salvo);
-                }
-            }
-            // Se mudou outros campos mas nenhum dos acima
-            if (!statusMudou && !notaMudou && !resenhaMudou) {
-                atividadeLogService.registrarItemEditado(userLogado, salvo);
-            }
-        } else {
+        }
+
+        // Se mudou outros campos mas nenhum dos acima
+        if (!statusMudou && !notaMudou && !resenhaMudou) {
             atividadeLogService.registrarItemEditado(userLogado, salvo);
         }
 
@@ -256,12 +258,16 @@ public class ItemController {
                 }))
                 .collect(Collectors.toList());
 
-        return buscas.stream()
-                .map(future -> {
+        return java.util.stream.IntStream.range(0, buscas.size())
+                .mapToObj(i -> {
                     try {
-                        return future.get(8, TimeUnit.SECONDS);
+                        return buscas.get(i).get(8, TimeUnit.SECONDS);
                     } catch (Exception e) {
+                        // Mesmo em caso de timeout/erro, devolve "id" e "titulo"
+                        Item item = itens.get(i);
                         Map<String, Object> semSugestao = new HashMap<>();
+                        semSugestao.put("id", item.getId());
+                        semSugestao.put("titulo", item.getTitulo());
                         semSugestao.put("minutosSugeridos", null);
                         return semSugestao;
                     }
