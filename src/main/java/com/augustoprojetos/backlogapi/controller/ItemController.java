@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,14 +86,15 @@ public class ItemController {
         limparProgressoSerieSeBacklog(item);
         Item salvo = itemRepository.save(item);
 
-        // Registra na timeline
-        atividadeLogService.registrarItemAdicionado(userLogado, salvo);
+        // Todo evento gerado por essa mesma requisição compartilha o grupoId.
+        String grupoId = atividadeLogService.novoGrupo();
+        atividadeLogService.registrarItemAdicionado(userLogado, salvo, grupoId);
 
         List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
 
         // Registra conquistas desbloqueadas na timeline
         novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
-                userLogado, c.nome(), c.icone()));
+                userLogado, c.nome(), c.icone(), grupoId));
 
         Map<String, Object> response = new HashMap<>();
         response.put("item", salvo);
@@ -118,7 +120,7 @@ public class ItemController {
         // Carrega o item anterior para comparar campos
         Item anterior = itemRepository.findById(id).orElse(null);
 
-        // Item inexistente: evita criar um registro "fantasma" com ID manual
+        // Item inexistente: evita criar um registro "fantasma" com ID manual.
         if (anterior == null) {
             return ResponseEntity.notFound().build();
         }
@@ -134,35 +136,62 @@ public class ItemController {
 
         Item salvo = itemRepository.save(itemAtualizado);
 
-        // Detecta o que mudou e registra o evento mais específico
+        // Todo evento disparado por essa edição usa o mesmo grupoId.
+        String grupoId = atividadeLogService.novoGrupo();
+
+        // Detecta o que mudou e registra o evento mais específico de cada coisa
         boolean statusMudou = !igual(anterior.getStatus(), salvo.getStatus());
         boolean notaMudou   = !igual(anterior.getNota(), salvo.getNota());
         boolean resenhaMudou = !igual(anterior.getResenha(), salvo.getResenha());
+        boolean duracaoMudou = !igual(anterior.getDuracaoMinutos(), salvo.getDuracaoMinutos())
+                || !igual(anterior.getMinutosJogados(), salvo.getMinutosJogados())
+                || !igual(anterior.getDuracaoTotalMinutos(), salvo.getDuracaoTotalMinutos());
+        boolean progressoMudou = (!igual(anterior.getTemporadaAtual(), salvo.getTemporadaAtual())
+                || !igual(anterior.getEpisodioAtual(), salvo.getEpisodioAtual()))
+                && !"Backlog".equalsIgnoreCase(salvo.getStatus());
 
         if (statusMudou) {
-            atividadeLogService.registrarStatusAlterado(userLogado, salvo, anterior.getStatus());
+            atividadeLogService.registrarStatusAlterado(userLogado, salvo, anterior.getStatus(), grupoId);
         }
         if (notaMudou) {
-            atividadeLogService.registrarNotaAlterada(userLogado, salvo, anterior.getNota());
+            atividadeLogService.registrarNotaAlterada(userLogado, salvo, anterior.getNota(), grupoId);
         }
         if (resenhaMudou) {
             boolean resenhaEraVazia = anterior.getResenha() == null || anterior.getResenha().isBlank();
             if (resenhaEraVazia && salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
-                atividadeLogService.registrarResenhaAdicionada(userLogado, salvo);
+                atividadeLogService.registrarResenhaAdicionada(userLogado, salvo, grupoId);
             } else if (salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
-                atividadeLogService.registrarResenhaEditada(userLogado, salvo);
+                atividadeLogService.registrarResenhaEditada(userLogado, salvo, grupoId);
             }
         }
+        if (duracaoMudou) {
+            atividadeLogService.registrarDuracaoAlterada(userLogado, salvo, formatarDetalheDuracao(anterior, salvo), grupoId);
+        }
+        if (progressoMudou) {
+            atividadeLogService.registrarProgressoSerieAtualizado(
+                    userLogado, salvo, anterior.getTemporadaAtual(), anterior.getEpisodioAtual(), grupoId);
+        }
 
-        // Se mudou outros campos mas nenhum dos acima
-        if (!statusMudou && !notaMudou && !resenhaMudou) {
-            atividadeLogService.registrarItemEditado(userLogado, salvo);
+        // Campos "genéricos" que não têm um evento dedicado (título, capa, tipo)
+        List<String> camposAlterados = new ArrayList<>();
+        if (!igual(anterior.getTitulo(), salvo.getTitulo())) camposAlterados.add("Título");
+        if (!igual(anterior.getImagemUrl(), salvo.getImagemUrl())) camposAlterados.add("Capa");
+        if (!igual(anterior.getTipo(), salvo.getTipo())) camposAlterados.add("Tipo");
+
+        boolean algumEventoEspecificoRegistrado = statusMudou || notaMudou || resenhaMudou || duracaoMudou || progressoMudou;
+
+        if (!camposAlterados.isEmpty()) {
+            // Vai como mais um evento dentro do mesmo grupo.
+            atividadeLogService.registrarItemEditado(userLogado, salvo, camposAlterados, grupoId);
+        } else if (!algumEventoEspecificoRegistrado) {
+            // Nada que a gente rastreia mudou de fato, mantemos um rastro genérico.
+            atividadeLogService.registrarItemEditado(userLogado, salvo, grupoId);
         }
 
         List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
 
         novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
-                userLogado, c.nome(), c.icone()));
+                userLogado, c.nome(), c.icone(), grupoId));
 
         Map<String, Object> response = new HashMap<>();
         response.put("item", salvo);
@@ -308,6 +337,15 @@ public class ItemController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("atualizados", atualizados);
+
+        atividadeLogService.registrarDuracaoLoteAtualizada(userLogado, atualizados);
+
+        List<ConquistaDesbloqueadaDTO> novas = atualizados > 0
+                ? verificarConquistasComTimeout(userLogado)
+                : List.of();
+        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(userLogado, c.nome(), c.icone()));
+        response.put("conquistasDesbloqueadas", novas);
+
         return ResponseEntity.ok(response);
     }
 
@@ -338,10 +376,24 @@ public class ItemController {
             return ResponseEntity.badRequest().body(response);
         }
 
+        Integer duracaoAnterior = item.getDuracaoMinutos();
         item.setDuracaoMinutos(numero.intValue());
-        itemRepository.save(item);
+        Item salvo = itemRepository.save(item);
+
+        List<ConquistaDesbloqueadaDTO> novas = List.of();
+        if (!igual(duracaoAnterior, salvo.getDuracaoMinutos())) {
+            String grupoId = atividadeLogService.novoGrupo();
+            String detalhe = (duracaoAnterior != null ? duracaoAnterior + " min" : "—")
+                    + " → " + salvo.getDuracaoMinutos() + " min";
+            atividadeLogService.registrarDuracaoAlterada(userLogado, salvo, detalhe, grupoId);
+
+            novas = verificarConquistasComTimeout(userLogado);
+            novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
+                    userLogado, c.nome(), c.icone(), grupoId));
+        }
 
         response.put("sucesso", true);
+        response.put("conquistasDesbloqueadas", novas);
         return ResponseEntity.ok(response);
     }
 
@@ -381,6 +433,8 @@ public class ItemController {
         }
 
         int episodioAtual = item.getEpisodioAtual() != null ? item.getEpisodioAtual() : 0;
+        Integer temporadaAnterior = item.getTemporadaAtual();
+        Integer episodioAnterior = item.getEpisodioAtual();
         item.setEpisodioAtual(episodioAtual + 1);
 
         if (item.getTemporadaAtual() == null) {
@@ -388,11 +442,17 @@ public class ItemController {
         }
 
         Item salvo = itemRepository.save(item);
-        atividadeLogService.registrarItemEditado(userLogado, salvo);
+        String grupoId = atividadeLogService.novoGrupo();
+        atividadeLogService.registrarProgressoSerieAtualizado(userLogado, salvo, temporadaAnterior, episodioAnterior, grupoId);
+
+        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
+        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
+                userLogado, c.nome(), c.icone(), grupoId));
 
         response.put("sucesso", true);
         response.put("temporadaAtual", salvo.getTemporadaAtual());
         response.put("episodioAtual", salvo.getEpisodioAtual());
+        response.put("conquistasDesbloqueadas", novas);
         return ResponseEntity.ok(response);
     }
 
@@ -424,5 +484,26 @@ public class ItemController {
         if (a == null && b == null) return true;
         if (a == null || b == null) return false;
         return a.equals(b);
+    }
+
+    // Monta o "antes → depois" da duração, olhando o campo certo conforme o tipo
+    private String formatarDetalheDuracao(Item anterior, Item salvo) {
+        Integer valorAnterior;
+        Integer valorNovo;
+
+        if ("Jogo".equalsIgnoreCase(salvo.getTipo())) {
+            valorAnterior = anterior.getMinutosJogados();
+            valorNovo = salvo.getMinutosJogados();
+        } else if ("Série".equalsIgnoreCase(salvo.getTipo())) {
+            valorAnterior = anterior.getDuracaoTotalMinutos();
+            valorNovo = salvo.getDuracaoTotalMinutos();
+        } else {
+            valorAnterior = anterior.getDuracaoMinutos();
+            valorNovo = salvo.getDuracaoMinutos();
+        }
+
+        String txtAnterior = valorAnterior != null ? valorAnterior + " min" : "—";
+        String txtNovo = valorNovo != null ? valorNovo + " min" : "—";
+        return txtAnterior + " → " + txtNovo;
     }
 }
