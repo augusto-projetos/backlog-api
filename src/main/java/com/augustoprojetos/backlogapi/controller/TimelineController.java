@@ -19,7 +19,9 @@ public class TimelineController {
     @GetMapping
     public String timeline(@AuthenticationPrincipal User userLogado, Model model) {
         model.addAttribute("nomeUsuario", userLogado.getLogin());
-        model.addAttribute("logs", atividadeLogService.buscarTimelineDoUsuario(userLogado));
+        var logs = atividadeLogService.buscarTimelineDoUsuario(userLogado);
+        model.addAttribute("logs", logs);
+        model.addAttribute("grupos", atividadeLogService.agruparParaTimeline(logs));
         return "timeline";
     }
 }

@@ -35,6 +35,10 @@ public class AtividadeLog {
     @Column(length = 255)
     private String itemTitulo;
 
+    // Identifica eventos que aconteceram juntos na mesma ação do usuário.
+    @Column(name = "grupo_id", length = 36)
+    private String grupoId;
+
     @Column(nullable = false)
     private LocalDateTime criadoEm = LocalDateTime.now();
 
