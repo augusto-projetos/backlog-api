@@ -47,6 +47,9 @@ public class ConquistaService {
     //   HORAS_FILMES         - soma de duracaoMinutos dos filmes concluídos >= criterioValor (em MINUTOS)
     //   HORAS_JOGOS_TOTAL    - soma de minutosJogados de TODOS os jogos cadastrados >= criterioValor (em MINUTOS)
     //   HORAS_JOGO_UNICO     - maior minutosJogados entre os jogos cadastrados (1 jogo só) >= criterioValor (em MINUTOS)
+    //   HORAS_SERIES         - soma de duracaoTotalMinutos das séries concluídas (Assistido) >= criterioValor (em MINUTOS)
+    //   EPISODIOS_TOTAL      - soma de episodioAtual de TODAS as séries cadastradas >= criterioValor (em EPISÓDIOS)
+    //   EPISODIOS_SERIE_UNICA- maior episodioAtual entre as séries cadastradas (1 série só) >= criterioValor (em EPISÓDIOS)
     //   MANUAL               - concedida manualmente pelo admin
     //
     // IMPORTANTE: para os critérios de HORAS_*, criterioValor é sempre em MINUTOS
@@ -111,6 +114,34 @@ public class ConquistaService {
         upsertConquista("HORAS_JOGO_UNICO_100", "Cem Horas, Uma Vida",           "Registrou 100 horas jogadas em um único jogo.",               "⏳", 150, "HORAS_JOGO_UNICO", h(100));
         upsertConquista("HORAS_JOGO_UNICO_200", "Platina de Suor e Lágrimas",    "Registrou 200 horas jogadas em um único jogo.",               "🏅", 200, "HORAS_JOGO_UNICO", h(200));
         upsertConquista("HORAS_JOGO_UNICO_500", "Isso Já Não É Hobby, É Residência", "Registrou 500 horas jogadas em um único jogo.",           "🏠", 280, "HORAS_JOGO_UNICO", h(500));
+
+        // -----------------------------------------------------------
+        // Conquistas de HORAS assistidas em séries concluídas
+        // -----------------------------------------------------------
+        upsertConquista("HORAS_SERIE_10",  "Episódio Piloto",              "Acumulou 10 horas assistindo séries concluídas.",             "📺", 60,  "HORAS_SERIES", h(10));
+        upsertConquista("HORAS_SERIE_25",  "Nas Primeiras Temporadas",     "Acumulou 25 horas assistindo séries concluídas.",             "📼", 80,  "HORAS_SERIES", h(25));
+        upsertConquista("HORAS_SERIE_50",  "Fim de Semana de Série",       "Acumulou 50 horas assistindo séries concluídas.",             "🛋️", 100, "HORAS_SERIES", h(50));
+        upsertConquista("HORAS_SERIE_100", "Assinante Fiel",               "Acumulou 100 horas assistindo séries concluídas.",            "📡", 130, "HORAS_SERIES", h(100));
+        upsertConquista("HORAS_SERIE_200", "Maratonista de Streaming",     "Acumulou 200 horas assistindo séries concluídas.",            "🏆", 160, "HORAS_SERIES", h(200));
+        upsertConquista("HORAS_SERIE_350", "Sofá Vitalício",               "Acumulou 350 horas assistindo séries concluídas.",            "🛏️", 200, "HORAS_SERIES", h(350));
+        upsertConquista("HORAS_SERIE_500", "Lenda do Streaming",           "Acumulou 500 horas assistindo séries concluídas.",            "🌟", 250, "HORAS_SERIES", h(500));
+
+        // -----------------------------------------------------------
+        // Conquistas de EPISÓDIOS somando TODAS as séries cadastradas
+        // -----------------------------------------------------------
+        upsertConquista("EPISODIOS_TOTAL_50",   "Primeiros Episódios",           "Registrou 50 episódios assistidos no total.",                 "🎬", 70,  "EPISODIOS_TOTAL", 50);
+        upsertConquista("EPISODIOS_TOTAL_150",  "Colecionador de Episódios",     "Registrou 150 episódios assistidos no total.",                "📚", 100, "EPISODIOS_TOTAL", 150);
+        upsertConquista("EPISODIOS_TOTAL_300",  "Vidão de Streaming",            "Registrou 300 episódios assistidos no total.",                "🎞️", 140, "EPISODIOS_TOTAL", 300);
+        upsertConquista("EPISODIOS_TOTAL_500",  "Enciclopédia de Séries",        "Registrou 500 episódios assistidos no total.",                "📖", 180, "EPISODIOS_TOTAL", 500);
+        upsertConquista("EPISODIOS_TOTAL_1000", "Mil Episódios, Zero Arrependimentos", "Registrou 1000 episódios assistidos no total.",         "🏅", 250, "EPISODIOS_TOTAL", 1000);
+
+        // -----------------------------------------------------------
+        // Conquistas de EPISÓDIOS assistidos em uma ÚNICA série (maratona)
+        // -----------------------------------------------------------
+        upsertConquista("EPISODIOS_SERIE_UNICA_20",  "Vício Declarado",             "Assistiu 20 episódios de uma mesma série.",             "😵", 70,  "EPISODIOS_SERIE_UNICA", 20);
+        upsertConquista("EPISODIOS_SERIE_UNICA_50",  "Binge Sem Freio",             "Assistiu 50 episódios de uma mesma série.",             "🛑", 100, "EPISODIOS_SERIE_UNICA", 50);
+        upsertConquista("EPISODIOS_SERIE_UNICA_100", "Cem Episódios, Uma Obsessão", "Assistiu 100 episódios de uma mesma série.",             "💫", 150, "EPISODIOS_SERIE_UNICA", 100);
+        upsertConquista("EPISODIOS_SERIE_UNICA_200", "Essa Série Virou Minha Vida", "Assistiu 200 episódios de uma mesma série.",             "🧠", 220, "EPISODIOS_SERIE_UNICA", 200);
     }
 
     // Converte horas para minutos, usado para deixar o seed mais legível
@@ -203,6 +234,18 @@ public class ConquistaService {
         // Maior quantidade de minutos jogados em um único jogo (para conquistas HORAS_JOGO_UNICO)
         long minutosJogoUnicoMax = itemRepository.maxMinutosJogadosByUserAndTipo(user, "Jogo");
 
+        // Minutos assistidos de séries concluídas (para conquistas HORAS_SERIES)
+        long minutosSeriesAssistidas = itemRepository.sumDuracaoTotalMinutosByUserAndTipoAndStatusIn(
+            user, "Série",
+            List.of("Zerado / Assistido", "concluido", "Zerado", "Assistido")
+        );
+
+        // Soma de episódios de TODAS as séries cadastradas (para conquistas EPISODIOS_TOTAL)
+        long episodiosTotal = itemRepository.sumEpisodiosByUserAndTipo(user, "Série");
+
+        // Maior quantidade de episódios em uma única série (para conquistas EPISODIOS_SERIE_UNICA)
+        long episodiosSerieUnicaMax = itemRepository.maxEpisodiosByUserAndTipo(user, "Série");
+
         // Itera TODAS as conquistas (fixas + criadas pelo admin)
         for (Conquista c : conquistaRepository.findAll()) {
             if (userConquistaRepository.existsByUserAndConquista_Chave(user, c.getChave())) {
@@ -233,6 +276,9 @@ public class ConquistaService {
                 case "HORAS_FILMES"      -> minutosFilmesAssistidos >= limiar;
                 case "HORAS_JOGOS_TOTAL" -> minutosJogosTotal       >= limiar;
                 case "HORAS_JOGO_UNICO"  -> minutosJogoUnicoMax     >= limiar;
+                case "HORAS_SERIES"      -> minutosSeriesAssistidas >= limiar;
+                case "EPISODIOS_TOTAL"       -> episodiosTotal        >= limiar;
+                case "EPISODIOS_SERIE_UNICA" -> episodiosSerieUnicaMax >= limiar;
                 default                  -> false;
             };
 
