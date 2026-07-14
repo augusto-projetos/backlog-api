@@ -80,6 +80,11 @@ public class AdminService {
             throw new RuntimeException("Não é possível editar a conta de administrador por aqui.");
         }
 
+        // Valida o formato do @
+        if (novoSocial == null || !UserService.SOCIAL_USERNAME_PATTERN.matcher(novoSocial).matches()) {
+            throw new RuntimeException("@ inválido: use apenas letras, números, pontos ou sublinhados.");
+        }
+
         // Valida duplicidade de social, exceto o próprio usuário
         userRepository.findBySocialUsername(novoSocial)
                 .filter(found -> !found.getId().equals(id))

@@ -38,6 +38,10 @@
                 ⚠️ Ops! Esse @ já está sendo usado por outra pessoa. Escolha outro.
             </div>
 
+            <div th:if="${param.error != null and param.error[0] == 'socialFormato'}" class="alert">
+                ⚠️ O @ só pode conter letras, números, pontos ou sublinhados (sem espaços ou símbolos).
+            </div>
+
             <div th:if="${param.deleted}" class="error">
                 ❌ Conta deletada!
             </div>

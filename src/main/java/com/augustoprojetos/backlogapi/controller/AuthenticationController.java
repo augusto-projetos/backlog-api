@@ -104,6 +104,9 @@ public class AuthenticationController {
             if ("social".equals(e.getMessage())) {
                 return "redirect:/register?error=social";
             }
+            if ("socialFormato".equals(e.getMessage())) {
+                return "redirect:/register?error=socialFormato";
+            }
             // Fallback por precaução
             return "redirect:/register?error=email";
         }
