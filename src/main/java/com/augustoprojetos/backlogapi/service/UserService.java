@@ -12,8 +12,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.regex.Pattern;
+
 @Service
 public class UserService {
+
+    public static final Pattern SOCIAL_USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_.]+$");
 
     @Autowired private UserRepository userRepository;
     @Autowired private ItemRepository itemRepository;
@@ -38,20 +42,25 @@ public class UserService {
             throw new IllegalArgumentException("O @ de usuário não chegou no servidor!");
         }
 
+        // 3. Valida o formato do @ (defesa contra XSS)
+        if (!SOCIAL_USERNAME_PATTERN.matcher(arroba).matches()) {
+            throw new RuntimeException("socialFormato");
+        }
+
         if (userRepository.findBySocialUsername(arroba).isPresent()) {
             throw new RuntimeException("social");
         }
 
-        // 3. Valida a senha antes de tudo
+        // 4. Valida a senha antes de tudo
         if (user.getPassword() == null) {
             throw new IllegalArgumentException("A senha não pode ser nula.");
         }
         validarRequisitosSenha(user.getPassword());
 
-        // 4. Criptografa a senha
+        // 5. Criptografa a senha
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // 5. Salva no banco de dados
+        // 6. Salva no banco de dados
         userRepository.save(user);
     }
 
