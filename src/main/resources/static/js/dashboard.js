@@ -565,6 +565,7 @@ async function salvarDuracaoLote() {
     const total = selecionados.length;
     let salvosComSucesso = 0;
     const idsComSucesso = new Set();
+    const conquistasDesbloqueadas = [];
 
     // Trava os botões e zera a barra antes de começar
     btn.disabled = true;
@@ -585,6 +586,11 @@ async function salvarDuracaoLote() {
             if (resposta.ok) {
                 salvosComSucesso++;
                 idsComSucesso.add(item.id);
+
+                const data = await resposta.json().catch(() => ({}));
+                if (Array.isArray(data.conquistasDesbloqueadas)) {
+                    conquistasDesbloqueadas.push(...data.conquistasDesbloqueadas);
+                }
             }
         } catch (erro) {
             console.error('Erro ao salvar o filme', item.id, erro);
@@ -594,6 +600,12 @@ async function salvarDuracaoLote() {
         const percentual = Math.round((feitos / total) * 100);
         progresso.style.width = percentual + '%';
         label.textContent = `💾 Salvando... ${feitos}/${total}`;
+    }
+
+    // Mostra as conquistas desbloqueadas (se houver) só depois de todo o lote terminar,
+    // pra não empilhar toast no meio do salvamento
+    if (conquistasDesbloqueadas.length > 0 && window.Conquistas) {
+        window.Conquistas.exibirToasts(conquistasDesbloqueadas);
     }
 
     // Remove da lista/cache só os que realmente foram salvos com sucesso

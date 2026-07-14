@@ -17,6 +17,7 @@
         <link rel="stylesheet" th:href="@{/css/dashboard.css}">
         <link rel="stylesheet" th:href="@{/css/style.css}">
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
+        <link rel="stylesheet" th:href="@{/css/conquistas.css}">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <!-- PWA -->
         <link rel="manifest" href="/manifest.webmanifest">
@@ -168,8 +169,22 @@
             </div>
         </div>
 
+        <!-- Toast de Conquistas (ex: desbloqueada ao salvar duração de filmes) -->
+        <div id="conquista-toast" class="conquista-toast" style="display:none;">
+            <div class="conquista-toast-inner">
+                <span class="conquista-toast-icone" id="ct-icone">🏆</span>
+                <div class="conquista-toast-texto">
+                    <small>🎉 Conquista Desbloqueada!</small>
+                    <strong id="ct-nome">Nome</strong>
+                    <small id="ct-desc">Descrição</small>
+                    <small class="ct-xp" id="ct-xp">+0 XP</small>
+                </div>
+            </div>
+        </div>
+
         <script th:src="@{/js/theme-toggle.js}"></script>
         <script th:src="@{/js/rating-toggle.js}"></script>
+        <script th:src="@{/js/conquistas.js}"></script>
         <script th:src="@{/js/dashboard.js}"></script>
     </body>
 </html>

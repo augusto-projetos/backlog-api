@@ -593,6 +593,12 @@ async function incrementarEpisodio(id) {
                 container.classList.add('progresso-atualizado');
                 setTimeout(() => container.classList.remove('progresso-atualizado'), 400);
             }
+
+            // Exibe o toast de conquista, se alguma foi desbloqueada nessa ação
+            const novas = data.conquistasDesbloqueadas || [];
+            if (novas.length > 0 && window.Conquistas) {
+                window.Conquistas.exibirToasts(novas);
+            }
         } else {
             const erro = await resposta.json().catch(() => ({}));
             Swal.fire('Ops!', erro.erro || 'Não foi possível atualizar o episódio.', 'warning');
