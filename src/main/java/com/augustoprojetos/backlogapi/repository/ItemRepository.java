@@ -52,4 +52,22 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("SELECT COALESCE(MAX(i.minutosJogados), 0) FROM Item i " +
            "WHERE i.user = :user AND i.tipo = :tipo AND i.minutosJogados IS NOT NULL")
     long maxMinutosJogadosByUserAndTipo(@Param("user") User user, @Param("tipo") String tipo);
+
+    // Soma os minutos de duração TOTAL das séries concluídas (assistidas) de um usuário
+    @Query("SELECT COALESCE(SUM(i.duracaoTotalMinutos), 0) FROM Item i " +
+           "WHERE i.user = :user AND i.tipo = :tipo AND i.status IN :statusList AND i.duracaoTotalMinutos IS NOT NULL")
+    long sumDuracaoTotalMinutosByUserAndTipoAndStatusIn(@Param("user") User user,
+                                                         @Param("tipo") String tipo,
+                                                         @Param("statusList") List<String> statusList);
+
+    // Soma o episódio atual de TODAS as séries cadastradas por um usuário (qualquer status),
+    // usado como aproximação do total de episódios já vistos no acervo.
+    @Query("SELECT COALESCE(SUM(i.episodioAtual), 0) FROM Item i " +
+           "WHERE i.user = :user AND i.tipo = :tipo AND i.episodioAtual IS NOT NULL")
+    long sumEpisodiosByUserAndTipo(@Param("user") User user, @Param("tipo") String tipo);
+
+    // Maior episódio atual entre as séries cadastradas por um usuário (maratona de uma série só)
+    @Query("SELECT COALESCE(MAX(i.episodioAtual), 0) FROM Item i " +
+           "WHERE i.user = :user AND i.tipo = :tipo AND i.episodioAtual IS NOT NULL")
+    long maxEpisodiosByUserAndTipo(@Param("user") User user, @Param("tipo") String tipo);
 }
