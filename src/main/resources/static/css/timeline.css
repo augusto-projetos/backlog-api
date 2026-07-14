@@ -378,6 +378,91 @@
     transform: translateY(-5px); /* Pulo leve ao passar o mouse */
 }
 
+/* --- Novos tipos de evento (progresso de série, duração) --- */
+
+.timeline-dot.tipo-progresso-serie-atualizado { background: #16a085; box-shadow: 0 0 0 2px rgba(22,160,133,.3); }
+.timeline-dot.tipo-duracao-alterada           { background: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,.3); }
+.timeline-dot.tipo-duracao-lote-atualizada    { background: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,.3); }
+
+.badge-progresso-serie-atualizado { background: rgba(22,160,133,.15); color: #16a085; }
+.badge-duracao-alterada           { background: rgba(41,128,185,.15); color: #2471a3; }
+.badge-duracao-lote-atualizada    { background: rgba(41,128,185,.15); color: #2471a3; }
+
+/* --- Bloco agrupado (vários eventos na mesma ação) --- */
+
+.timeline-dot.multiplo {
+    background: var(--text-muted);
+    box-shadow: 0 0 0 2px var(--border-color);
+}
+
+.timeline-grupo-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+}
+
+.timeline-grupo-resumo {
+    font-size: 0.92rem;
+    color: var(--text-main);
+    line-height: 1.45;
+}
+
+.timeline-grupo-seta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.timeline-grupo-toggle[aria-expanded="true"] .timeline-grupo-seta {
+    transform: rotate(180deg);
+}
+
+.timeline-grupo-detalhes {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.timeline-grupo-detalhes.aberto {
+    display: block;
+}
+
+.timeline-grupo-evento {
+    padding: 8px 0;
+}
+
+.timeline-grupo-evento:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.timeline-badge-mini {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 4px;
+}
+
+/* Fallback: se por algum motivo não tiver badge-X específico, ainda fica legível */
+.timeline-badge-mini:not([class*=" badge-"]) {
+    background: var(--border-color);
+    color: var(--text-muted);
+}
+
 /* --- Responsivo --- */
 
 @media (max-width: 600px) {
