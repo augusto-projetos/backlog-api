@@ -425,7 +425,12 @@ async function carregarItens() {
         itens.sort((a, b) => a.titulo.localeCompare(b.titulo));
 
         itens.forEach(item => {
-            const imagem = item.imagemUrl ? item.imagemUrl : 'https://placehold.co/150x200?text=Sem+Imagem';
+            // Sanitiza a URL da imagem (mesma regra usada no formulário) para
+            // evitar que um título/resenha maliciosos executem HTML/JS na Home.
+            const imagemSegura = item.imagemUrl ? sanitizarUrl(item.imagemUrl) : null;
+            const imagem = imagemSegura ? escaparHtml(imagemSegura) : 'https://placehold.co/150x200?text=Sem+Imagem';
+            const tituloSeguro = escaparHtml(item.titulo);
+            const resenhaSegura = item.resenha ? escaparHtml(item.resenha) : 'Sem resenha.';
 
             // Verifica qual modo o usuário quer ver
             const ratingMode = localStorage.getItem('ratingMode') || 'nota';
@@ -475,10 +480,10 @@ async function carregarItens() {
                     </div>
 
                     <div class="card-info">
-                        <h3>${item.titulo} <span class="badge">${item.tipo}</span></h3>
+                        <h3>${tituloSeguro} <span class="badge">${item.tipo}</span></h3>
 
                         <div class="resenha-wrapper">
-                            <p class="resenha-texto" id="resenha-${item.id}">${item.resenha || "Sem resenha."}</p>
+                            <p class="resenha-texto" id="resenha-${item.id}">${resenhaSegura}</p>
 
                             <button class="btn-ver-mais" id="btn-ver-${item.id}" onclick="alternarResenha(${item.id})">
                                 ... Ver mais
@@ -529,6 +534,14 @@ function sanitizarUrl(string) {
         // Se der erro, ignora
     }
     return null; // Retorna nulo se não for válida
+}
+
+// Escapa texto livre do usuário (título, resenha, etc.) antes de inserir via
+// innerHTML, evitando XSS armazenado.
+function escaparHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto ?? '';
+    return div.innerHTML;
 }
 
 function atualizarPreview() {
