@@ -94,10 +94,8 @@
 }
 
 .tempo-pill-series {
-    background: var(--bg-card);
-    color: var(--text-muted);
-    border: 2px dashed var(--border-color);
-    box-shadow: none;
+    background: linear-gradient(135deg, #fcd34d, #f59e0b);
+    color: #262115;
 }
 
 .tempo-pill-icon {
@@ -123,11 +121,6 @@
 .tempo-pill-label {
     font-size: 0.8rem;
     opacity: 0.9;
-}
-
-.tempo-pill-em-breve .tempo-pill-valor {
-    font-size: 0.95rem;
-    font-weight: 600;
 }
 
 .canvas-tempo {

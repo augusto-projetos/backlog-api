@@ -402,6 +402,27 @@ h1 {
     }
 }
 
+/* --- Progresso da Série (Temporada Atual / Episódio Atual) --- */
+.progresso-serie-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.progresso-serie-campo .label-secundario {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted, #7f8c8d);
+    margin-bottom: 6px;
+}
+
+@media (max-width: 600px) {
+    .progresso-serie-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+}
+
 /* --- Dicas sobre o Tempo Gasto (novo sistema de gamificação) --- */
 .dica-tempo {
     display: block;

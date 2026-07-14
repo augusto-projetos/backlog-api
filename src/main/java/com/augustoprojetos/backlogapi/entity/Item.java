@@ -40,6 +40,19 @@ public class Item {
     @Min(value = 0, message = "Os minutos jogados não podem ser negativos")
     private Integer minutosJogados;
 
+    // 📺 Progresso de séries: temporada e episódio em que o usuário está.
+    // Só ficam liberados para edição quando o status sai de "Backlog".
+    @Min(value = 0, message = "A temporada não pode ser negativa")
+    private Integer temporadaAtual;
+
+    @Min(value = 0, message = "O episódio não pode ser negativo")
+    private Integer episodioAtual;
+
+    // Duração TOTAL da série em minutos, informada manualmente pelo usuário
+    // somente depois que ele termina de assistir.
+    @Min(value = 0, message = "A duração não pode ser negativa")
+    private Integer duracaoTotalMinutos;
+
     @ManyToOne // Diz: "Muitos itens podem pertencer a UM usuário"
     @JoinColumn(name = "user_id") // Cria a coluna 'user_id' no banco
     private User user;

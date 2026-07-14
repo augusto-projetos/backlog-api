@@ -21,8 +21,8 @@ public class DashboardStatsDTO {
     // --- Tempo Gasto (em minutos) ---
     private long minutosFilmes;
     private long minutosJogos;
-    // Séries ainda não entram na conta: a funcionalidade estará disponível em breve
-    private boolean tempoSeriesDisponivel = false;
+    private long minutosSeries;
+    private boolean tempoSeriesDisponivel = true;
 
     // Getters e Setters
     public long getTotalJogos() { return totalJogos; }
@@ -54,6 +54,9 @@ public class DashboardStatsDTO {
 
     public long getMinutosJogos() { return minutosJogos; }
     public void setMinutosJogos(long minutosJogos) { this.minutosJogos = minutosJogos; }
+
+    public long getMinutosSeries() { return minutosSeries; }
+    public void setMinutosSeries(long minutosSeries) { this.minutosSeries = minutosSeries; }
 
     public boolean isTempoSeriesDisponivel() { return tempoSeriesDisponivel; }
     public void setTempoSeriesDisponivel(boolean tempoSeriesDisponivel) { this.tempoSeriesDisponivel = tempoSeriesDisponivel; }

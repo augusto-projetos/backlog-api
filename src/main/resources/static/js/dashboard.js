@@ -197,22 +197,27 @@ function formatarTempo(minutosTotais) {
 function renderizarTempoGasto(dados) {
     const minutosFilmes = dados.minutosFilmes || 0;
     const minutosJogos = dados.minutosJogos || 0;
+    const minutosSeries = dados.minutosSeries || 0;
 
     const elFilmes = document.getElementById('tempoFilmesValor');
     const elJogos = document.getElementById('tempoJogosValor');
+    const elSeries = document.getElementById('tempoSeriesValor');
     const elFrase = document.getElementById('tempoFrase');
 
     if (elFilmes) elFilmes.textContent = formatarTempo(minutosFilmes);
     if (elJogos) elJogos.textContent = formatarTempo(minutosJogos);
+    if (elSeries) elSeries.textContent = formatarTempo(minutosSeries);
 
     // Frase "premium" que engaja o usuário, escolhida com base em quem lidera
     if (elFrase) {
-        if (minutosFilmes === 0 && minutosJogos === 0) {
-            elFrase.textContent = '📈 Adicione filmes e jogos para começar a acompanhar seu tempo investido!';
-        } else if (minutosFilmes >= minutosJogos) {
+        if (minutosFilmes === 0 && minutosJogos === 0 && minutosSeries === 0) {
+            elFrase.textContent = '📈 Adicione filmes, séries e jogos para começar a acompanhar seu tempo investido!';
+        } else if (minutosJogos >= minutosFilmes && minutosJogos >= minutosSeries) {
+            elFrase.textContent = `🎮 Você já passou ${formatarTempo(minutosJogos)} jogando!`;
+        } else if (minutosFilmes >= minutosSeries) {
             elFrase.textContent = `🍿 Você já passou ${formatarTempo(minutosFilmes)} assistindo filmes!`;
         } else {
-            elFrase.textContent = `🎮 Você já passou ${formatarTempo(minutosJogos)} jogando!`;
+            elFrase.textContent = `📺 Você já passou ${formatarTempo(minutosSeries)} assistindo séries!`;
         }
     }
 
@@ -233,16 +238,18 @@ function renderizarTempoGasto(dados) {
     gradJogos.addColorStop(0, '#08d9d6');
     gradJogos.addColorStop(1, '#0f766e');
 
+    const gradSeries = ctxTempo.createLinearGradient(0, 0, 400, 0);
+    gradSeries.addColorStop(0, '#fcd34d');
+    gradSeries.addColorStop(1, '#f59e0b');
+
     graficoTempoInstance = new Chart(ctxTempo, {
         type: 'bar',
         data: {
-            labels: ['🎬 Filmes', '🎮 Jogos'],
+            labels: ['🎬 Filmes', '🎮 Jogos', '📺 Séries'],
             datasets: [{
                 label: 'Tempo',
-                // A barra usa horas (fração) só pra ficar visualmente proporcional;
-                // o texto exibido (tooltip/cards) sempre usa formatarTempo()
-                data: [minutosFilmes / 60, minutosJogos / 60],
-                backgroundColor: [gradFilmes, gradJogos],
+                data: [minutosFilmes / 60, minutosJogos / 60, minutosSeries / 60],
+                backgroundColor: [gradFilmes, gradJogos, gradSeries],
                 borderRadius: 10,
                 borderSkipped: false,
                 barThickness: 42
@@ -257,7 +264,8 @@ function renderizarTempoGasto(dados) {
                 tooltip: {
                     callbacks: {
                         label: (context) => {
-                            const minutosOriginais = context.datasetIndex === 0 ? minutosFilmes : minutosJogos;
+                            const minutosPorIndice = [minutosFilmes, minutosJogos, minutosSeries];
+                            const minutosOriginais = minutosPorIndice[context.dataIndex];
                             return formatarTempo(minutosOriginais) + ' investidos';
                         }
                     }

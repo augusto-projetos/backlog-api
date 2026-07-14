@@ -168,11 +168,15 @@ function atualizarStatusDinamico() {
     // --- Campos/dicas do sistema de Tempo Gasto ---
     const grupoMinutosJogados = document.getElementById('grupo-minutos-jogados');
     const grupoDuracaoFilme = document.getElementById('grupo-duracao-filme');
-    const dicaSerie = document.getElementById('dica-tempo-serie');
+    const grupoProgressoSerie = document.getElementById('grupo-progresso-serie');
+    const grupoDuracaoSerie = document.getElementById('grupo-duracao-serie');
 
     if (grupoMinutosJogados) grupoMinutosJogados.style.display = (tipo === 'Jogo') ? 'block' : 'none';
     if (grupoDuracaoFilme) grupoDuracaoFilme.style.display = (tipo === 'Filme') ? 'block' : 'none';
-    if (dicaSerie) dicaSerie.style.display = (tipo === 'Série') ? 'block' : 'none';
+    if (grupoProgressoSerie) grupoProgressoSerie.style.display = (tipo === 'Série') ? 'block' : 'none';
+    if (grupoDuracaoSerie) grupoDuracaoSerie.style.display = (tipo === 'Série') ? 'block' : 'none';
+
+    travarCamposPeloStatus();
 }
 
 // --- Funções ---
@@ -225,6 +229,21 @@ async function carregarDadosParaEdicao(id) {
                 campoDuracaoFilme.value = (item.duracaoMinutos !== null && item.duracaoMinutos !== undefined) ? item.duracaoMinutos : '';
             }
 
+            const campoTemporada = document.getElementById('temporadaAtual');
+            if (campoTemporada) {
+                campoTemporada.value = (item.temporadaAtual !== null && item.temporadaAtual !== undefined) ? item.temporadaAtual : '';
+            }
+
+            const campoEpisodio = document.getElementById('episodioAtual');
+            if (campoEpisodio) {
+                campoEpisodio.value = (item.episodioAtual !== null && item.episodioAtual !== undefined) ? item.episodioAtual : '';
+            }
+
+            const campoDuracaoSerie = document.getElementById('duracaoTotalMinutos');
+            if (campoDuracaoSerie) {
+                campoDuracaoSerie.value = (item.duracaoTotalMinutos !== null && item.duracaoTotalMinutos !== undefined) ? item.duracaoTotalMinutos : '';
+            }
+
             travarCamposPeloStatus();
 
             // Tratamento especial para imagem (caso venha nulo)
@@ -263,6 +282,21 @@ async function salvarItem(event) {
         ? parseInt(campoDuracaoFilme.value, 10)
         : null;
 
+    const campoTemporada = document.getElementById('temporadaAtual');
+    const temporadaAtual = (tipo === 'Série' && campoTemporada && campoTemporada.value !== '')
+        ? parseInt(campoTemporada.value, 10)
+        : null;
+
+    const campoEpisodio = document.getElementById('episodioAtual');
+    const episodioAtual = (tipo === 'Série' && campoEpisodio && campoEpisodio.value !== '')
+        ? parseInt(campoEpisodio.value, 10)
+        : null;
+
+    const campoDuracaoSerie = document.getElementById('duracaoTotalMinutos');
+    const duracaoTotalMinutos = (tipo === 'Série' && campoDuracaoSerie && campoDuracaoSerie.value !== '')
+        ? parseInt(campoDuracaoSerie.value, 10)
+        : null;
+
     const dados = {
         titulo: titulo,
         tipo: tipo,
@@ -271,7 +305,10 @@ async function salvarItem(event) {
         resenha: resenha,
         imagemUrl: imagemUrl,
         minutosJogados: minutosJogados,
-        duracaoMinutos: duracaoMinutos
+        duracaoMinutos: duracaoMinutos,
+        temporadaAtual: temporadaAtual,
+        episodioAtual: episodioAtual,
+        duracaoTotalMinutos: duracaoTotalMinutos
     };
 
     try {
@@ -401,12 +438,34 @@ async function carregarItens() {
             }
 
             // Tempo do item (em minutos) usado para ordenar por "Maior/Menor Tempo".
-            // Só faz sentido para Filmes (duração) e Jogos (horas jogadas); Séries e itens sem tempo cadastrado ficam sem valor (vão para o final na ordenação).
             let tempoItem = '';
             if (item.tipo === 'Filme' && item.duracaoMinutos !== null && item.duracaoMinutos !== undefined) {
                 tempoItem = item.duracaoMinutos;
             } else if (item.tipo === 'Jogo' && item.minutosJogados !== null && item.minutosJogados !== undefined) {
                 tempoItem = item.minutosJogados;
+            } else if (item.tipo === 'Série' && item.duracaoTotalMinutos !== null && item.duracaoTotalMinutos !== undefined) {
+                tempoItem = item.duracaoTotalMinutos;
+            }
+
+            // Badge de progresso "T{temporada}:EP{episódio}" + botão "+1" (só para Séries)
+            let progressoSerieHtml = '';
+            if (item.tipo === 'Série') {
+                const emBacklog = item.status === 'Backlog';
+                const jaAssistida = item.status === 'Assistido';
+                const travarBotao = emBacklog || jaAssistida;
+                const badgeTexto = formatarProgressoSerie(item.temporadaAtual, item.episodioAtual);
+
+                let tituloBotao = 'Marcar +1 episódio assistido';
+                if (emBacklog) tituloBotao = 'Tire a série do Backlog para registrar episódios';
+                else if (jaAssistida) tituloBotao = 'Série já concluída';
+
+                progressoSerieHtml = `
+                        <div class="progresso-serie" id="progresso-serie-${item.id}">
+                            <span class="progresso-serie-badge" id="badge-serie-${item.id}">${badgeTexto}</span>
+                            <button type="button" class="btn-mais-episodio" onclick="incrementarEpisodio(${item.id})" ${travarBotao ? 'disabled' : ''} title="${tituloBotao}">
+                                +1
+                            </button>
+                        </div>`;
             }
 
             const card = `
@@ -427,6 +486,7 @@ async function carregarItens() {
                         </div>
 
                         <small>Status: ${item.status}</small>
+                        ${progressoSerieHtml}
                     </div>
 
                     <div class="card-actions">
@@ -487,6 +547,46 @@ function atualizarPreview() {
             img.style.display = 'none';
             img.src = '';
         }
+    }
+}
+
+// Monta o texto do badge de progresso, ex: "T3:EP08"
+function formatarProgressoSerie(temporada, episodio) {
+    const t = (temporada !== null && temporada !== undefined) ? temporada : 1;
+    const e = (episodio !== null && episodio !== undefined) ? episodio : 0;
+    const epFormatado = e.toString().padStart(2, '0');
+    return `T${t}:EP${epFormatado}`;
+}
+
+// Marca "+1 episódio assistido" direto no card da Home, via AJAX
+async function incrementarEpisodio(id) {
+    try {
+        const resposta = await fetch(`/itens/${id}/proximo-episodio`, {
+            method: 'POST',
+            headers: getCsrfHeaders()
+        });
+
+        if (resposta.ok) {
+            const data = await resposta.json();
+
+            // Atualiza o contador na tela imediatamente, sem recarregar a lista
+            const badge = document.getElementById(`badge-serie-${id}`);
+            if (badge) {
+                badge.textContent = formatarProgressoSerie(data.temporadaAtual, data.episodioAtual);
+            }
+
+            const container = document.getElementById(`progresso-serie-${id}`);
+            if (container) {
+                container.classList.add('progresso-atualizado');
+                setTimeout(() => container.classList.remove('progresso-atualizado'), 400);
+            }
+        } else {
+            const erro = await resposta.json().catch(() => ({}));
+            Swal.fire('Ops!', erro.erro || 'Não foi possível atualizar o episódio.', 'warning');
+        }
+    } catch (erro) {
+        console.error('Erro ao avançar episódio:', erro);
+        Swal.fire('Erro!', 'Falha na comunicação com o sistema.', 'error');
     }
 }
 
@@ -597,6 +697,34 @@ function travarCamposPeloStatus() {
             starsContainer.style.pointerEvents = "auto";
             starsContainer.style.opacity = "1";
             starsContainer.dispatchEvent(new Event('mouseleave'));
+        }
+    }
+
+    // --- Progresso da Série (Temporada/Episódio) ---
+    // Esses campos só ficam travados no Backlog;
+    // em Dropado, Assistindo e Assistido eles continuam liberados.
+    if (tipo === 'Série') {
+        const travarProgresso = (status === 'Backlog');
+        const campoTemporada = document.getElementById('temporadaAtual');
+        const campoEpisodio = document.getElementById('episodioAtual');
+
+        [campoTemporada, campoEpisodio].forEach(campo => {
+            if (!campo) return;
+            campo.disabled = travarProgresso;
+            campo.style.opacity = travarProgresso ? "0.5" : "1";
+            campo.style.cursor = travarProgresso ? "not-allowed" : "text";
+            if (travarProgresso) campo.value = '';
+        });
+
+        // --- Duração total da série ---
+        // Só faz sentido preencher depois que o usuário terminou de assistir
+        const travarDuracao = (status !== 'Assistido');
+        const campoDuracaoSerie = document.getElementById('duracaoTotalMinutos');
+
+        if (campoDuracaoSerie) {
+            campoDuracaoSerie.disabled = travarDuracao;
+            campoDuracaoSerie.style.opacity = travarDuracao ? "0.5" : "1";
+            campoDuracaoSerie.style.cursor = travarDuracao ? "not-allowed" : "text";
         }
     }
 }

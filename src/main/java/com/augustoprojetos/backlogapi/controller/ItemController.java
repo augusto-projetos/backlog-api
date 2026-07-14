@@ -82,6 +82,7 @@ public class ItemController {
             @AuthenticationPrincipal User userLogado) {
 
         item.setUser(userLogado);
+        limparProgressoSerieSeBacklog(item);
         Item salvo = itemRepository.save(item);
 
         // Registra na timeline
@@ -124,6 +125,7 @@ public class ItemController {
 
         itemAtualizado.setId(id);
         itemAtualizado.setUser(userLogado);
+        limparProgressoSerieSeBacklog(itemAtualizado);
 
         Item salvo = itemRepository.save(itemAtualizado);
 
@@ -337,6 +339,57 @@ public class ItemController {
         return ResponseEntity.ok(response);
     }
 
+    // 11. AVANÇAR +1 EPISÓDIO DE UMA SÉRIE (atualização rápida via AJAX na Home)
+    @PostMapping("/itens/{id}/proximo-episodio")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> avancarEpisodio(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User userLogado) {
+
+        Map<String, Object> response = new HashMap<>();
+        Item item = itemRepository.findById(id).orElse(null);
+
+        if (item == null || userLogado == null || !item.getUser().getId().equals(userLogado.getId())) {
+            response.put("sucesso", false);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+
+        if (!"Série".equalsIgnoreCase(item.getTipo())) {
+            response.put("sucesso", false);
+            response.put("erro", "Este item não é uma série.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Enquanto a série estiver no Backlog, o progresso continua travado
+        if (item.getStatus() != null && item.getStatus().equalsIgnoreCase("Backlog")) {
+            response.put("sucesso", false);
+            response.put("erro", "Tire a série do Backlog para começar a registrar episódios.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Série já concluída não avança mais episódio
+        if (item.getStatus() != null && item.getStatus().equalsIgnoreCase("Assistido")) {
+            response.put("sucesso", false);
+            response.put("erro", "Esta série já foi marcada como Assistida.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        int episodioAtual = item.getEpisodioAtual() != null ? item.getEpisodioAtual() : 0;
+        item.setEpisodioAtual(episodioAtual + 1);
+
+        if (item.getTemporadaAtual() == null) {
+            item.setTemporadaAtual(1);
+        }
+
+        Item salvo = itemRepository.save(item);
+        atividadeLogService.registrarItemEditado(userLogado, salvo);
+
+        response.put("sucesso", true);
+        response.put("temporadaAtual", salvo.getTemporadaAtual());
+        response.put("episodioAtual", salvo.getEpisodioAtual());
+        return ResponseEntity.ok(response);
+    }
+
     // --- Helpers ---
 
     private List<ConquistaDesbloqueadaDTO> verificarConquistasComTimeout(User user) {
@@ -346,6 +399,17 @@ public class ItemController {
             return future.get(2, TimeUnit.SECONDS);
         } catch (Exception e) {
             return List.of();
+        }
+    }
+
+    // Enquanto a série está no Backlog, ela não tem progresso
+    private void limparProgressoSerieSeBacklog(Item item) {
+        boolean ehSerie = "Série".equalsIgnoreCase(item.getTipo());
+        boolean emBacklog = item.getStatus() != null && item.getStatus().equalsIgnoreCase("Backlog");
+
+        if (ehSerie && emBacklog) {
+            item.setTemporadaAtual(null);
+            item.setEpisodioAtual(null);
         }
     }
 
