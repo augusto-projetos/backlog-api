@@ -140,8 +140,7 @@ public class AdminStatsController {
         return ResponseEntity.ok(result);
     }
 
-    // Retorna: { minutosFilmes: N, minutosJogos: N }
-    // (Séries ainda não entram na conta - funcionalidade "em breve")
+    // Retorna: { minutosFilmes: N, minutosJogos: N, minutosSeries: N }
     @GetMapping("/tempo")
     public ResponseEntity<Map<String, Object>> statsTempo(
             @RequestParam(name = "usuarioId", required = false) Long usuarioId) {
@@ -158,9 +157,15 @@ public class AdminStatsController {
                 .mapToLong(i -> i.getMinutosJogados())
                 .sum();
 
+        long minutosSeries = items.stream()
+                .filter(i -> "Série".equalsIgnoreCase(i.getTipo()) && i.getDuracaoTotalMinutos() != null)
+                .mapToLong(i -> i.getDuracaoTotalMinutos())
+                .sum();
+
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("minutosFilmes", minutosFilmes);
         result.put("minutosJogos", minutosJogos);
+        result.put("minutosSeries", minutosSeries);
         return ResponseEntity.ok(result);
     }
 }

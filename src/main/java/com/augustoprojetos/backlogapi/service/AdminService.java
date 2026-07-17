@@ -236,9 +236,14 @@ public class AdminService {
                 .filter(i -> "Jogo".equalsIgnoreCase(i.getTipo()) && i.getMinutosJogados() != null)
                 .mapToLong(i -> i.getMinutosJogados())
                 .sum();
+        long minutosSeries = todosItens.stream()
+                .filter(i -> "Série".equalsIgnoreCase(i.getTipo()) && i.getDuracaoTotalMinutos() != null)
+                .mapToLong(i -> i.getDuracaoTotalMinutos())
+                .sum();
 
         stats.setMinutosFilmes(minutosFilmes);
         stats.setMinutosJogos(minutosJogos);
+        stats.setMinutosSeries(minutosSeries);
 
         return stats;
     }

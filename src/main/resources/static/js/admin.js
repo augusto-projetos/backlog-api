@@ -224,14 +224,17 @@ function buildGraficoTempo(data) {
 
     const minutosFilmes = data ? (data.minutosFilmes ?? 0) : (STATS.minutosFilmes ?? 0);
     const minutosJogos  = data ? (data.minutosJogos  ?? 0) : (STATS.minutosJogos  ?? 0);
+    const minutosSeries = data ? (data.minutosSeries ?? 0) : (STATS.minutosSeries ?? 0);
 
     const elFilmes = document.getElementById("admTempoFilmesValor");
     const elJogos  = document.getElementById("admTempoJogosValor");
+    const elSeries = document.getElementById("admTempoSeriesValor");
     if (elFilmes) elFilmes.textContent = formatarTempoAdmin(minutosFilmes);
     if (elJogos)  elJogos.textContent  = formatarTempoAdmin(minutosJogos);
+    if (elSeries) elSeries.textContent = formatarTempoAdmin(minutosSeries);
 
     const canvas = document.getElementById("graficoTempo");
-    const isEmpty = (minutosFilmes + minutosJogos) === 0;
+    const isEmpty = (minutosFilmes + minutosJogos + minutosSeries) === 0;
 
     if (chartInstances.tempo) { chartInstances.tempo.destroy(); chartInstances.tempo = null; }
 
@@ -247,16 +250,20 @@ function buildGraficoTempo(data) {
     gradJogos.addColorStop(0, "#08d9d6");
     gradJogos.addColorStop(1, "#0f766e");
 
+    const gradSeries = ctx.createLinearGradient(0, 0, 400, 0);
+    gradSeries.addColorStop(0, "#fcd34d");
+    gradSeries.addColorStop(1, "#f59e0b");
+
     chartInstances.tempo = new Chart(ctx, {
         type: "bar",
         data: {
-            labels: ["🎬 Filmes", "🎮 Jogos"],
+            labels: ["🎬 Filmes", "🎮 Jogos", "📺 Séries"],
             datasets: [{
                 label: "Tempo",
                 // A barra usa horas (fração) só pra ficar visualmente proporcional;
                 // o texto exibido (tooltip/cards) sempre usa formatarTempoAdmin()
-                data: [minutosFilmes / 60, minutosJogos / 60],
-                backgroundColor: [gradFilmes, gradJogos],
+                data: [minutosFilmes / 60, minutosJogos / 60, minutosSeries / 60],
+                backgroundColor: [gradFilmes, gradJogos, gradSeries],
                 borderRadius: 10, borderSkipped: false, barThickness: 42
             }]
         },
@@ -268,7 +275,8 @@ function buildGraficoTempo(data) {
                 tooltip: {
                     callbacks: {
                         label: (c) => {
-                            const minutosOriginais = c.datasetIndex === 0 ? minutosFilmes : minutosJogos;
+                            const minutosPorIndice = [minutosFilmes, minutosJogos, minutosSeries];
+                            const minutosOriginais = minutosPorIndice[c.dataIndex];
                             return formatarTempoAdmin(minutosOriginais) + " investidos";
                         }
                     }

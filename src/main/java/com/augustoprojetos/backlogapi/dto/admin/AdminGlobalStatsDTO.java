@@ -18,4 +18,5 @@ public class AdminGlobalStatsDTO {
     private Map<String, Long> distribNotas;
     private long minutosFilmes;
     private long minutosJogos;
+    private long minutosSeries;
 }

@@ -480,10 +480,7 @@ body {
 }
 
 .tempo-pill-series {
-    background: var(--adm-card);
-    color: var(--adm-muted);
-    border: 2px dashed var(--adm-border);
-    box-shadow: none;
+    background: linear-gradient(135deg, #fcd34d, #f59e0b);
 }
 
 .tempo-pill-icon {
@@ -506,11 +503,6 @@ body {
 .tempo-pill-label {
     font-size: 0.8rem;
     opacity: 0.9;
-}
-
-.tempo-pill-em-breve .tempo-pill-valor {
-    font-size: 0.95rem;
-    font-weight: 600;
 }
 
 .canvas-tempo {
