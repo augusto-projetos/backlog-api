@@ -16,6 +16,15 @@
 
 ---
 
+## ⚖️ Propriedade Intelectual e Licença
+
+Este é um projeto pessoal desenvolvido para fins de portfólio acadêmico e profissional. 
+O código está público no GitHub exclusivamente para fins de avaliação técnica e demonstração de habilidades. 
+
+**Todos os direitos reservados.** Não é permitida a cópia, modificação, redistribuição ou uso comercial deste software, no todo ou em parte, sem autorização expressa do autor.
+
+---
+
 ## 🚀 Sobre o Projeto
 
 O **Meu Backlog** é uma aplicação **Fullstack** robusta que simula um ambiente de produção real. A versão atual (**V6.0**) marca a maior evolução do sistema, transformando-o de um gerenciador pessoal em uma verdadeira **Rede Social de Colecionadores**, com perfis públicos, sistema de buscas e autenticação blindada com verificação de e-mail.
