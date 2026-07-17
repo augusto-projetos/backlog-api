@@ -1367,10 +1367,6 @@ function initFechamentoModal() {
 }
 
 // --- UTILITÁRIOS ---
-function isDarkMode() {
-    return document.documentElement.getAttribute("data-theme") === "dark";
-}
-
 function toastSucesso(msg) {
     Swal.fire({ toast: true, position: "bottom-end", icon: "success", title: msg, showConfirmButton: false, timer: 2500, timerProgressBar: true });
 }
@@ -1605,14 +1601,6 @@ function formatarDataAudit(isoStr) {
     } catch { return isoStr; }
 }
 
-function escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-}
 
 // --- ABA SISTEMA — Alavancas de controle ---
 
@@ -2037,12 +2025,4 @@ async function confirmarEnvio(textoComunicado, avisoEl) {
             btnEmail.innerHTML = '<i class="fa fa-paper-plane"></i> Disparar por e-mail';
         }
     }
-}
-
-function escapeHtml(str) {
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
 }
