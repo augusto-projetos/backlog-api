@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -28,6 +29,7 @@ public class User implements UserDetails {
     private String login;
 
     @NotBlank(message = "A senha é obrigatória")
+    @JsonIgnore
     private String password;
 
     @NotBlank

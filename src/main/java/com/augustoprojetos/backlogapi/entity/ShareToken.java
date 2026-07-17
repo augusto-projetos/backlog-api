@@ -2,6 +2,7 @@ package com.augustoprojetos.backlogapi.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class ShareToken {
@@ -24,6 +25,7 @@ public class ShareToken {
     // Quem é o dono desse link?
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     // --- Construtores ---

@@ -30,6 +30,28 @@ public class SecurityConfigurations {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .headers(headers -> headers
+                        // Bloqueia que o site seja carregado dentro de um <iframe> de outra origem (anti-clickjacking)
+                        .frameOptions(frame -> frame.deny())
+                        // Impede que o navegador tente "adivinhar" o tipo de conteúdo (MIME sniffing)
+                        .contentTypeOptions(contentType -> {})
+                        // Evita vazar a URL completa de origem em requisições cross-site
+                        .referrerPolicy(referrer -> referrer
+                                .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        // Content-Security-Policy alinhada aos recursos externos realmente usados pelo app.
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; " +
+                                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cloud.umami.is; " +
+                                "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+                                "font-src 'self' https://cdnjs.cloudflare.com data:; " +
+                                "img-src 'self' data: https:; " +
+                                "connect-src 'self' https://cloud.umami.is; " +
+                                "object-src 'none'; " +
+                                "base-uri 'self'; " +
+                                "form-action 'self'; " +
+                                "frame-ancestors 'none'"
+                        ))
+                )
                 .authorizeHttpRequests(auth -> auth
                         // PÚBLICO
                         .requestMatchers("/", "/login", "/register", "/auth/**", "/css/**", "/js/**", "/img/**", "/share/**").permitAll()

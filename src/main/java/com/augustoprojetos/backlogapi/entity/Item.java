@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -55,5 +56,6 @@ public class Item {
 
     @ManyToOne // Diz: "Muitos itens podem pertencer a UM usuário"
     @JoinColumn(name = "user_id") // Cria a coluna 'user_id' no banco
+    @JsonIgnore
     private User user;
 }

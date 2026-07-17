@@ -21,6 +21,9 @@ public class ShareTokenService {
     @Autowired
     private ConquistaService conquistaService;
 
+    @Autowired
+    private AtividadeLogService atividadeLogService;
+
     public record GerarTokenResult(ShareToken token, ConquistaDesbloqueadaDTO conquistaDesbloqueada) {}
 
     /**
@@ -38,6 +41,11 @@ public class ShareTokenService {
 
         // GATILHO DA CONQUISTA: retorna o DTO se desbloqueou agora
         ConquistaDesbloqueadaDTO conquista = conquistaService.desbloquearEvento(user, "REDE_CONTATOS");
+
+        // Registra o desbloqueio na timeline.
+        if (conquista != null) {
+            atividadeLogService.registrarConquistaDesbloqueada(user, conquista.nome(), conquista.icone());
+        }
 
         return new GerarTokenResult(token, conquista);
     }

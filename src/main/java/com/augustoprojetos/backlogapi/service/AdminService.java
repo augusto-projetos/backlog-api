@@ -236,9 +236,14 @@ public class AdminService {
                 .filter(i -> "Jogo".equalsIgnoreCase(i.getTipo()) && i.getMinutosJogados() != null)
                 .mapToLong(i -> i.getMinutosJogados())
                 .sum();
+        long minutosSeries = todosItens.stream()
+                .filter(i -> "Série".equalsIgnoreCase(i.getTipo()) && i.getDuracaoTotalMinutos() != null)
+                .mapToLong(i -> i.getDuracaoTotalMinutos())
+                .sum();
 
         stats.setMinutosFilmes(minutosFilmes);
         stats.setMinutosJogos(minutosJogos);
+        stats.setMinutosSeries(minutosSeries);
 
         return stats;
     }
@@ -280,10 +285,19 @@ public class AdminService {
 
     // Concede uma conquista a um usuário (ação administrativa).
     // Retorna true se concedida, false se o usuário já a possuía.
+    @Transactional
     public boolean concederConquistaParaUsuario(Long userId, Long conquistaId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        return conquistaService.concederConquistaAdmin(user, conquistaId);
+        boolean concedida = conquistaService.concederConquistaAdmin(user, conquistaId);
+
+        // Registra na timeline do usuário, assim como as conquistas automáticas
+        if (concedida) {
+            conquistaRepository.findById(conquistaId).ifPresent(c ->
+                    atividadeLogService.registrarConquistaDesbloqueada(user, c.getNome(), c.getIcone()));
+        }
+
+        return concedida;
     }
 
     // Revoga uma conquista de um usuário (ação administrativa).
