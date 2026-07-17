@@ -23,6 +23,9 @@ public class RecomendacaoService {
     @Autowired
     private ConquistaService conquistaService;
 
+    @Autowired
+    private AtividadeLogService atividadeLogService;
+
     @Value("${GEMINI_API_KEY}")
     private String geminiApiKey;
 
@@ -69,6 +72,9 @@ public class RecomendacaoService {
 
                 // GATILHO DA CONQUISTA: Se a IA respondeu, dispara a checagem da chave
                 ConquistaDesbloqueadaDTO conquista = conquistaService.desbloquearEvento(user, "MENTE_EXPANDIDA");
+                if (conquista != null) {
+                    atividadeLogService.registrarConquistaDesbloqueada(user, conquista.nome(), conquista.icone());
+                }
 
                 return new RecomendacaoResult((String) firstPart.get("text"), conquista);
             }
@@ -109,6 +115,9 @@ public class RecomendacaoService {
 
                 // GATILHO DA CONQUISTA NO FALLBACK
                 ConquistaDesbloqueadaDTO conquista = conquistaService.desbloquearEvento(user, "MENTE_EXPANDIDA");
+                if (conquista != null) {
+                    atividadeLogService.registrarConquistaDesbloqueada(user, conquista.nome(), conquista.icone());
+                }
 
                 return new RecomendacaoResult((String) message.get("content"), conquista);
             }
