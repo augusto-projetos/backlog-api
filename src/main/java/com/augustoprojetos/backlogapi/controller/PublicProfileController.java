@@ -38,7 +38,7 @@ public class PublicProfileController {
         }
 
         User targetUser = userOpt.get();
-        List<Item> itens = itemRepository.findByUser(targetUser);
+        List<Item> itens = itemRepository.findByUserOrderByTituloAsc(targetUser);
 
         // Dados de conquistas para o perfil público
         List<UserConquista> conquistas = conquistaService.listarConquistasDoUsuario(targetUser);
