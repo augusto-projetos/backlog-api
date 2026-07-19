@@ -9,6 +9,7 @@
         <title th:text="'Coleção de ' + ${apelido}">Coleção Compartilhada</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <link rel="stylesheet" th:href="@{/css/style.css}">
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
         <link rel="stylesheet" th:href="@{/css/conquistas.css}">
@@ -34,6 +35,11 @@
             </div>
 
             <div class="header-actions">
+                <a href="/home" class="btn-theme" title="Voltar para o meu Backlog" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; padding: 0 12px; width:auto;">
+                    <span aria-hidden="true">⬅</span>
+                    <span style="font-size:0.85rem;">Meu Backlog</span>
+                </a>
+
                 <div class="toggles-group">
                     <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
                         <span id="theme-icon">🌙</span>
