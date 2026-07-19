@@ -37,6 +37,7 @@ schema-gerado.sql
 
 ### Node.js ###
 node_modules/
+**.log
 
 ### Capacitor / Android (gerado por "npx cap add android") ###
 # A pasta android/ deve ser versionada (contém customizações nativas),
