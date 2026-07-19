@@ -126,22 +126,11 @@
 .conquistas-publico-section {
     max-width: 900px;
     margin: 0 auto 24px;
-    padding: 20px 16px 16px;
-    background: var(--card-bg, #16213e);
-    border: 1px solid rgba(255,165,0,0.2);
-    border-radius: 14px;
 }
 
 .conquistas-publico-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.conquistas-publico-header h3 {
-    margin: 0;
-    font-size: 1rem;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .xp-nivel-badge {
