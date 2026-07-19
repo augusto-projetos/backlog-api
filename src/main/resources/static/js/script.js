@@ -410,6 +410,7 @@ async function carregarItens() {
                     </a>
                 </div>
             `;
+            document.dispatchEvent(new CustomEvent('itensCarregados'));
             return; // Para a função aqui
         }
 
@@ -515,10 +516,12 @@ async function carregarItens() {
         });
 
         verificarTamanhoResenhas();
+        document.dispatchEvent(new CustomEvent('itensCarregados'));
 
     } catch (erro) {
         console.error('Erro ao buscar itens:', erro);
         listaItens.innerHTML = '<p style="text-align:center; color:red">Erro ao carregar itens.</p>';
+        document.dispatchEvent(new CustomEvent('itensCarregados'));
     }
 }
 
