@@ -10,7 +10,6 @@ import com.augustoprojetos.backlogapi.repository.ShareTokenRepository;
 import com.augustoprojetos.backlogapi.repository.UserConquistaRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -185,9 +184,8 @@ public class ConquistaService {
     // ao criar share link ou ao usar a IA.
     // ---------------------------------------------------------------
 
-    @Async
     @Transactional
-    public java.util.concurrent.CompletableFuture<List<ConquistaDesbloqueadaDTO>> verificarConquistas(User user) {
+    public List<ConquistaDesbloqueadaDTO> verificarConquistas(User user) {
         List<ConquistaDesbloqueadaDTO> novas = new ArrayList<>();
 
         // Coleta contadores uma única vez
@@ -285,7 +283,7 @@ public class ConquistaService {
             if (atende) registrarDesbloqueio(user, c, novas);
         }
 
-        return java.util.concurrent.CompletableFuture.completedFuture(novas);
+        return novas;
     }
 
     /*

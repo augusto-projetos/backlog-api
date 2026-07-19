@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
 
 @Controller
 public class ItemController {
+
+    private static final Logger log = LoggerFactory.getLogger(ItemController.class);
 
     @Autowired
     private ItemRepository itemRepository;
@@ -90,7 +94,7 @@ public class ItemController {
         String grupoId = atividadeLogService.novoGrupo();
         atividadeLogService.registrarItemAdicionado(userLogado, salvo, grupoId);
 
-        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
+        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasSeguro(userLogado);
 
         // Registra conquistas desbloqueadas na timeline
         novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
@@ -188,7 +192,7 @@ public class ItemController {
             atividadeLogService.registrarItemEditado(userLogado, salvo, grupoId);
         }
 
-        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
+        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasSeguro(userLogado);
 
         novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
                 userLogado, c.nome(), c.icone(), grupoId));
@@ -341,7 +345,7 @@ public class ItemController {
         atividadeLogService.registrarDuracaoLoteAtualizada(userLogado, atualizados);
 
         List<ConquistaDesbloqueadaDTO> novas = atualizados > 0
-                ? verificarConquistasComTimeout(userLogado)
+                ? verificarConquistasSeguro(userLogado)
                 : List.of();
         novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(userLogado, c.nome(), c.icone()));
         response.put("conquistasDesbloqueadas", novas);
@@ -387,7 +391,7 @@ public class ItemController {
                     + " → " + salvo.getDuracaoMinutos() + " min";
             atividadeLogService.registrarDuracaoAlterada(userLogado, salvo, detalhe, grupoId);
 
-            novas = verificarConquistasComTimeout(userLogado);
+            novas = verificarConquistasSeguro(userLogado);
             novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
                     userLogado, c.nome(), c.icone(), grupoId));
         }
@@ -445,7 +449,7 @@ public class ItemController {
         String grupoId = atividadeLogService.novoGrupo();
         atividadeLogService.registrarProgressoSerieAtualizado(userLogado, salvo, temporadaAnterior, episodioAnterior, grupoId);
 
-        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasComTimeout(userLogado);
+        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasSeguro(userLogado);
         novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
                 userLogado, c.nome(), c.icone(), grupoId));
 
@@ -458,12 +462,14 @@ public class ItemController {
 
     // --- Helpers ---
 
-    private List<ConquistaDesbloqueadaDTO> verificarConquistasComTimeout(User user) {
+    private List<ConquistaDesbloqueadaDTO> verificarConquistasSeguro(User user) {
         try {
-            CompletableFuture<List<ConquistaDesbloqueadaDTO>> future =
-                conquistaService.verificarConquistas(user);
-            return future.get(2, TimeUnit.SECONDS);
+            return conquistaService.verificarConquistas(user);
         } catch (Exception e) {
+            // Não deixamos um erro na verificação de conquistas quebrar a
+            // ação principal (cadastrar/editar item), mas logamos para não
+            // perder o rastro do problema
+            log.warn("Falha ao verificar conquistas para o usuário {}: {}", user.getId(), e.getMessage(), e);
             return List.of();
         }
     }
