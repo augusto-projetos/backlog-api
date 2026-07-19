@@ -12,6 +12,10 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     // Busca apenas os itens deste usuário específico
     List<Item> findByUser(User user);
 
+    // Ordenada alfabeticamente pelo título
+    @Query("SELECT i FROM Item i WHERE i.user = :user ORDER BY LOWER(i.titulo) ASC")
+    List<Item> findByUserOrderByTituloAsc(@Param("user") User user);
+
     void deleteByUser(User user);
 
     // 1. Conta quantos itens existem por TIPO (Ex: Jogo: 10, Filme: 5)

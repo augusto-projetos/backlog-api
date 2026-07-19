@@ -13,6 +13,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const msgNaoEncontrado = document.getElementById('msg-nao-encontrado');
     const listaItens = document.getElementById('lista-itens');
 
+    // --- PERSISTÊNCIA DOS FILTROS ---
+    const FILTRO_STORAGE_KEY = 'backlog_filtros_' + window.location.pathname;
+
+    function salvarFiltros() {
+        try {
+            sessionStorage.setItem(FILTRO_STORAGE_KEY, JSON.stringify({
+                termo: searchBar ? searchBar.value : '',
+                status: filterStatus ? filterStatus.value : 'todos',
+                tipo: filterType ? filterType.value : 'todos',
+                ordem: orderSelect ? orderSelect.value : 'padrao'
+            }));
+        } catch (_) {
+            // sessionStorage indisponível (modo privado etc.) - ignora silenciosamente
+        }
+    }
+
+    function restaurarFiltros() {
+        let salvo = null;
+        try {
+            salvo = JSON.parse(sessionStorage.getItem(FILTRO_STORAGE_KEY));
+        } catch (_) {
+            salvo = null;
+        }
+        if (!salvo) return false;
+
+        if (searchBar) searchBar.value = salvo.termo || '';
+        if (filterStatus) filterStatus.value = salvo.status || 'todos';
+        if (filterType) filterType.value = salvo.tipo || 'todos';
+        if (orderSelect) orderSelect.value = salvo.ordem || 'padrao';
+
+        // Se algum filtro estiver ativo, abre a gaveta de filtros para deixar claro
+        // pro usuário que a lista está filtrada (evita achar que "sumiram" itens).
+        const temFiltroAtivo = (salvo.termo && salvo.termo.length > 0)
+            || salvo.status !== 'todos' || salvo.tipo !== 'todos' || salvo.ordem !== 'padrao';
+        if (temFiltroAtivo && filterMenu && btnToggle) {
+            filterMenu.classList.add('aberto');
+            const icon = btnToggle.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        }
+
+        return true;
+    }
+
     // --- LÓGICA DE ABRIR/FECHAR A GAVETA ---
     if (btnToggle && filterMenu) {
         btnToggle.addEventListener('click', () => {
@@ -145,14 +191,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 3. Reaplica a ordenação padrão (A-Z)
             ordenarItens();
+
+            // 4. Limpa o filtro salvo
+            try { sessionStorage.removeItem(FILTRO_STORAGE_KEY); } catch (_) {}
         });
     }
 
     // --- EVENTOS ---
-    if (searchBar) searchBar.addEventListener('input', aplicarFiltros);
-    if (filterStatus) filterStatus.addEventListener('change', aplicarFiltros);
-    if (filterType) filterType.addEventListener('change', aplicarFiltros);
-    if (orderSelect) orderSelect.addEventListener('change', ordenarItens);
+    if (searchBar) searchBar.addEventListener('input', () => { salvarFiltros(); aplicarFiltros(); });
+    if (filterStatus) filterStatus.addEventListener('change', () => { salvarFiltros(); aplicarFiltros(); });
+    if (filterType) filterType.addEventListener('change', () => { salvarFiltros(); aplicarFiltros(); });
+    if (orderSelect) orderSelect.addEventListener('change', () => { salvarFiltros(); ordenarItens(); });
+
+    // --- RESTAURA E APLICA OS FILTROS SALVOS ---
+    restaurarFiltros();
+
+    // Sempre que a lista for (re)carregada - seja no load inicial da home
+    // ou depois de deletar um item - reaplicamos o que está selecionado nos 
+    // filtros agora, e não só o que foi restaurado do sessionStorage.
+    document.addEventListener('itensCarregados', () => {
+        ordenarItens();
+    });
+
+    // Em páginas renderizadas direto pelo servidor (ex.: /u/{username}), os
+    // cards já existem no DOM neste ponto, então aplicamos de imediato.
+    if (document.querySelectorAll('.card').length > 0) {
+        ordenarItens();
+    }
 
     // --- BOTÃO VOLTAR AO TOPO ---
     const btnTopo = document.getElementById('btn-topo');

@@ -9,6 +9,7 @@
         <title th:text="'Coleção de ' + ${apelido}">Coleção Compartilhada</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
         <script defer src="https://cloud.umami.is/script.js" data-website-id="7426b8b2-ca40-453e-8cfc-72364e92c02c"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <link rel="stylesheet" th:href="@{/css/style.css}">
         <link rel="stylesheet" th:href="@{/css/variaveis.css}">
         <link rel="stylesheet" th:href="@{/css/conquistas.css}">
@@ -34,6 +35,11 @@
             </div>
 
             <div class="header-actions">
+                <a href="/home" class="btn-theme" title="Voltar para o meu Backlog" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; padding: 0 12px; width:auto;">
+                    <span aria-hidden="true">⬅</span>
+                    <span style="font-size:0.85rem;">Meu Backlog</span>
+                </a>
+
                 <div class="toggles-group">
                     <button id="theme-toggle" class="btn-theme" title="Alternar Modo Escuro/Claro">
                         <span id="theme-icon">🌙</span>
@@ -49,24 +55,31 @@
         <main>
 
             <!-- --- Seção de Conquistas do Perfil Público --- -->
-            <div th:if="${conquistas != null and not conquistas.isEmpty()}" class="conquistas-publico-section">
-                <div class="conquistas-publico-header">
-                    <h3>🏆 Conquistas</h3>
+            <div th:if="${conquistas != null and not conquistas.isEmpty()}" class="conquista-gaveta conquistas-publico-section" id="gaveta-conquistas-pub">
+                <button class="conquista-gaveta-header conquistas-publico-header" onclick="toggleGaveta('conquistas-pub')" aria-expanded="false">
+                    <span class="gaveta-titulo">
+                        <span class="gaveta-emoji">🏆</span>
+                        Conquistas
+                        <span class="gaveta-contador" th:text="${#lists.size(conquistas)}">0</span>
+                    </span>
                     <span class="xp-nivel-badge">
                         Nível <strong th:text="${nivel}">1</strong>
                         &nbsp;·&nbsp;
                         <span th:text="${xpTotal} + ' XP'">0 XP</span>
                     </span>
-                </div>
-                <div class="xp-bar-track" style="margin-bottom: 16px;">
-                    <div class="xp-bar-fill" th:style="'width:' + ${progresso} + '%'"></div>
-                </div>
-                <div class="conquistas-grid conquistas-grid-publico">
-                    <div class="conquista-badge" th:each="uc : ${conquistas}">
-                        <span class="conquista-badge-icone" th:text="${uc.conquista.icone}">🏅</span>
-                        <div class="conquista-badge-info">
-                            <strong th:text="${uc.conquista.nome}">Nome</strong>
-                            <small th:text="${uc.conquista.descricao}">Descrição</small>
+                    <span class="gaveta-chevron" id="chevron-conquistas-pub"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="conquista-gaveta-body" id="body-conquistas-pub">
+                    <div class="xp-bar-track" style="margin: 0 16px 16px;">
+                        <div class="xp-bar-fill" th:style="'width:' + ${progresso} + '%'"></div>
+                    </div>
+                    <div class="conquistas-grid conquistas-grid-publico">
+                        <div class="conquista-badge" th:each="uc : ${conquistas}">
+                            <span class="conquista-badge-icone" th:text="${uc.conquista.icone}">🏅</span>
+                            <div class="conquista-badge-info">
+                                <strong th:text="${uc.conquista.nome}">Nome</strong>
+                                <small th:text="${uc.conquista.descricao}">Descrição</small>
+                            </div>
                         </div>
                     </div>
                 </div>
