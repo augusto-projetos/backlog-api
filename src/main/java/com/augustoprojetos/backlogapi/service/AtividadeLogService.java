@@ -1,5 +1,6 @@
 package com.augustoprojetos.backlogapi.service;
 
+import com.augustoprojetos.backlogapi.dto.TimelineDiaDTO;
 import com.augustoprojetos.backlogapi.dto.TimelineGrupoDTO;
 import com.augustoprojetos.backlogapi.entity.AtividadeLog;
 import com.augustoprojetos.backlogapi.entity.Item;
@@ -9,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -238,6 +242,65 @@ public class AtividadeLogService {
             grupos.add(new TimelineGrupoDTO(grupoIdAtual, new ArrayList<>(bufferAtual)));
         }
         return grupos;
+    }
+
+    private static final String[] NOMES_MESES = {
+            "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+            "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+    };
+
+    // Agrupa os blocos da timeline (já formados por agruparParaTimeline) em
+    // "dias", cada um com um rótulo amigável,
+    // para desenhar os separadores de data na timeline do usuário.
+    public List<TimelineDiaDTO> agruparPorDia(List<TimelineGrupoDTO> grupos) {
+        List<TimelineDiaDTO> dias = new ArrayList<>();
+        LocalDate diaAtual = null;
+        List<TimelineGrupoDTO> bufferAtual = new ArrayList<>();
+
+        for (TimelineGrupoDTO grupo : grupos) {
+            LocalDate data = grupo.principal().getCriadoEm().toLocalDate();
+            if (diaAtual != null && !data.equals(diaAtual)) {
+                dias.add(new TimelineDiaDTO(rotuloDoDia(diaAtual), diaAtual, new ArrayList<>(bufferAtual)));
+                bufferAtual = new ArrayList<>();
+            }
+            diaAtual = data;
+            bufferAtual.add(grupo);
+        }
+        if (!bufferAtual.isEmpty()) {
+            dias.add(new TimelineDiaDTO(rotuloDoDia(diaAtual), diaAtual, new ArrayList<>(bufferAtual)));
+        }
+        return dias;
+    }
+
+    private String rotuloDoDia(LocalDate data) {
+        LocalDate hoje = LocalDate.now();
+        if (data.equals(hoje)) return "Hoje";
+        if (data.equals(hoje.minusDays(1))) return "Ontem";
+
+        String mes = NOMES_MESES[data.getMonthValue() - 1];
+        return data.getYear() == hoje.getYear()
+                ? data.getDayOfMonth() + " de " + mes
+                : data.getDayOfMonth() + " de " + mes + " de " + data.getYear();
+    }
+
+    // Tipos de evento existentes, na ordem em que devem aparecer no filtro
+    // "Ação" da timeline, com um rótulo amigável para cada um.
+    public Map<String, String> tiposDisponiveis() {
+        Map<String, String> tipos = new LinkedHashMap<>();
+        tipos.put("ITEM_ADICIONADO", "Item adicionado");
+        tipos.put("ITEM_REMOVIDO", "Item removido");
+        tipos.put("ITEM_EDITADO", "Item editado");
+        tipos.put("STATUS_ALTERADO", "Status alterado");
+        tipos.put("PROGRESSO_SERIE_ATUALIZADO", "Progresso de série");
+        tipos.put("DURACAO_ALTERADA", "Duração alterada");
+        tipos.put("DURACAO_LOTE_ATUALIZADA", "Duração em lote");
+        tipos.put("NOTA_ALTERADA", "Nota alterada");
+        tipos.put("RESENHA_ADICIONADA", "Resenha adicionada");
+        tipos.put("RESENHA_EDITADA", "Resenha editada");
+        tipos.put("CONQUISTA_DESBLOQUEADA", "Conquista desbloqueada");
+        tipos.put("PERFIL_EDITADO", "Perfil editado");
+        tipos.put("CONTA_CRIADA", "Conta criada");
+        return tipos;
     }
 
     // --- Admin: exclusão ---
