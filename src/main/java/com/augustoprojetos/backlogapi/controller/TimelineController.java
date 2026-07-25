@@ -20,8 +20,10 @@ public class TimelineController {
     public String timeline(@AuthenticationPrincipal User userLogado, Model model) {
         model.addAttribute("nomeUsuario", userLogado.getLogin());
         var logs = atividadeLogService.buscarTimelineDoUsuario(userLogado);
+        var grupos = atividadeLogService.agruparParaTimeline(logs);
         model.addAttribute("logs", logs);
-        model.addAttribute("grupos", atividadeLogService.agruparParaTimeline(logs));
+        model.addAttribute("dias", atividadeLogService.agruparPorDia(grupos));
+        model.addAttribute("tiposFiltro", atividadeLogService.tiposDisponiveis());
         return "timeline";
     }
 }

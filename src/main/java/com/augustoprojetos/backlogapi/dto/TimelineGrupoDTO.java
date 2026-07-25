@@ -3,6 +3,9 @@ package com.augustoprojetos.backlogapi.dto;
 import com.augustoprojetos.backlogapi.entity.AtividadeLog;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
  * Representa um "bloco" da Linha do Tempo: um ou mais {@link AtividadeLog}
@@ -26,5 +29,31 @@ public record TimelineGrupoDTO(
 
     public int quantidade() {
         return eventos.size();
+    }
+
+    // Verdadeiro quando todos os eventos do grupo são sobre o mesmo item
+    public boolean mesmoItem() {
+        String primeiro = principal().getItemTitulo();
+        if (primeiro == null) return false;
+        return eventos.stream().allMatch(e -> primeiro.equals(e.getItemTitulo()));
+    }
+
+    // Lista (sem repetição) dos tipos de evento presentes no grupo,
+    // separados por vírgula — usado para filtrar a timeline por tipo.
+    public String tiposConcatenados() {
+        return eventos.stream()
+                .map(AtividadeLog::getTipo)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.joining(","));
+    }
+
+    // Texto livre (título dos itens + descrições) usado na busca por
+    // palavra-chave da timeline.
+    public String textoBusca() {
+        return eventos.stream()
+                .flatMap(e -> Stream.of(e.getItemTitulo(), e.getDescricao()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" | "));
     }
 }

@@ -76,39 +76,122 @@
                 <p class="timeline-empty-sub">Este usuário ainda não tem logs na linha do tempo.</p>
             </div>
 
-            <!-- Lista de logs -->
+            <!-- Filtros -->
+            <div class="timeline-filtros" th:if="${!#lists.isEmpty(logs)}">
+                <div class="timeline-filtro-campo">
+                    <label for="filtro-busca"><i class="fa-solid fa-magnifying-glass"></i> Buscar</label>
+                    <input type="text" id="filtro-busca" placeholder="Título do filme, série, jogo...">
+                </div>
+                <div class="timeline-filtro-campo">
+                    <label for="filtro-tipo"><i class="fa-solid fa-tags"></i> Ação</label>
+                    <select id="filtro-tipo">
+                        <option value="">Todas</option>
+                        <option th:each="tipo : ${tiposFiltro}" th:value="${tipo.key}" th:text="${tipo.value}">Tipo</option>
+                    </select>
+                </div>
+                <div class="timeline-filtro-campo">
+                    <label for="filtro-data"><i class="fa-solid fa-calendar-day"></i> Data</label>
+                    <input type="date" id="filtro-data">
+                </div>
+                <button type="button" id="filtro-limpar" class="btn-timeline-filtro-limpar" title="Limpar filtros">
+                    <i class="fa-solid fa-eraser"></i> Limpar
+                </button>
+            </div>
+
+            <!-- Estado vazio (filtros não encontraram nada) -->
+            <div id="timeline-filtro-vazio" class="timeline-empty" style="display:none;">
+                <span class="timeline-empty-icon">🔍</span>
+                <p class="timeline-empty-title">Nada encontrado</p>
+                <p class="timeline-empty-sub">Tente ajustar ou limpar os filtros.</p>
+            </div>
+
+            <!-- Lista de logs, agrupada por grupoId e separada por dia (mesma lógica da timeline do usuário) -->
             <div id="lista-logs" class="timeline-list" th:if="${!#lists.isEmpty(logs)}">
-                <div th:each="log, stat : ${logs}"
-                     class="timeline-item"
-                     th:id="'log-' + ${log.id}">
+                <div th:each="dia : ${dias}" class="timeline-dia" th:attr="data-dia=${dia.data()}">
 
-                    <div class="timeline-line" th:unless="${stat.last}"></div>
-
-                    <div class="timeline-dot"
-                         th:classappend="'tipo-' + ${log.tipo.toLowerCase().replace('_','-')}">
+                    <!-- Separador de data (ex: ---- 25 de jul ---- ) -->
+                    <div class="timeline-data-divisor">
+                        <span th:text="${dia.rotulo()}">Hoje</span>
                     </div>
 
-                    <div class="timeline-card adm-timeline-card">
-                        <div class="timeline-card-header">
-                            <span class="timeline-badge"
-                                  th:classappend="'badge-' + ${log.tipo.toLowerCase().replace('_','-')}"
-                                  th:text="${#strings.replace(log.tipo,'_',' ')}">TIPO</span>
-                            <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+                    <div th:each="grupo, stat : ${dia.grupos()}"
+                         class="timeline-item"
+                         th:id="'grupo-' + ${grupo.grupoId() != null ? grupo.grupoId() : grupo.principal().id}"
+                         th:attr="data-tipos=${grupo.tiposConcatenados()}, data-busca=${#strings.toLowerCase(grupo.textoBusca())}, data-total=${grupo.quantidade()}">
+
+                        <div class="timeline-line" th:unless="${stat.last}"></div>
+
+                        <div class="timeline-dot"
+                             th:classappend="${grupo.multiplo()} ? 'multiplo' : ('tipo-' + ${grupo.principal().tipo.toLowerCase().replace('_','-')})">
+                        </div>
+
+                        <!-- Evento único: card normal, com exclusão direta -->
+                        <div class="timeline-card adm-timeline-card"
+                             th:if="${!grupo.multiplo()}"
+                             th:id="'log-' + ${grupo.principal().id}">
+                            <div class="timeline-card-header">
+                                <span class="timeline-badge"
+                                      th:classappend="'badge-' + ${grupo.principal().tipo.toLowerCase().replace('_','-')}"
+                                      th:text="${#strings.replace(grupo.principal().tipo,'_',' ')}">TIPO</span>
+                                <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+                                    <time class="timeline-date"
+                                          th:datetime="${grupo.principal().criadoEm}"
+                                          th:text="${#temporals.format(grupo.principal().criadoEm, 'dd/MM/yyyy') + ' às ' + #temporals.format(grupo.principal().criadoEm, 'HH:mm')}">
+                                    </time>
+                                    <div class="adm-log-actions">
+                                        <button class="btn-adm-log-delete"
+                                                th:onclick="'deletarLog(' + ${grupo.principal().id} + ')'"
+                                                title="Excluir este log">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="timeline-descricao" th:text="${grupo.principal().descricao}">Descrição</p>
+                            <p class="timeline-detalhe" th:if="${grupo.principal().detalhe != null}" th:text="${grupo.principal().detalhe}"></p>
+                        </div>
+
+                        <!-- Vários eventos juntos: resumo + expandir, cada evento com exclusão individual -->
+                        <div class="timeline-card adm-timeline-card"
+                             th:if="${grupo.multiplo()}">
+                            <div class="timeline-card-header">
+                                <span class="timeline-badge" th:text="${grupo.quantidade()} + ' atualizações'">N atualizações</span>
                                 <time class="timeline-date"
-                                      th:datetime="${log.criadoEm}"
-                                      th:text="${#temporals.format(log.criadoEm, 'dd/MM/yyyy') + ' às ' + #temporals.format(log.criadoEm, 'HH:mm')}">
+                                      style="margin-left:auto;"
+                                      th:datetime="${grupo.principal().criadoEm}"
+                                      th:text="${#temporals.format(grupo.principal().criadoEm, 'dd/MM/yyyy') + ' às ' + #temporals.format(grupo.principal().criadoEm, 'HH:mm')}">
                                 </time>
-                                <div class="adm-log-actions">
-                                    <button class="btn-adm-log-delete"
-                                            th:onclick="'deletarLog(' + ${log.id} + ')'"
-                                            title="Excluir este log">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
+                            </div>
+
+                            <button type="button" class="timeline-grupo-toggle" aria-expanded="false" onclick="toggleGrupoTimeline(this)">
+                                <span class="timeline-grupo-resumo"
+                                      th:if="${grupo.mesmoItem()}"
+                                      th:text="'Ver ' + ${grupo.quantidade()} + ' atualizações em ' + ${grupo.principal().itemTitulo}">Resumo</span>
+                                <span class="timeline-grupo-resumo"
+                                      th:unless="${grupo.mesmoItem()}"
+                                      th:text="'Ver ' + ${grupo.quantidade()} + ' itens atualizados'">Resumo</span>
+                                <i class="fa-solid fa-chevron-down timeline-grupo-seta"></i>
+                            </button>
+
+                            <div class="timeline-grupo-detalhes">
+                                <div th:each="evento : ${grupo.eventos()}" class="timeline-grupo-evento"
+                                     th:id="'log-' + ${evento.id}"
+                                     th:attr="data-tipo=${evento.tipo}, data-busca=${#strings.toLowerCase(evento.itemTitulo != null ? evento.itemTitulo : '') + ' | ' + #strings.toLowerCase(evento.descricao != null ? evento.descricao : '')}">
+                                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px;">
+                                        <span class="timeline-badge-mini"
+                                              th:classappend="'badge-' + ${evento.tipo.toLowerCase().replace('_','-')}"
+                                              th:text="${#strings.replace(evento.tipo,'_',' ')}">TIPO</span>
+                                        <button class="btn-adm-log-delete"
+                                                th:onclick="'deletarLog(' + ${evento.id} + ')'"
+                                                title="Excluir este log">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    <p class="timeline-descricao" th:text="${evento.descricao}">Descrição</p>
+                                    <p class="timeline-detalhe" th:if="${evento.detalhe != null}" th:text="${evento.detalhe}"></p>
                                 </div>
                             </div>
                         </div>
-                        <p class="timeline-descricao" th:text="${log.descricao}">Descrição</p>
-                        <p class="timeline-detalhe" th:if="${log.detalhe != null}" th:text="${log.detalhe}"></p>
                     </div>
                 </div>
             </div>
@@ -120,6 +203,8 @@
 
     <script th:src="@{/js/theme-toggle.js}"></script>
     <script th:src="@{/js/search-scroll.js}"></script>
+    <script th:src="@{/js/timeline.js}"></script>
+    <script th:src="@{/js/timeline-filtros.js}"></script>
     <script th:inline="javascript">
         const CSRF_TOKEN  = /*[[${_csrf.token}]]*/ '';
         const CSRF_HEADER = /*[[${_csrf.headerName}]]*/ '';
@@ -152,8 +237,7 @@
                 });
                 const data = await res.json();
                 if (data.sucesso) {
-                    const el = document.getElementById(`log-${logId}`);
-                    if (el) el.remove();
+                    removerLogDoDom(logId);
                     atualizarContador();
                     checarListaVazia();
                     toastSucesso('Log removido!');
@@ -162,6 +246,29 @@
                 }
             } catch (err) {
                 Swal.fire('Erro', 'Falha de comunicação com o servidor.', 'error');
+            }
+        }
+
+        // Remove um log individual do DOM.
+        function removerLogDoDom(logId) {
+            const el = document.getElementById(`log-${logId}`);
+            if (!el) return;
+
+            const detalhesDoGrupo = el.closest('.timeline-grupo-detalhes');
+            const item = el.closest('.timeline-item');
+            const dia = item?.closest('.timeline-dia');
+
+            if (detalhesDoGrupo) {
+                el.remove();
+                if (detalhesDoGrupo.querySelectorAll('.timeline-grupo-evento').length === 0) {
+                    item?.remove();
+                }
+            } else {
+                item?.remove();
+            }
+
+            if (dia && dia.querySelectorAll('.timeline-item').length === 0) {
+                dia.remove();
             }
         }
 
@@ -201,13 +308,13 @@
             const lista = document.getElementById('lista-logs');
             const contador = document.getElementById('contador-logs');
             if (!contador) return;
-            const total = lista ? lista.querySelectorAll('.timeline-item').length : 0;
+            const total = lista ? lista.querySelectorAll('[id^="log-"]').length : 0;
             contador.textContent = total;
         }
 
         function checarListaVazia() {
             const lista = document.getElementById('lista-logs');
-            const total = lista ? lista.querySelectorAll('.timeline-item').length : 0;
+            const total = lista ? lista.querySelectorAll('[id^="log-"]').length : 0;
             if (total === 0) {
                 lista?.remove();
                 const toolbar = document.querySelector('.adm-timeline-toolbar');

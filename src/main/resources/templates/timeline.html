@@ -61,75 +61,114 @@
                     <a th:href="@{/home}" class="btn-timeline-action">Ir para o Backlog</a>
                 </div>
 
-                <!-- Timeline de logs -->
-                <div class="timeline-list" th:if="${!#lists.isEmpty(logs)}">
+                <!-- Filtros -->
+                <div class="timeline-filtros" th:if="${!#lists.isEmpty(logs)}">
+                    <div class="timeline-filtro-campo">
+                        <label for="filtro-busca"><i class="fa-solid fa-magnifying-glass"></i> Buscar</label>
+                        <input type="text" id="filtro-busca" placeholder="Título do filme, série, jogo...">
+                    </div>
+                    <div class="timeline-filtro-campo">
+                        <label for="filtro-tipo"><i class="fa-solid fa-tags"></i> Ação</label>
+                        <select id="filtro-tipo">
+                            <option value="">Todas</option>
+                            <option th:each="tipo : ${tiposFiltro}" th:value="${tipo.key}" th:text="${tipo.value}">Tipo</option>
+                        </select>
+                    </div>
+                    <div class="timeline-filtro-campo">
+                        <label for="filtro-data"><i class="fa-solid fa-calendar-day"></i> Data</label>
+                        <input type="date" id="filtro-data">
+                    </div>
+                    <button type="button" id="filtro-limpar" class="btn-timeline-filtro-limpar" title="Limpar filtros">
+                        <i class="fa-solid fa-eraser"></i> Limpar
+                    </button>
+                </div>
 
-                    <!-- Cada "grupo" é 1+ eventos que aconteceram na mesma ação do usuário -->
-                    <div th:each="grupo, stat : ${grupos}" class="timeline-item"
-                         th:classappend="${stat.first} ? 'primeiro' : ''">
+                <!-- Estado vazio (filtros não encontraram nada) -->
+                <div id="timeline-filtro-vazio" class="timeline-empty" style="display:none;">
+                    <span class="timeline-empty-icon">🔍</span>
+                    <p class="timeline-empty-title">Nada encontrado</p>
+                    <p class="timeline-empty-sub">Tente ajustar ou limpar os filtros.</p>
+                </div>
 
-                        <!-- Linha vertical (exceto no último) -->
-                        <div class="timeline-line" th:unless="${stat.last}"></div>
+                <!-- Timeline de logs, separada por dia -->
+                <div class="timeline-list" id="timeline-lista" th:if="${!#lists.isEmpty(logs)}">
 
-                        <!-- Ponto do evento -->
-                        <div class="timeline-dot"
-                             th:classappend="${grupo.multiplo()} ? 'multiplo' : ('tipo-' + ${grupo.principal().tipo.toLowerCase().replace('_','-')})">
+                    <div th:each="dia : ${dias}" class="timeline-dia" th:attr="data-dia=${dia.data()}">
+
+                        <!-- Separador de data (ex: ---- 25 de jul ---- ) -->
+                        <div class="timeline-data-divisor">
+                            <span th:text="${dia.rotulo()}">Hoje</span>
                         </div>
 
-                        <!-- Conteúdo do card -->
-                        <div class="timeline-card">
-                            <div class="timeline-card-header">
-                                <span class="timeline-badge"
-                                      th:if="${!grupo.multiplo()}"
-                                      th:classappend="'badge-' + ${grupo.principal().tipo.toLowerCase().replace('_','-')}"
-                                      th:text="${#strings.replace(grupo.principal().tipo,'_',' ')}">TIPO</span>
-                                <span class="timeline-badge"
-                                      th:if="${grupo.multiplo()}"
-                                      th:text="${grupo.quantidade()} + ' atualizações'">N atualizações</span>
-                                <time class="timeline-date"
-                                      th:datetime="${grupo.principal().criadoEm}"
-                                      th:text="${#temporals.format(grupo.principal().criadoEm, 'dd/MM/yyyy') + ' às ' + #temporals.format(grupo.principal().criadoEm, 'HH:mm')}">
-                                    00/00/0000 às 00:00
-                                </time>
+                        <!-- Cada "grupo" é 1+ eventos que aconteceram na mesma ação do usuário -->
+                        <div th:each="grupo, stat : ${dia.grupos()}" class="timeline-item"
+                             th:classappend="${stat.first} ? 'primeiro' : ''"
+                             th:attr="data-tipos=${grupo.tiposConcatenados()}, data-busca=${#strings.toLowerCase(grupo.textoBusca())}, data-total=${grupo.quantidade()}">
+
+                            <!-- Linha vertical (exceto no último do dia) -->
+                            <div class="timeline-line" th:unless="${stat.last}"></div>
+
+                            <!-- Ponto do evento -->
+                            <div class="timeline-dot"
+                                 th:classappend="${grupo.multiplo()} ? 'multiplo' : ('tipo-' + ${grupo.principal().tipo.toLowerCase().replace('_','-')})">
                             </div>
 
-                            <!-- Evento único: exibe normalmente -->
-                            <div th:if="${!grupo.multiplo()}">
-                                <p class="timeline-descricao" th:text="${grupo.principal().descricao}">Descrição</p>
-                                <p class="timeline-detalhe" th:if="${grupo.principal().detalhe != null}" th:text="${grupo.principal().detalhe}"></p>
-                            </div>
+                            <!-- Conteúdo do card -->
+                            <div class="timeline-card">
+                                <div class="timeline-card-header">
+                                    <span class="timeline-badge"
+                                          th:if="${!grupo.multiplo()}"
+                                          th:classappend="'badge-' + ${grupo.principal().tipo.toLowerCase().replace('_','-')}"
+                                          th:text="${#strings.replace(grupo.principal().tipo,'_',' ')}">TIPO</span>
+                                    <span class="timeline-badge"
+                                          th:if="${grupo.multiplo()}"
+                                          th:text="${grupo.quantidade()} + ' atualizações'">N atualizações</span>
+                                    <time class="timeline-date"
+                                          th:datetime="${grupo.principal().criadoEm}"
+                                          th:text="${#temporals.format(grupo.principal().criadoEm, 'dd/MM/yyyy') + ' às ' + #temporals.format(grupo.principal().criadoEm, 'HH:mm')}">
+                                        00/00/0000 às 00:00
+                                    </time>
+                                </div>
 
-                            <!-- Vários eventos juntos: resumo + seta pra expandir -->
-                            <div th:if="${grupo.multiplo()}">
-                                <button type="button" class="timeline-grupo-toggle" aria-expanded="false" onclick="toggleGrupoTimeline(this)">
-                                    <span class="timeline-grupo-resumo"
-                                          th:if="${grupo.principal().itemTitulo != null}"
-                                          th:text="${grupo.quantidade()} + ' atualizações em ' + ${grupo.principal().itemTitulo}">Resumo</span>
-                                    <span class="timeline-grupo-resumo"
-                                          th:unless="${grupo.principal().itemTitulo != null}"
-                                          th:text="${grupo.quantidade()} + ' atualizações'">Resumo</span>
-                                    <i class="fa-solid fa-chevron-down timeline-grupo-seta"></i>
-                                </button>
+                                <!-- Evento único: exibe normalmente -->
+                                <div th:if="${!grupo.multiplo()}">
+                                    <p class="timeline-descricao" th:text="${grupo.principal().descricao}">Descrição</p>
+                                    <p class="timeline-detalhe" th:if="${grupo.principal().detalhe != null}" th:text="${grupo.principal().detalhe}"></p>
+                                </div>
 
-                                <div class="timeline-grupo-detalhes">
-                                    <div th:each="evento : ${grupo.eventos()}" class="timeline-grupo-evento">
-                                        <span class="timeline-badge-mini"
-                                              th:classappend="'badge-' + ${evento.tipo.toLowerCase().replace('_','-')}"
-                                              th:text="${#strings.replace(evento.tipo,'_',' ')}">TIPO</span>
-                                        <p class="timeline-descricao" th:text="${evento.descricao}">Descrição</p>
-                                        <p class="timeline-detalhe" th:if="${evento.detalhe != null}" th:text="${evento.detalhe}"></p>
+                                <!-- Vários eventos juntos: resumo + seta pra expandir -->
+                                <div th:if="${grupo.multiplo()}">
+                                    <button type="button" class="timeline-grupo-toggle" aria-expanded="false" onclick="toggleGrupoTimeline(this)">
+                                        <span class="timeline-grupo-resumo"
+                                              th:if="${grupo.mesmoItem()}"
+                                              th:text="${grupo.quantidade()} + ' atualizações em ' + ${grupo.principal().itemTitulo}">Resumo</span>
+                                        <span class="timeline-grupo-resumo"
+                                              th:unless="${grupo.mesmoItem()}"
+                                              th:text="${grupo.quantidade()} + ' itens atualizados'">Resumo</span>
+                                        <i class="fa-solid fa-chevron-down timeline-grupo-seta"></i>
+                                    </button>
+
+                                    <div class="timeline-grupo-detalhes">
+                                        <div th:each="evento : ${grupo.eventos()}" class="timeline-grupo-evento"
+                                             th:attr="data-tipo=${evento.tipo}, data-busca=${#strings.toLowerCase(evento.itemTitulo != null ? evento.itemTitulo : '') + ' | ' + #strings.toLowerCase(evento.descricao != null ? evento.descricao : '')}">
+                                            <span class="timeline-badge-mini"
+                                                  th:classappend="'badge-' + ${evento.tipo.toLowerCase().replace('_','-')}"
+                                                  th:text="${#strings.replace(evento.tipo,'_',' ')}">TIPO</span>
+                                            <p class="timeline-descricao" th:text="${evento.descricao}">Descrição</p>
+                                            <p class="timeline-detalhe" th:if="${evento.detalhe != null}" th:text="${evento.detalhe}"></p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
+                        </div>
                     </div>
                 </div>
 
                 <!-- Rodapé com total -->
                 <div class="timeline-footer" th:if="${!#lists.isEmpty(logs)}">
                     <i class="fa-solid fa-list-check"></i>
-                    <span th:text="${#lists.size(logs)} + ' registro(s) encontrado(s)'">0 registros</span>
+                    <span id="timeline-contador" th:text="${#lists.size(logs)} + ' registro(s) encontrado(s)'">0 registros</span>
                 </div>
 
             </div>
@@ -140,5 +179,6 @@
         <script th:src="@{/js/theme-toggle.js}"></script>
         <script th:src="@{/js/search-scroll.js}"></script>
         <script th:src="@{/js/timeline.js}"></script>
+        <script th:src="@{/js/timeline-filtros.js}"></script>
     </body>
 </html>
