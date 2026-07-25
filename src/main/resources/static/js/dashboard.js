@@ -567,6 +567,11 @@ async function salvarDuracaoLote() {
     const idsComSucesso = new Set();
     const conquistasDesbloqueadas = [];
 
+    // Um único grupoId compartilhado por todo o lote
+    const grupoIdDoLote = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `lote-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
     // Trava os botões e zera a barra antes de começar
     btn.disabled = true;
     if (btnBuscar) btnBuscar.disabled = true;
@@ -580,7 +585,7 @@ async function salvarDuracaoLote() {
             const resposta = await fetch(`/itens/${item.id}/duracao`, {
                 method: 'PUT',
                 headers: getCsrfHeaders(),
-                body: JSON.stringify({ duracaoMinutos: item.duracaoMinutos })
+                body: JSON.stringify({ duracaoMinutos: item.duracaoMinutos, grupoId: grupoIdDoLote })
             });
 
             if (resposta.ok) {

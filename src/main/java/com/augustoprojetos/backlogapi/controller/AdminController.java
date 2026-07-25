@@ -300,8 +300,11 @@ public class AdminController {
     public String timelineUsuario(@PathVariable Long id, Model model) {
         var usuario = adminService.buscarUsuarioPorId(id);
         var logs    = atividadeLogService.buscarTimelinePorUserId(id);
+        var grupos  = atividadeLogService.agruparParaTimeline(logs);
         model.addAttribute("usuarioAdm", usuario);
         model.addAttribute("logs", logs);
+        model.addAttribute("dias", atividadeLogService.agruparPorDia(grupos));
+        model.addAttribute("tiposFiltro", atividadeLogService.tiposDisponiveis());
         return "admin/timeline-usuario";
     }
 

@@ -463,6 +463,102 @@
     color: var(--text-muted);
 }
 
+/* --- Separador de data (---- 25 de jul ----) --- */
+
+.timeline-data-divisor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 18px 0;
+    padding-left: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.timeline-data-divisor::before,
+.timeline-data-divisor::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.timeline-dia:not(:first-child) .timeline-data-divisor {
+    margin-top: 8px;
+}
+
+/* --- Filtros da timeline --- */
+
+.timeline-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 6px var(--card-shadow);
+}
+
+.timeline-filtro-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 160px;
+    min-width: 140px;
+}
+
+.timeline-filtro-campo label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.timeline-filtro-campo input,
+.timeline-filtro-campo select {
+    background: var(--bg-main, transparent);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    font-family: "Poppins", sans-serif;
+}
+
+.timeline-filtro-campo input:focus,
+.timeline-filtro-campo select:focus {
+    outline: none;
+    border-color: #e94560;
+}
+
+.btn-timeline-filtro-limpar {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    font-family: "Poppins", sans-serif;
+}
+
+.btn-timeline-filtro-limpar:hover {
+    background: rgba(233, 69, 96, 0.1);
+    color: #e94560;
+    border-color: #e94560;
+}
+
 /* --- Responsivo --- */
 
 @media (max-width: 600px) {
@@ -499,5 +595,21 @@
         right: 20px;
         width: 45px;
         height: 45px;
+    }
+
+    .timeline-filtros {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .timeline-filtro-campo {
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+
+    .btn-timeline-filtro-limpar {
+        width: 100%;
+        justify-content: center;
+        display: flex;
     }
 }

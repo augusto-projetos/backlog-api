@@ -386,7 +386,12 @@ public class ItemController {
 
         List<ConquistaDesbloqueadaDTO> novas = List.of();
         if (!igual(duracaoAnterior, salvo.getDuracaoMinutos())) {
-            String grupoId = atividadeLogService.novoGrupo();
+            // Agrupa todas as mudanças de durações quando for em lote
+            Object grupoIdRecebido = body.get("grupoId");
+            String grupoId = (grupoIdRecebido instanceof String s && !s.isBlank())
+                    ? s
+                    : atividadeLogService.novoGrupo();
+
             String detalhe = (duracaoAnterior != null ? duracaoAnterior + " min" : "—")
                     + " → " + salvo.getDuracaoMinutos() + " min";
             atividadeLogService.registrarDuracaoAlterada(userLogado, salvo, detalhe, grupoId);
