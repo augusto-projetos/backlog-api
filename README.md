@@ -65,51 +65,12 @@ O **Meu Backlog** é uma aplicação **Fullstack** robusta que simula um ambient
 
 ---
 
-## ⚙️ Como Rodar Localmente
-
-### Pré-requisitos
-* Java JDK 17+.
-* Maven.
-* MySQL Server.
-* Chaves de API externas (TMDB e Brevo).
-* DSN do [Sentry](https://sentry.io/) (Opcional).
-
-### Passo a Passo
-
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://github.com/augusto-projetos/backlog-api.git
-    ```
-
-2.  **Configure o Banco de Dados:**
-    Edite o `src/main/resources/application.properties`:
-    ```properties
-    spring.datasource.url=jdbc:mysql://localhost:3306/backlog_db
-    spring.datasource.username=seu_usuario
-    spring.datasource.password=sua_senha
-    ```
-
-3.  **Variáveis de Ambiente (Recomendado):**
-    Configure as chaves no seu sistema ou IDE:
-    * `TMDB_API_KEY`: Para buscar capas.
-    * `BREVO_API_KEY`: Para o envio de e-mails de verificação de conta.
-    * `SENTRY_DSN`: Monitoramento de logs (Opcional).
-
-4.  **Execute a Aplicação:**
-    ```bash
-    mvn spring-boot:run
-    ```
-
-5.  **Acesse:**
-    Abra `http://localhost:8080` no seu navegador.
-
----
 
 ## 📱 App Instalável (PWA) e Android (Capacitor)
 
 O Meu Backlog é um **PWA** (pode ser instalado direto do navegador, com ícone, tela cheia e cache offline do app shell).
 
-Também há uma configuração pronta para empacotar o mesmo site como **app Android nativo** via [Capacitor](https://capacitorjs.com/), permitindo publicação na Google Play. Veja o passo a passo completo em [`CAPACITOR_SETUP.md`](./CAPACITOR_SETUP.md).
+Também há uma configuração pronta para empacotar o mesmo site como **app Android nativo** via [Capacitor](https://capacitorjs.com/).
 
 ---
 
@@ -128,8 +89,8 @@ Também há uma configuração pronta para empacotar o mesmo site como **app And
 
 ## 🤝 Autor
 
-Desenvolvido com 🤍 e ☕ por **Luiz Augusto**.
-*Técnico em Informática (SENAC) - Full Stack Developer & IT Technician*
+Desenvolvido com 🤍 e ☕ por **Luiz Augusto**. <br>
+*Técnico em Informática (SENAC) - Full Stack Developer & IT Technician* <br>
 *Engenharia de Software | Graduando na Universidade Federal de Lavras (UFLA) - São Sebastião do Paraíso - MG*
 
 ---
