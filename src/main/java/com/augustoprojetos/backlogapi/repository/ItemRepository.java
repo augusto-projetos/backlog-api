@@ -6,11 +6,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
     // Busca apenas os itens deste usuário específico
     List<Item> findByUser(User user);
+
+    // Localiza um cadastro já feito com a mesma chave de idempotência (evita item duplicado)
+    Optional<Item> findByUserAndClientRequestId(User user, String clientRequestId);
 
     // Ordenada alfabeticamente pelo título
     @Query("SELECT i FROM Item i WHERE i.user = :user ORDER BY LOWER(i.titulo) ASC")
