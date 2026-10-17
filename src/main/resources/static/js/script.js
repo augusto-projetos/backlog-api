@@ -259,9 +259,48 @@ async function carregarDadosParaEdicao(id) {
     }
 }
 
+// --- Proteção contra envio duplicado do formulário de cadastro/edição ---
+
+// true enquanto uma requisição de salvar está em andamento (ou já deu certo e a página vai redirecionar)
+let salvandoItem = false;
+
+// Chave de idempotência do cadastro: gerada uma vez por abertura da página e reaproveitada
+// em qualquer reenvio. O servidor usa essa chave para reconhecer que é a MESMA requisição
+// e não criar um item duplicado (mesmo se a requisição chegar duas vezes por culpa da rede).
+let chaveIdempotenciaCadastro = null;
+
+function gerarChaveIdempotencia() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    // Fallback para WebViews/navegadores antigos sem crypto.randomUUID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
+
+// Desabilita/reabilita o botão de salvar e troca o texto, deixando claro que está processando
+function definirBotaoSalvarOcupado(ocupado) {
+    const botao = formCadastro ? formCadastro.querySelector('button[type="submit"]') : null;
+    if (!botao) return;
+
+    if (ocupado) {
+        botao.dataset.textoOriginal = botao.textContent;
+        botao.textContent = 'Salvando...';
+        botao.disabled = true;
+    } else {
+        botao.textContent = botao.dataset.textoOriginal || botao.textContent;
+        botao.disabled = false;
+    }
+}
+
 // Serve tanto para Criar quanto para Editar
 async function salvarItem(event) {
     event.preventDefault();
+
+    // Já tem um envio em andamento (duplo clique, Enter repetido, toque duplo no celular...): ignora
+    if (salvandoItem) return;
 
     // Pega os valores
     const titulo = document.getElementById('titulo').value;
@@ -311,9 +350,16 @@ async function salvarItem(event) {
         duracaoTotalMinutos: duracaoTotalMinutos
     };
 
+    // Trava o formulário até o servidor responder. Em caso de sucesso ele continua travado,
+    // porque logo em seguida a página redireciona para a home.
+    salvandoItem = true;
+    definirBotaoSalvarOcupado(true);
+    let salvouComSucesso = false;
+
     try {
         let metodo;
         let url;
+        const headers = getCsrfHeaders();
 
         if (idEdicao) {
             metodo = 'PUT';
@@ -321,17 +367,23 @@ async function salvarItem(event) {
         } else {
             metodo = 'POST';
             url = '/itens';
+
+            if (!chaveIdempotenciaCadastro) {
+                chaveIdempotenciaCadastro = gerarChaveIdempotencia();
+            }
+            headers['Idempotency-Key'] = chaveIdempotenciaCadastro;
         }
 
         const resposta = await fetch(url, {
             method: metodo,
-            headers: getCsrfHeaders(),
+            headers: headers,
             body: JSON.stringify(dados)
         });
 
         // SE DEU CERTO (200 ou 201)
         if (resposta.ok) {
             const data = await resposta.json();
+            salvouComSucesso = true;
 
             // Dispara toasts de conquistas ANTES de redirecionar
             const novas = data.conquistasDesbloqueadas || [];
@@ -380,6 +432,12 @@ async function salvarItem(event) {
         console.error('Erro:', erro);
         if (window.AppLoading) window.AppLoading.hide();
         Swal.fire('Erro!', 'Falha na comunicação com o sistema.', 'error');
+    } finally {
+        // Só destrava se não salvou: em erro/validação o usuário pode corrigir e tentar de novo
+        if (!salvouComSucesso) {
+            salvandoItem = false;
+            definirBotaoSalvarOcupado(false);
+        }
     }
 }
 

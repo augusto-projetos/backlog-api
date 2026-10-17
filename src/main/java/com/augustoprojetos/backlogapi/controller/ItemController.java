@@ -12,6 +12,7 @@ import com.augustoprojetos.backlogapi.entity.Item;
 import com.augustoprojetos.backlogapi.repository.ItemRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,14 +24,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
 public class ItemController {
 
     private static final Logger log = LoggerFactory.getLogger(ItemController.class);
+
+    // Formato aceito para a chave de idempotência (UUID ou similar): evita lixo/valores gigantes no banco
+    private static final Pattern CHAVE_IDEMPOTENCIA_VALIDA = Pattern.compile("^[A-Za-z0-9_-]{8,64}$");
 
     @Autowired
     private ItemRepository itemRepository;
@@ -84,11 +90,39 @@ public class ItemController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cadastrar(
             @RequestBody @Valid Item item,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @AuthenticationPrincipal User userLogado) {
 
+        // Idempotência: se essa mesma requisição já foi processada (duplo clique, retry de
+        // rede/proxy, aba duplicada), devolvemos o item que já existe.
+        String chave = normalizarChaveIdempotencia(idempotencyKey);
+        if (chave != null) {
+            Optional<Item> jaCadastrado = itemRepository.findByUserAndClientRequestId(userLogado, chave);
+            if (jaCadastrado.isPresent()) {
+                log.info("Cadastro repetido ignorado (usuário {}, chave {})", userLogado.getId(), chave);
+                return respostaCadastroRepetido(jaCadastrado.get());
+            }
+        }
+
         item.setUser(userLogado);
+        item.setClientRequestId(chave);
         limparProgressoSerieSeBacklog(item);
-        Item salvo = itemRepository.save(item);
+
+        Item salvo;
+        try {
+            salvo = itemRepository.save(item);
+        } catch (DataIntegrityViolationException e) {
+            // Duas requisições com a mesma chave chegaram ao mesmo tempo: a outra gravou primeiro
+            // e o índice único barrou esta.
+            Optional<Item> venceuCorrida = chave != null
+                    ? itemRepository.findByUserAndClientRequestId(userLogado, chave)
+                    : Optional.empty();
+            if (venceuCorrida.isPresent()) {
+                log.info("Cadastro concorrente ignorado (usuário {}, chave {})", userLogado.getId(), chave);
+                return respostaCadastroRepetido(venceuCorrida.get());
+            }
+            throw e;
+        }
 
         // Todo evento gerado por essa mesma requisição compartilha o grupoId.
         String grupoId = atividadeLogService.novoGrupo();
@@ -136,6 +170,8 @@ public class ItemController {
 
         itemAtualizado.setId(id);
         itemAtualizado.setUser(userLogado);
+        // O corpo da edição não carrega a chave de idempotência; preserva a do cadastro original.
+        itemAtualizado.setClientRequestId(anterior.getClientRequestId());
         limparProgressoSerieSeBacklog(itemAtualizado);
 
         Item salvo = itemRepository.save(itemAtualizado);
@@ -466,6 +502,21 @@ public class ItemController {
     }
 
     // --- Helpers ---
+
+    // Aceita só chaves no formato esperado; qualquer outra coisa é ignorada (cadastro segue sem idempotência)
+    private String normalizarChaveIdempotencia(String chave) {
+        if (chave == null) return null;
+        String limpa = chave.trim();
+        return CHAVE_IDEMPOTENCIA_VALIDA.matcher(limpa).matches() ? limpa : null;
+    }
+
+    // Mesmo formato de resposta do cadastro normal; sem conquistas novas, pois já foram dadas na 1ª vez
+    private ResponseEntity<Map<String, Object>> respostaCadastroRepetido(Item existente) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("item", existente);
+        response.put("conquistasDesbloqueadas", List.of());
+        return ResponseEntity.ok(response);
+    }
 
     private List<ConquistaDesbloqueadaDTO> verificarConquistasSeguro(User user) {
         try {

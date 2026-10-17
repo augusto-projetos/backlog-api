@@ -58,4 +58,11 @@ public class Item {
     @JoinColumn(name = "user_id") // Cria a coluna 'user_id' no banco
     @JsonIgnore
     private User user;
+
+    // Chave de idempotência enviada pelo front-end (header Idempotency-Key) no cadastro.
+    // Junto com o usuário, ela é única no banco: se a mesma requisição
+    // chegar duas vezes, o segundo cadastro é reconhecido e não vira um item duplicado.
+    @Column(name = "client_request_id", length = 64)
+    @JsonIgnore
+    private String clientRequestId;
 }
