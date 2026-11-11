@@ -1,6 +1,7 @@
 package com.augustoprojetos.backlogapi.service;
 
 import com.augustoprojetos.backlogapi.dto.ConquistaDesbloqueadaDTO;
+import com.augustoprojetos.backlogapi.dto.EstatisticasConquistaDTO;
 import com.augustoprojetos.backlogapi.entity.Conquista;
 import com.augustoprojetos.backlogapi.entity.User;
 import com.augustoprojetos.backlogapi.entity.UserConquista;
@@ -14,12 +15,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class ConquistaService {
+
+    // Status que contam como "concluído" / "dropado" (a base tem valores legados em caixas diferentes)
+    private static final List<String> STATUS_CONCLUIDOS = List.of("Zerado / Assistido", "concluido", "Zerado", "Assistido");
+    private static final List<String> STATUS_DROPADOS = List.of("Dropado", "dropado");
+    private static final String TIPO_JOGO = "Jogo";
+    private static final String TIPO_FILME = "Filme";
+    private static final String TIPO_SERIE = "Série";
 
     @Autowired private ConquistaRepository conquistaRepository;
     @Autowired private UserConquistaRepository userConquistaRepository;
@@ -58,89 +68,91 @@ public class ConquistaService {
 
     @PostConstruct
     public void seedConquistas() {
-        upsertConquista("PRIMEIRO_PASSO",  "Primeiro Passo",               "Cadastrou seu primeiro item no backlog.",                      "🎯", 50,  "TOTAL_ITENS",       1);
-        upsertConquista("GUERREIRO_FDSEM", "Guerreiro de Final de Semana", "Zerou ou assistiu 2 itens no total.",                         "⚔️", 100, "TOTAL_CONCLUIDOS",  2);
-        upsertConquista("CRITICO_CINEMA",  "Crítico de Cinema",            "Deu nota máxima (10) para 5 filmes.",                         "🎬", 75,  "NOTA10_FILMES",     5);
-        upsertConquista("SEM_TEMPO_IRMAO", "Sem Tempo, Irmão",             "Marcou 10 itens como Dropado.",                               "💀", 75,  "TOTAL_DROPADOS",    10);
-        upsertConquista("COLECIONADOR",    "Colecionador",                 "Cadastrou 50 itens no backlog.",                              "📦", 100, "TOTAL_ITENS",       50);
-        upsertConquista("VICIADO_JOGO",    "Viciado em Jogo",              "Zerou 10 jogos.",                                             "🎮", 100, "JOGOS_ZERADOS",     10);
-        upsertConquista("CINEFILO",        "Cinéfilo",                     "Assistiu 10 filmes.",                                         "🎥", 75,  "FILMES_ASSISTIDOS", 10);
-        upsertConquista("SERIADO",         "Seriado",                      "Assistiu 10 séries.",                                         "📺", 75,  "SERIES_ASSISTIDAS", 10);
-        upsertConquista("CRITICO_GERAL",   "Crítico Geral",                "Deu nota 10 para 10 itens de qualquer tipo.",                 "⭐", 150, "NOTA10_TOTAL",      10);
-        upsertConquista("MARATONISTA",     "Maratonista",                  "Concluiu 25 itens no total.",                                 "🏃", 200, "TOTAL_CONCLUIDOS",  25);
-        upsertConquista("MENTE_EXPANDIDA", "Mente Expandida",              "Pediu sua primeira recomendação personalizada para a IA.",    "🤖", 50,  "AI_USADA",          1);
-        upsertConquista("DESIGNER_VISUAL", "Designer Visual",              "Buscou e selecionou uma capa oficial via TMDB para o acervo.","🖼️", 40, "TMDB_CAPA",         1);
-        upsertConquista("REDE_CONTATOS",   "Influenciador de Backlog",     "Gerou seu primeiro link de compartilhamento para os amigos.", "🔗", 50,  "SHARE_LINK_CRIADO", 1);
-        upsertConquista("DONO_DO_TEMPO",   "Dono do Tempo",                "Concluiu 50 mídias de qualquer tipo no aplicativo.",          "👑", 250, "TOTAL_CONCLUIDOS",  50);
-        upsertConquista("PERFECCIONISTA",  "Perfeccionista",               "Deu nota 10 para pelo menos 3 jogos (Zerados com maestria).", "🏅", 100, "NOTA10_JOGOS",      3);
-        upsertConquista("LENDA_VIVA",      "Lenda Viva",                   "Concluiu 100 mídias. Você é uma máquina!",                    "🦾", 500, "TOTAL_CONCLUIDOS",  100);
-        upsertConquista("ARQUIVO_MORTO",   "Arquivo Morto",                "Cadastrou 200 itens. Isso é um acervo sério.",                "🗄️", 300, "TOTAL_ITENS",       200);
-        upsertConquista("CINEFILO_ELITE",  "Cinéfilo de Elite",            "Assistiu 50 filmes. Hollywood te deve uma cadeira VIP.",      "🎞️", 300, "FILMES_ASSISTIDOS", 50);
-        upsertConquista("GAMER_HARDCORE",  "Gamer Hardcore",               "Zerou 30 jogos. Você não conhece a palavra parar.",           "🕹️", 300, "JOGOS_ZERADOS",     30);
-        upsertConquista("BINGE_MASTER",    "Binge Master",                 "Assistiu 30 séries. Sono? Nunca ouvi falar.",                 "🛋️", 300, "SERIES_ASSISTIDAS", 30);
-        upsertConquista("DUREZA_TOTAL",    "Dureza Total",                 "Dropou 30 itens. A vida é curta pra mídia ruim.",             "🗑️", 150, "TOTAL_DROPADOS",    30);
-        upsertConquista("ARBITRO_SUPREMO", "Árbitro Supremo",              "Deu nota 10 para 25 itens. Seu critério é impecável.",        "🎖️", 250, "NOTA10_TOTAL",      25);
-        upsertConquista("EXPANSAO_TOTAL",  "Expansão Total",               "Cadastrou 100 itens no backlog. O acervo cresce!",            "📚", 150, "TOTAL_ITENS",       100);
+        definirConquista("PRIMEIRO_PASSO",  "Primeiro Passo",               "Cadastrou seu primeiro item no backlog.",                      "🎯", 50,  "TOTAL_ITENS",       1);
+        definirConquista("GUERREIRO_FDSEM", "Guerreiro de Final de Semana", "Zerou ou assistiu 2 itens no total.",                         "⚔️", 100, "TOTAL_CONCLUIDOS",  2);
+        definirConquista("CRITICO_CINEMA",  "Crítico de Cinema",            "Deu nota máxima (10) para 5 filmes.",                         "🎬", 75,  "NOTA10_FILMES",     5);
+        definirConquista("SEM_TEMPO_IRMAO", "Sem Tempo, Irmão",             "Marcou 10 itens como Dropado.",                               "💀", 75,  "TOTAL_DROPADOS",    10);
+        definirConquista("COLECIONADOR",    "Colecionador",                 "Cadastrou 50 itens no backlog.",                              "📦", 100, "TOTAL_ITENS",       50);
+        definirConquista("VICIADO_JOGO",    "Viciado em Jogo",              "Zerou 10 jogos.",                                             "🎮", 100, "JOGOS_ZERADOS",     10);
+        definirConquista("CINEFILO",        "Cinéfilo",                     "Assistiu 10 filmes.",                                         "🎥", 75,  "FILMES_ASSISTIDOS", 10);
+        definirConquista("SERIADO",         "Seriado",                      "Assistiu 10 séries.",                                         "📺", 75,  "SERIES_ASSISTIDAS", 10);
+        definirConquista("CRITICO_GERAL",   "Crítico Geral",                "Deu nota 10 para 10 itens de qualquer tipo.",                 "⭐", 150, "NOTA10_TOTAL",      10);
+        definirConquista("MARATONISTA",     "Maratonista",                  "Concluiu 25 itens no total.",                                 "🏃", 200, "TOTAL_CONCLUIDOS",  25);
+        definirConquista("MENTE_EXPANDIDA", "Mente Expandida",              "Pediu sua primeira recomendação personalizada para a IA.",    "🤖", 50,  "AI_USADA",          1);
+        definirConquista("DESIGNER_VISUAL", "Designer Visual",              "Buscou e selecionou uma capa oficial via TMDB para o acervo.","🖼️", 40, "TMDB_CAPA",         1);
+        definirConquista("REDE_CONTATOS",   "Influenciador de Backlog",     "Gerou seu primeiro link de compartilhamento para os amigos.", "🔗", 50,  "SHARE_LINK_CRIADO", 1);
+        definirConquista("DONO_DO_TEMPO",   "Dono do Tempo",                "Concluiu 50 mídias de qualquer tipo no aplicativo.",          "👑", 250, "TOTAL_CONCLUIDOS",  50);
+        definirConquista("PERFECCIONISTA",  "Perfeccionista",               "Deu nota 10 para pelo menos 3 jogos (Zerados com maestria).", "🏅", 100, "NOTA10_JOGOS",      3);
+        definirConquista("LENDA_VIVA",      "Lenda Viva",                   "Concluiu 100 mídias. Você é uma máquina!",                    "🦾", 500, "TOTAL_CONCLUIDOS",  100);
+        definirConquista("ARQUIVO_MORTO",   "Arquivo Morto",                "Cadastrou 200 itens. Isso é um acervo sério.",                "🗄️", 300, "TOTAL_ITENS",       200);
+        definirConquista("CINEFILO_ELITE",  "Cinéfilo de Elite",            "Assistiu 50 filmes. Hollywood te deve uma cadeira VIP.",      "🎞️", 300, "FILMES_ASSISTIDOS", 50);
+        definirConquista("GAMER_HARDCORE",  "Gamer Hardcore",               "Zerou 30 jogos. Você não conhece a palavra parar.",           "🕹️", 300, "JOGOS_ZERADOS",     30);
+        definirConquista("BINGE_MASTER",    "Binge Master",                 "Assistiu 30 séries. Sono? Nunca ouvi falar.",                 "🛋️", 300, "SERIES_ASSISTIDAS", 30);
+        definirConquista("DUREZA_TOTAL",    "Dureza Total",                 "Dropou 30 itens. A vida é curta pra mídia ruim.",             "🗑️", 150, "TOTAL_DROPADOS",    30);
+        definirConquista("ARBITRO_SUPREMO", "Árbitro Supremo",              "Deu nota 10 para 25 itens. Seu critério é impecável.",        "🎖️", 250, "NOTA10_TOTAL",      25);
+        definirConquista("EXPANSAO_TOTAL",  "Expansão Total",               "Cadastrou 100 itens no backlog. O acervo cresce!",            "📚", 150, "TOTAL_ITENS",       100);
 
         // -----------------------------------------------------------
         // Conquistas de HORAS assistidas em filmes concluídos
         // -----------------------------------------------------------
-        upsertConquista("HORAS_FILME_10",  "Pipoca Quentinha",             "Acumulou 10 horas assistindo filmes concluídos.",             "🍿", 60,  "HORAS_FILMES", h(10));
-        upsertConquista("HORAS_FILME_25",  "Sessão da Tarde",              "Acumulou 25 horas assistindo filmes concluídos.",             "📽️", 80,  "HORAS_FILMES", h(25));
-        upsertConquista("HORAS_FILME_50",  "Fim de Semana de Cinema",      "Acumulou 50 horas assistindo filmes concluídos.",             "🎦", 100, "HORAS_FILMES", h(50));
-        upsertConquista("HORAS_FILME_100", "Cinéfilo de Carteirinha",      "Acumulou 100 horas assistindo filmes concluídos.",            "🎟️", 130, "HORAS_FILMES", h(100));
-        upsertConquista("HORAS_FILME_200", "Maratonista das Telonas",      "Acumulou 200 horas assistindo filmes concluídos.",            "🏆", 160, "HORAS_FILMES", h(200));
-        upsertConquista("HORAS_FILME_350", "Morador do Cinema",            "Acumulou 350 horas assistindo filmes concluídos.",            "🎬", 200, "HORAS_FILMES", h(350));
-        upsertConquista("HORAS_FILME_500", "Lenda das Telonas",            "Acumulou 500 horas assistindo filmes concluídos.",            "🌟", 250, "HORAS_FILMES", h(500));
+        definirConquista("HORAS_FILME_10",  "Pipoca Quentinha",             "Acumulou 10 horas assistindo filmes concluídos.",             "🍿", 60,  "HORAS_FILMES", h(10));
+        definirConquista("HORAS_FILME_25",  "Sessão da Tarde",              "Acumulou 25 horas assistindo filmes concluídos.",             "📽️", 80,  "HORAS_FILMES", h(25));
+        definirConquista("HORAS_FILME_50",  "Fim de Semana de Cinema",      "Acumulou 50 horas assistindo filmes concluídos.",             "🎦", 100, "HORAS_FILMES", h(50));
+        definirConquista("HORAS_FILME_100", "Cinéfilo de Carteirinha",      "Acumulou 100 horas assistindo filmes concluídos.",            "🎟️", 130, "HORAS_FILMES", h(100));
+        definirConquista("HORAS_FILME_200", "Maratonista das Telonas",      "Acumulou 200 horas assistindo filmes concluídos.",            "🏆", 160, "HORAS_FILMES", h(200));
+        definirConquista("HORAS_FILME_350", "Morador do Cinema",            "Acumulou 350 horas assistindo filmes concluídos.",            "🎬", 200, "HORAS_FILMES", h(350));
+        definirConquista("HORAS_FILME_500", "Lenda das Telonas",            "Acumulou 500 horas assistindo filmes concluídos.",            "🌟", 250, "HORAS_FILMES", h(500));
 
         // -----------------------------------------------------------
         // Conquistas de HORAS totais cadastradas em jogos
         // -----------------------------------------------------------
-        upsertConquista("HORAS_JOGO_TOTAL_20",   "Recruta Gamer",                 "Cadastrou 20 horas jogadas no total.",                        "🎮", 70,  "HORAS_JOGOS_TOTAL", h(20));
-        upsertConquista("HORAS_JOGO_TOTAL_50",   "Grinder Iniciante",             "Cadastrou 50 horas jogadas no total.",                        "⏫", 90,  "HORAS_JOGOS_TOTAL", h(50));
-        upsertConquista("HORAS_JOGO_TOTAL_100",  "Cem Por Cento Dedicado",        "Cadastrou 100 horas jogadas no total.",                       "💯", 120, "HORAS_JOGOS_TOTAL", h(100));
-        upsertConquista("HORAS_JOGO_TOTAL_250",  "Veterano dos Consoles",         "Cadastrou 250 horas jogadas no total.",                       "🕹️", 150, "HORAS_JOGOS_TOTAL", h(250));
-        upsertConquista("HORAS_JOGO_TOTAL_500",  "Mestre do Save Point",          "Cadastrou 500 horas jogadas no total.",                       "💾", 200, "HORAS_JOGOS_TOTAL", h(500));
-        upsertConquista("HORAS_JOGO_TOTAL_1000", "Rank Diamante da Vida Real",    "Cadastrou 1000 horas jogadas no total.",                      "💎", 280, "HORAS_JOGOS_TOTAL", h(1000));
-        upsertConquista("HORAS_JOGO_TOTAL_2000", "NPC do Próprio Backlog",        "Cadastrou 2000 horas jogadas no total.",                      "🤖", 350, "HORAS_JOGOS_TOTAL", h(2000));
+        definirConquista("HORAS_JOGO_TOTAL_20",   "Recruta Gamer",                 "Cadastrou 20 horas jogadas no total.",                        "🎮", 70,  "HORAS_JOGOS_TOTAL", h(20));
+        definirConquista("HORAS_JOGO_TOTAL_50",   "Grinder Iniciante",             "Cadastrou 50 horas jogadas no total.",                        "⏫", 90,  "HORAS_JOGOS_TOTAL", h(50));
+        definirConquista("HORAS_JOGO_TOTAL_100",  "Cem Por Cento Dedicado",        "Cadastrou 100 horas jogadas no total.",                       "💯", 120, "HORAS_JOGOS_TOTAL", h(100));
+        definirConquista("HORAS_JOGO_TOTAL_250",  "Veterano dos Consoles",         "Cadastrou 250 horas jogadas no total.",                       "🕹️", 150, "HORAS_JOGOS_TOTAL", h(250));
+        definirConquista("HORAS_JOGO_TOTAL_500",  "Mestre do Save Point",          "Cadastrou 500 horas jogadas no total.",                       "💾", 200, "HORAS_JOGOS_TOTAL", h(500));
+        definirConquista("HORAS_JOGO_TOTAL_1000", "Rank Diamante da Vida Real",    "Cadastrou 1000 horas jogadas no total.",                      "💎", 280, "HORAS_JOGOS_TOTAL", h(1000));
+        definirConquista("HORAS_JOGO_TOTAL_2000", "NPC do Próprio Backlog",        "Cadastrou 2000 horas jogadas no total.",                      "🤖", 350, "HORAS_JOGOS_TOTAL", h(2000));
 
         // -----------------------------------------------------------
         // Conquistas de HORAS investidas em um ÚNICO jogo
         // -----------------------------------------------------------
-        upsertConquista("HORAS_JOGO_UNICO_10",  "Só Mais Uma Partida",           "Registrou 10 horas jogadas em um único jogo.",                "🕐", 60,  "HORAS_JOGO_UNICO", h(10));
-        upsertConquista("HORAS_JOGO_UNICO_25",  "Investimento Sério",            "Registrou 25 horas jogadas em um único jogo.",                "📈", 80,  "HORAS_JOGO_UNICO", h(25));
-        upsertConquista("HORAS_JOGO_UNICO_50",  "Casamento com o Jogo",          "Registrou 50 horas jogadas em um único jogo.",                "💍", 110, "HORAS_JOGO_UNICO", h(50));
-        upsertConquista("HORAS_JOGO_UNICO_100", "Cem Horas, Uma Vida",           "Registrou 100 horas jogadas em um único jogo.",               "⏳", 150, "HORAS_JOGO_UNICO", h(100));
-        upsertConquista("HORAS_JOGO_UNICO_200", "Platina de Suor e Lágrimas",    "Registrou 200 horas jogadas em um único jogo.",               "🏅", 200, "HORAS_JOGO_UNICO", h(200));
-        upsertConquista("HORAS_JOGO_UNICO_500", "Isso Já Não É Hobby, É Residência", "Registrou 500 horas jogadas em um único jogo.",           "🏠", 280, "HORAS_JOGO_UNICO", h(500));
+        definirConquista("HORAS_JOGO_UNICO_10",  "Só Mais Uma Partida",           "Registrou 10 horas jogadas em um único jogo.",                "🕐", 60,  "HORAS_JOGO_UNICO", h(10));
+        definirConquista("HORAS_JOGO_UNICO_25",  "Investimento Sério",            "Registrou 25 horas jogadas em um único jogo.",                "📈", 80,  "HORAS_JOGO_UNICO", h(25));
+        definirConquista("HORAS_JOGO_UNICO_50",  "Casamento com o Jogo",          "Registrou 50 horas jogadas em um único jogo.",                "💍", 110, "HORAS_JOGO_UNICO", h(50));
+        definirConquista("HORAS_JOGO_UNICO_100", "Cem Horas, Uma Vida",           "Registrou 100 horas jogadas em um único jogo.",               "⏳", 150, "HORAS_JOGO_UNICO", h(100));
+        definirConquista("HORAS_JOGO_UNICO_200", "Platina de Suor e Lágrimas",    "Registrou 200 horas jogadas em um único jogo.",               "🏅", 200, "HORAS_JOGO_UNICO", h(200));
+        definirConquista("HORAS_JOGO_UNICO_500", "Isso Já Não É Hobby, É Residência", "Registrou 500 horas jogadas em um único jogo.",           "🏠", 280, "HORAS_JOGO_UNICO", h(500));
 
         // -----------------------------------------------------------
         // Conquistas de HORAS assistidas em séries concluídas
         // -----------------------------------------------------------
-        upsertConquista("HORAS_SERIE_10",  "Episódio Piloto",              "Acumulou 10 horas assistindo séries concluídas.",             "📺", 60,  "HORAS_SERIES", h(10));
-        upsertConquista("HORAS_SERIE_25",  "Nas Primeiras Temporadas",     "Acumulou 25 horas assistindo séries concluídas.",             "📼", 80,  "HORAS_SERIES", h(25));
-        upsertConquista("HORAS_SERIE_50",  "Fim de Semana de Série",       "Acumulou 50 horas assistindo séries concluídas.",             "🛋️", 100, "HORAS_SERIES", h(50));
-        upsertConquista("HORAS_SERIE_100", "Assinante Fiel",               "Acumulou 100 horas assistindo séries concluídas.",            "📡", 130, "HORAS_SERIES", h(100));
-        upsertConquista("HORAS_SERIE_200", "Maratonista de Streaming",     "Acumulou 200 horas assistindo séries concluídas.",            "🏆", 160, "HORAS_SERIES", h(200));
-        upsertConquista("HORAS_SERIE_350", "Sofá Vitalício",               "Acumulou 350 horas assistindo séries concluídas.",            "🛏️", 200, "HORAS_SERIES", h(350));
-        upsertConquista("HORAS_SERIE_500", "Lenda do Streaming",           "Acumulou 500 horas assistindo séries concluídas.",            "🌟", 250, "HORAS_SERIES", h(500));
+        definirConquista("HORAS_SERIE_10",  "Episódio Piloto",              "Acumulou 10 horas assistindo séries concluídas.",             "📺", 60,  "HORAS_SERIES", h(10));
+        definirConquista("HORAS_SERIE_25",  "Nas Primeiras Temporadas",     "Acumulou 25 horas assistindo séries concluídas.",             "📼", 80,  "HORAS_SERIES", h(25));
+        definirConquista("HORAS_SERIE_50",  "Fim de Semana de Série",       "Acumulou 50 horas assistindo séries concluídas.",             "🛋️", 100, "HORAS_SERIES", h(50));
+        definirConquista("HORAS_SERIE_100", "Assinante Fiel",               "Acumulou 100 horas assistindo séries concluídas.",            "📡", 130, "HORAS_SERIES", h(100));
+        definirConquista("HORAS_SERIE_200", "Maratonista de Streaming",     "Acumulou 200 horas assistindo séries concluídas.",            "🏆", 160, "HORAS_SERIES", h(200));
+        definirConquista("HORAS_SERIE_350", "Sofá Vitalício",               "Acumulou 350 horas assistindo séries concluídas.",            "🛏️", 200, "HORAS_SERIES", h(350));
+        definirConquista("HORAS_SERIE_500", "Lenda do Streaming",           "Acumulou 500 horas assistindo séries concluídas.",            "🌟", 250, "HORAS_SERIES", h(500));
 
         // -----------------------------------------------------------
         // Conquistas de EPISÓDIOS somando TODAS as séries cadastradas
         // -----------------------------------------------------------
-        upsertConquista("EPISODIOS_TOTAL_50",   "Primeiros Episódios",           "Registrou 50 episódios assistidos no total.",                 "🎬", 70,  "EPISODIOS_TOTAL", 50);
-        upsertConquista("EPISODIOS_TOTAL_150",  "Colecionador de Episódios",     "Registrou 150 episódios assistidos no total.",                "📚", 100, "EPISODIOS_TOTAL", 150);
-        upsertConquista("EPISODIOS_TOTAL_300",  "Vidão de Streaming",            "Registrou 300 episódios assistidos no total.",                "🎞️", 140, "EPISODIOS_TOTAL", 300);
-        upsertConquista("EPISODIOS_TOTAL_500",  "Enciclopédia de Séries",        "Registrou 500 episódios assistidos no total.",                "📖", 180, "EPISODIOS_TOTAL", 500);
-        upsertConquista("EPISODIOS_TOTAL_1000", "Mil Episódios, Zero Arrependimentos", "Registrou 1000 episódios assistidos no total.",         "🏅", 250, "EPISODIOS_TOTAL", 1000);
+        definirConquista("EPISODIOS_TOTAL_50",   "Primeiros Episódios",           "Registrou 50 episódios assistidos no total.",                 "🎬", 70,  "EPISODIOS_TOTAL", 50);
+        definirConquista("EPISODIOS_TOTAL_150",  "Colecionador de Episódios",     "Registrou 150 episódios assistidos no total.",                "📚", 100, "EPISODIOS_TOTAL", 150);
+        definirConquista("EPISODIOS_TOTAL_300",  "Vidão de Streaming",            "Registrou 300 episódios assistidos no total.",                "🎞️", 140, "EPISODIOS_TOTAL", 300);
+        definirConquista("EPISODIOS_TOTAL_500",  "Enciclopédia de Séries",        "Registrou 500 episódios assistidos no total.",                "📖", 180, "EPISODIOS_TOTAL", 500);
+        definirConquista("EPISODIOS_TOTAL_1000", "Mil Episódios, Zero Arrependimentos", "Registrou 1000 episódios assistidos no total.",         "🏅", 250, "EPISODIOS_TOTAL", 1000);
 
         // -----------------------------------------------------------
         // Conquistas de EPISÓDIOS assistidos em uma ÚNICA série (maratona)
         // -----------------------------------------------------------
-        upsertConquista("EPISODIOS_SERIE_UNICA_20",  "Vício Declarado",             "Assistiu 20 episódios de uma mesma série.",             "😵", 70,  "EPISODIOS_SERIE_UNICA", 20);
-        upsertConquista("EPISODIOS_SERIE_UNICA_50",  "Binge Sem Freio",             "Assistiu 50 episódios de uma mesma série.",             "🛑", 100, "EPISODIOS_SERIE_UNICA", 50);
-        upsertConquista("EPISODIOS_SERIE_UNICA_100", "Cem Episódios, Uma Obsessão", "Assistiu 100 episódios de uma mesma série.",             "💫", 150, "EPISODIOS_SERIE_UNICA", 100);
-        upsertConquista("EPISODIOS_SERIE_UNICA_200", "Essa Série Virou Minha Vida", "Assistiu 200 episódios de uma mesma série.",             "🧠", 220, "EPISODIOS_SERIE_UNICA", 200);
+        definirConquista("EPISODIOS_SERIE_UNICA_20",  "Vício Declarado",             "Assistiu 20 episódios de uma mesma série.",             "😵", 70,  "EPISODIOS_SERIE_UNICA", 20);
+        definirConquista("EPISODIOS_SERIE_UNICA_50",  "Binge Sem Freio",             "Assistiu 50 episódios de uma mesma série.",             "🛑", 100, "EPISODIOS_SERIE_UNICA", 50);
+        definirConquista("EPISODIOS_SERIE_UNICA_100", "Cem Episódios, Uma Obsessão", "Assistiu 100 episódios de uma mesma série.",             "💫", 150, "EPISODIOS_SERIE_UNICA", 100);
+        definirConquista("EPISODIOS_SERIE_UNICA_200", "Essa Série Virou Minha Vida", "Assistiu 200 episódios de uma mesma série.",             "🧠", 220, "EPISODIOS_SERIE_UNICA", 200);
+
+        sincronizarSeed();
     }
 
     // Converte horas para minutos, usado para deixar o seed mais legível
@@ -148,35 +160,52 @@ public class ConquistaService {
         return horas * 60;
     }
 
-    private void upsertConquista(String chave, String nome, String descricao,
+    // Definições do seed acumuladas por definirConquista() e gravadas de uma vez em sincronizarSeed()
+    private final List<Conquista> seedPendente = new ArrayList<>();
+
+    private void definirConquista(String chave, String nome, String descricao,
                                   String icone, int xp,
                                   String criterioTipo, Integer criterioValor) {
-        conquistaRepository.findByChave(chave).ifPresentOrElse(
-            existing -> {
-                // Atualiza o critério se ainda estava nulo ou era MANUAL (legado)
-                boolean changed = false;
-                if (existing.getCriterioTipo() == null || "MANUAL".equals(existing.getCriterioTipo())) {
-                    existing.setCriterioTipo(criterioTipo);
-                    changed = true;
-                }
-                if (existing.getCriterioValor() == null && criterioValor != null) {
-                    existing.setCriterioValor(criterioValor);
-                    changed = true;
-                }
-                if (changed) conquistaRepository.save(existing);
-            },
-            () -> {
-                Conquista c = new Conquista();
-                c.setChave(chave);
-                c.setNome(nome);
-                c.setDescricao(descricao);
-                c.setIcone(icone);
-                c.setXp(xp);
-                c.setCriterioTipo(criterioTipo);
-                c.setCriterioValor(criterioValor);
-                conquistaRepository.save(c);
+        Conquista c = new Conquista();
+        c.setChave(chave);
+        c.setNome(nome);
+        c.setDescricao(descricao);
+        c.setIcone(icone);
+        c.setXp(xp);
+        c.setCriterioTipo(criterioTipo);
+        c.setCriterioValor(criterioValor);
+        seedPendente.add(c);
+    }
+
+    private void sincronizarSeed() {
+        Map<String, Conquista> existentes = conquistaRepository.findAll().stream()
+                .collect(Collectors.toMap(Conquista::getChave, c -> c, (primeira, segunda) -> primeira));
+
+        List<Conquista> paraSalvar = new ArrayList<>();
+        for (Conquista definicao : seedPendente) {
+            Conquista existente = existentes.get(definicao.getChave());
+            if (existente == null) {
+                paraSalvar.add(definicao);
+                continue;
             }
-        );
+            boolean changed = false;
+            if (existente.getCriterioTipo() == null || "MANUAL".equals(existente.getCriterioTipo())) {
+                existente.setCriterioTipo(definicao.getCriterioTipo());
+                changed = true;
+            }
+            if (existente.getCriterioValor() == null && definicao.getCriterioValor() != null) {
+                existente.setCriterioValor(definicao.getCriterioValor());
+                changed = true;
+            }
+            if (changed) {
+                paraSalvar.add(existente);
+            }
+        }
+        seedPendente.clear();
+
+        if (!paraSalvar.isEmpty()) {
+            conquistaRepository.saveAll(paraSalvar);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -186,97 +215,51 @@ public class ConquistaService {
 
     @Transactional
     public List<ConquistaDesbloqueadaDTO> verificarConquistas(User user) {
+        // 1 query: chaves que o usuário já tem
+        Set<String> jaDesbloqueadas = new HashSet<>(userConquistaRepository.findChavesDesbloqueadasByUserId(user.getId()));
+
+        // 1 query: catálogo de conquistas; descarta já ganhas e as que não são automáticas.
+        // AI_USADA é detectada no ponto de disparo (desbloquearEvento).
+        List<Conquista> pendentes = conquistaRepository.findAll().stream()
+                .filter(c -> !jaDesbloqueadas.contains(c.getChave()))
+                .filter(c -> c.getCriterioTipo() != null)
+                .filter(c -> !c.getCriterioTipo().equalsIgnoreCase("MANUAL"))
+                .filter(c -> !c.getCriterioTipo().equalsIgnoreCase("AI_USADA"))
+                .toList();
+
+        if (pendentes.isEmpty()) {
+            return List.of();
+        }
+
+        EstatisticasConquistaDTO stats = carregarEstatisticas(user);
+
+        // Só conta share links se alguma conquista pendente depende disso
+        long shareLinksGerados = pendentes.stream().anyMatch(c -> "SHARE_LINK_CRIADO".equalsIgnoreCase(c.getCriterioTipo()))
+                ? shareTokenRepository.countByUser(user)
+                : 0L;
+
         List<ConquistaDesbloqueadaDTO> novas = new ArrayList<>();
-
-        // Coleta contadores uma única vez
-        List<Object[]> porTipo   = itemRepository.countItensPorTipo(user.getId());
-        List<Object[]> porStatus = itemRepository.countItensPorStatus(user.getId());
-        List<Object[]> porNota   = itemRepository.countItensPorNota(user.getId());
-
-        Map<String, Long> countTipo   = toMap(porTipo);
-        Map<String, Long> countStatus = toMap(porStatus);
-        Map<Double, Long> countNota   = toMapDouble(porNota);
-
-        long totalItens = countTipo.values().stream().mapToLong(Long::longValue).sum();
-        long totalConcluidos = countStatus.getOrDefault("Zerado / Assistido", 0L)
-                             + countStatus.getOrDefault("concluido", 0L)
-                             + countStatus.getOrDefault("Zerado", 0L)
-                             + countStatus.getOrDefault("Assistido", 0L);
-        long totalDropados = countStatus.getOrDefault("Dropado", 0L)
-                           + countStatus.getOrDefault("dropado", 0L);
-
-        long jogosZerados     = concluidosDeTipo(user, "Jogo");
-        long filmesAssistidos = concluidosDeTipo(user, "Filme");
-        long seriesAssistidas = concluidosDeTipo(user, "Série");
-        long nota10Total      = countNota.getOrDefault(10.0, 0L);
-        long filmeNota10      = itemRepository.countByUserAndTipoAndNota(user, "Filme", 10.0);
-        long jogosNota10      = itemRepository.countByUserAndTipoAndNota(user, "Jogo",  10.0);
-
-        // Detecta TMDB: itens deste usuário com URL do themoviedb.org
-        long itensComCapaTmdb = itemRepository.findByUser(user).stream()
-            .filter(item -> item.getImagemUrl() != null && item.getImagemUrl().contains("themoviedb.org"))
-            .count();
-
-        // Detecta share link: quantos tokens este usuário já gerou
-        long shareLinksGerados = shareTokenRepository.findByUser(user).size();
-
-        // Minutos assistidos de filmes concluídos (para conquistas HORAS_FILMES)
-        long minutosFilmesAssistidos = itemRepository.sumDuracaoMinutosByUserAndTipoAndStatusIn(
-            user, "Filme",
-            List.of("Zerado / Assistido", "concluido", "Zerado", "Assistido")
-        );
-
-        // Minutos jogados somando TODOS os jogos cadastrados (para conquistas HORAS_JOGOS_TOTAL)
-        long minutosJogosTotal = itemRepository.sumMinutosJogadosByUserAndTipo(user, "Jogo");
-
-        // Maior quantidade de minutos jogados em um único jogo (para conquistas HORAS_JOGO_UNICO)
-        long minutosJogoUnicoMax = itemRepository.maxMinutosJogadosByUserAndTipo(user, "Jogo");
-
-        // Minutos assistidos de séries concluídas (para conquistas HORAS_SERIES)
-        long minutosSeriesAssistidas = itemRepository.sumDuracaoTotalMinutosByUserAndTipoAndStatusIn(
-            user, "Série",
-            List.of("Zerado / Assistido", "concluido", "Zerado", "Assistido")
-        );
-
-        // Soma de episódios de TODAS as séries cadastradas (para conquistas EPISODIOS_TOTAL)
-        long episodiosTotal = itemRepository.sumEpisodiosByUserAndTipo(user, "Série");
-
-        // Maior quantidade de episódios em uma única série (para conquistas EPISODIOS_SERIE_UNICA)
-        long episodiosSerieUnicaMax = itemRepository.maxEpisodiosByUserAndTipo(user, "Série");
-
-        // Itera TODAS as conquistas (fixas + criadas pelo admin)
-        for (Conquista c : conquistaRepository.findAll()) {
-            if (userConquistaRepository.existsByUserAndConquista_Chave(user, c.getChave())) {
-                continue; // já possui
-            }
-
-            String tipo = c.getCriterioTipo();
-            if (tipo == null || tipo.equalsIgnoreCase("MANUAL")) continue;
-
-            // AI_USADA é detectada no ponto de disparo (desbloquearEvento),
-            // não aqui — pois não temos como consultar o histórico de uso da IA no banco.
-            if (tipo.equalsIgnoreCase("AI_USADA")) continue;
-
+        for (Conquista c : pendentes) {
             int limiar = c.getCriterioValor() != null ? c.getCriterioValor() : 1;
 
-            boolean atende = switch (tipo.toUpperCase()) {
-                case "TOTAL_ITENS"       -> totalItens        >= limiar;
-                case "TOTAL_CONCLUIDOS"  -> totalConcluidos   >= limiar;
-                case "TOTAL_DROPADOS"    -> totalDropados      >= limiar;
-                case "JOGOS_ZERADOS"     -> jogosZerados       >= limiar;
-                case "FILMES_ASSISTIDOS" -> filmesAssistidos   >= limiar;
-                case "SERIES_ASSISTIDAS" -> seriesAssistidas   >= limiar;
-                case "NOTA10_FILMES"     -> filmeNota10        >= limiar;
-                case "NOTA10_JOGOS"      -> jogosNota10        >= limiar;
-                case "NOTA10_TOTAL"      -> nota10Total        >= limiar;
-                case "TMDB_CAPA"         -> itensComCapaTmdb   >= limiar;
-                case "SHARE_LINK_CRIADO" -> shareLinksGerados  >= limiar;
-                case "HORAS_FILMES"      -> minutosFilmesAssistidos >= limiar;
-                case "HORAS_JOGOS_TOTAL" -> minutosJogosTotal       >= limiar;
-                case "HORAS_JOGO_UNICO"  -> minutosJogoUnicoMax     >= limiar;
-                case "HORAS_SERIES"      -> minutosSeriesAssistidas >= limiar;
-                case "EPISODIOS_TOTAL"       -> episodiosTotal        >= limiar;
-                case "EPISODIOS_SERIE_UNICA" -> episodiosSerieUnicaMax >= limiar;
+            boolean atende = switch (c.getCriterioTipo().toUpperCase()) {
+                case "TOTAL_ITENS"       -> stats.totalItens()        >= limiar;
+                case "TOTAL_CONCLUIDOS"  -> stats.totalConcluidos()   >= limiar;
+                case "TOTAL_DROPADOS"    -> stats.totalDropados()     >= limiar;
+                case "JOGOS_ZERADOS"     -> stats.jogosZerados()      >= limiar;
+                case "FILMES_ASSISTIDOS" -> stats.filmesAssistidos()  >= limiar;
+                case "SERIES_ASSISTIDAS" -> stats.seriesAssistidas()  >= limiar;
+                case "NOTA10_FILMES"     -> stats.filmesNota10()      >= limiar;
+                case "NOTA10_JOGOS"      -> stats.jogosNota10()       >= limiar;
+                case "NOTA10_TOTAL"      -> stats.nota10Total()       >= limiar;
+                case "TMDB_CAPA"         -> stats.itensComCapaTmdb()  >= limiar;
+                case "SHARE_LINK_CRIADO" -> shareLinksGerados         >= limiar;
+                case "HORAS_FILMES"      -> stats.minutosFilmesAssistidos() >= limiar;
+                case "HORAS_JOGOS_TOTAL" -> stats.minutosJogosTotal()       >= limiar;
+                case "HORAS_JOGO_UNICO"  -> stats.minutosJogoUnicoMax()     >= limiar;
+                case "HORAS_SERIES"      -> stats.minutosSeriesAssistidas() >= limiar;
+                case "EPISODIOS_TOTAL"       -> stats.episodiosTotal()        >= limiar;
+                case "EPISODIOS_SERIE_UNICA" -> stats.episodiosSerieUnicaMax() >= limiar;
                 default                  -> false;
             };
 
@@ -284,6 +267,13 @@ public class ConquistaService {
         }
 
         return novas;
+    }
+
+    private EstatisticasConquistaDTO carregarEstatisticas(User user) {
+        List<Object[]> linhas = itemRepository.agregarEstatisticasConquistas(
+                user.getId(), STATUS_CONCLUIDOS, STATUS_DROPADOS, TIPO_JOGO, TIPO_FILME, TIPO_SERIE);
+        
+        return EstatisticasConquistaDTO.de(linhas.get(0));
     }
 
     /*
@@ -339,21 +329,6 @@ public class ConquistaService {
     private void registrarDesbloqueio(User user, Conquista c, List<ConquistaDesbloqueadaDTO> novas) {
         userConquistaRepository.save(new UserConquista(user, c));
         novas.add(new ConquistaDesbloqueadaDTO(c.getChave(), c.getNome(), c.getDescricao(), c.getIcone(), c.getXp()));
-    }
-
-    private Map<String, Long> toMap(List<Object[]> rows) {
-        return rows.stream().collect(Collectors.toMap(r -> (String) r[0], r -> (Long) r[1]));
-    }
-
-    private Map<Double, Long> toMapDouble(List<Object[]> rows) {
-        return rows.stream().collect(Collectors.toMap(r -> (Double) r[0], r -> (Long) r[1]));
-    }
-
-    private long concluidosDeTipo(User user, String tipo) {
-        return itemRepository.countByUserAndTipoAndStatusIn(
-            user, tipo,
-            List.of("Zerado / Assistido", "concluido", "Zerado", "Assistido")
-        );
     }
 
     // --- XP e Nível ---
