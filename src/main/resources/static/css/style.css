@@ -272,6 +272,8 @@ main {
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
+    max-width: 1780px;
+    margin: 0 auto;
 }
 
 .card {

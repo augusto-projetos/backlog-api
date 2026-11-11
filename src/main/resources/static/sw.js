@@ -12,7 +12,7 @@
  *   para não servir dados desatualizados nem quebrar CSRF/sessão.
  */
 
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const CACHE_NAME = `backlog-shell-${CACHE_VERSION}`;
 
 const APP_SHELL = [

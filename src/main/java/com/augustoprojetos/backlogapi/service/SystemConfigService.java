@@ -20,23 +20,27 @@ public class SystemConfigService {
     public static final String MODO_READONLY     = "MODO_READONLY";
     public static final String NOVIDADES         = "NOVIDADES";
 
+    // Tempo máximo que uma leitura pode ficar desatualizada (só importa se o banco for alterado por fora da aplicação)
+    private static final long VALIDADE_CACHE_MS = 5_000;
+
     @Autowired
     private SystemConfigRepository repository;
+
+    private final Object trava = new Object();
+    private volatile Map<String, String> cache = Map.of();
+    private volatile long carregadoEm = 0L;
 
     public List<SystemConfig> listarTodas() {
         return repository.findAll();
     }
 
     public Map<String, String> mapaConfigs() {
-        Map<String, String> mapa = new HashMap<>();
-        repository.findAll().forEach(c -> mapa.put(c.getChave(), c.getValor()));
-        return mapa;
+        return new HashMap<>(configs());
     }
 
     public String get(String chave) {
-        return repository.findById(chave)
-                .map(SystemConfig::getValor)
-                .orElse("false");
+        String valor = configs().get(chave);
+        return valor != null ? valor : "false";
     }
 
     public boolean isAtivo(String chave) {
@@ -70,10 +74,35 @@ public class SystemConfigService {
         config.setValor(valor);
         config.setAtualizadoEm(LocalDateTime.now());
         repository.save(config);
+        invalidarCache();
     }
 
     public void toggle(String chave) {
+        invalidarCache();
         boolean atual = isAtivo(chave);
         setValor(chave, atual ? "false" : "true");
+    }
+
+    // --- Cache ---
+
+    private Map<String, String> configs() {
+        long agora = System.currentTimeMillis();
+        if (agora - carregadoEm < VALIDADE_CACHE_MS) {
+            return cache;
+        }
+        synchronized (trava) {
+            if (System.currentTimeMillis() - carregadoEm < VALIDADE_CACHE_MS) {
+                return cache;
+            }
+            Map<String, String> recarregado = new HashMap<>();
+            repository.findAll().forEach(c -> recarregado.put(c.getChave(), c.getValor()));
+            cache = Map.copyOf(recarregado);
+            carregadoEm = System.currentTimeMillis();
+            return cache;
+        }
+    }
+
+    private void invalidarCache() {
+        carregadoEm = 0L;
     }
 }
