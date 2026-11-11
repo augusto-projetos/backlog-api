@@ -9,6 +9,9 @@ import com.augustoprojetos.backlogapi.repository.AtividadeLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,6 +22,8 @@ import java.util.UUID;
 
 @Service
 public class AtividadeLogService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AtividadeLogService.class);
 
     @Autowired
     private AtividadeLogRepository repository;
@@ -331,13 +336,17 @@ public class AtividadeLogService {
         salvar(log, null);
     }
 
-    private void salvar(AtividadeLog log, String grupoId) {
+    private void salvar(AtividadeLog atividade, String grupoId) {
         try {
-            log.setGrupoId(grupoId);
-            repository.save(log);
-        } catch (Exception e) {
-            // Log silencioso - nunca deixa a ação principal falhar por causa do log
-            System.err.println("[AtividadeLog] Erro ao salvar log: " + e.getMessage());
+            atividade.setGrupoId(grupoId);
+            repository.save(atividade);
+        } catch (RuntimeException e) {
+            
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                throw e;
+            }
+            
+            LOG.error("Erro ao salvar log de atividade: {}", e.getMessage(), e);
         }
     }
 

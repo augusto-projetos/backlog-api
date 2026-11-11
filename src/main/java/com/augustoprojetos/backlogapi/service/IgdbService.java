@@ -2,6 +2,8 @@ package com.augustoprojetos.backlogapi.service;
 
 import com.augustoprojetos.backlogapi.dto.igdb.IgdbGameResponse;
 import com.augustoprojetos.backlogapi.dto.tmdb.TmdbMovie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,8 +21,15 @@ public class IgdbService {
     @Value("${igdb.auth-token}")
     private String authToken;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final String API_URL = "https://api.igdb.com/v4/games";
+    private static final Logger log = LoggerFactory.getLogger(IgdbService.class);
+    private static final String API_URL = "https://api.igdb.com/v4/games";
+
+    // RestTemplate compartilhado (com timeouts) definido em HttpClientConfig
+    private final RestTemplate restTemplate;
+
+    public IgdbService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public List<TmdbMovie> buscarJogos(String query) {
         List<TmdbMovie> resultados = new ArrayList<>();
@@ -31,7 +40,10 @@ public class IgdbService {
             headers.setContentType(MediaType.TEXT_PLAIN);
 
             // Corpo de busca com a sintaxe oficial APICalypse da IGDB
-            String body = "search \"" + query + "\"; fields name, cover.url, first_release_date; limit 10;";
+            // Escapa \ e " do texto digitado: sem isso o usuário conseguia fechar a string e injetar
+            // comandos na consulta APICalypse (ex.: alterar o limit ou os campos).
+            String buscaSegura = query.replace("\\", "\\\\").replace("\"", "\\\"");
+            String body = "search \"" + buscaSegura + "\"; fields name, cover.url, first_release_date; limit 10;";
 
             HttpEntity<String> entity = new HttpEntity<>(body, headers);
             ResponseEntity<String> responseEntity = restTemplate.exchange(
@@ -75,7 +87,7 @@ public class IgdbService {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[IGDB EXCEÇÃO]: " + e.getMessage());
+            log.warn("[IGDB] Falha na busca: {}", e.getMessage());
         }
         return resultados;
     }

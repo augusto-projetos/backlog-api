@@ -295,6 +295,34 @@ function definirBotaoSalvarOcupado(ocupado) {
     }
 }
 
+// Lê um <input> numérico do formulário. Devolve null se o campo não existe, está vazio
+// ou se o tipo atual do item não é aquele em que o campo vale (ex.: minutos jogados só para Jogo).
+function lerInteiroDoCampo(idCampo, tipoAtual, tipoEsperado) {
+    const campo = document.getElementById(idCampo);
+    if (tipoAtual !== tipoEsperado || !campo || campo.value === '') return null;
+    return parseInt(campo.value, 10);
+}
+
+// Monta o corpo enviado ao servidor a partir do formulário (cadastro e edição usam o mesmo).
+function montarDadosDoFormulario() {
+    const tipo = document.getElementById('tipo').value;
+    const campoImagem = document.getElementById('imagemUrl');
+
+    return {
+        titulo: document.getElementById('titulo').value,
+        tipo: tipo,
+        status: document.getElementById('status').value,
+        nota: parseFloat(document.getElementById('nota').value),
+        resenha: document.getElementById('resenha').value,
+        imagemUrl: campoImagem ? campoImagem.value : "",
+        minutosJogados: lerInteiroDoCampo('minutosJogados', tipo, 'Jogo'),
+        duracaoMinutos: lerInteiroDoCampo('duracaoMinutos', tipo, 'Filme'),
+        temporadaAtual: lerInteiroDoCampo('temporadaAtual', tipo, 'Série'),
+        episodioAtual: lerInteiroDoCampo('episodioAtual', tipo, 'Série'),
+        duracaoTotalMinutos: lerInteiroDoCampo('duracaoTotalMinutos', tipo, 'Série')
+    };
+}
+
 // Serve tanto para Criar quanto para Editar
 async function salvarItem(event) {
     event.preventDefault();
@@ -302,53 +330,7 @@ async function salvarItem(event) {
     // Já tem um envio em andamento (duplo clique, Enter repetido, toque duplo no celular...): ignora
     if (salvandoItem) return;
 
-    // Pega os valores
-    const titulo = document.getElementById('titulo').value;
-    const tipo = document.getElementById('tipo').value;
-    const status = document.getElementById('status').value;
-    const nota = document.getElementById('nota').value;
-    const resenha = document.getElementById('resenha').value;
-    const campoImagem = document.getElementById('imagemUrl');
-    const imagemUrl = campoImagem ? campoImagem.value : "";
-
-    const campoMinutosJogados = document.getElementById('minutosJogados');
-    const minutosJogados = (tipo === 'Jogo' && campoMinutosJogados && campoMinutosJogados.value !== '')
-        ? parseInt(campoMinutosJogados.value, 10)
-        : null;
-
-    const campoDuracaoFilme = document.getElementById('duracaoMinutos');
-    const duracaoMinutos = (tipo === 'Filme' && campoDuracaoFilme && campoDuracaoFilme.value !== '')
-        ? parseInt(campoDuracaoFilme.value, 10)
-        : null;
-
-    const campoTemporada = document.getElementById('temporadaAtual');
-    const temporadaAtual = (tipo === 'Série' && campoTemporada && campoTemporada.value !== '')
-        ? parseInt(campoTemporada.value, 10)
-        : null;
-
-    const campoEpisodio = document.getElementById('episodioAtual');
-    const episodioAtual = (tipo === 'Série' && campoEpisodio && campoEpisodio.value !== '')
-        ? parseInt(campoEpisodio.value, 10)
-        : null;
-
-    const campoDuracaoSerie = document.getElementById('duracaoTotalMinutos');
-    const duracaoTotalMinutos = (tipo === 'Série' && campoDuracaoSerie && campoDuracaoSerie.value !== '')
-        ? parseInt(campoDuracaoSerie.value, 10)
-        : null;
-
-    const dados = {
-        titulo: titulo,
-        tipo: tipo,
-        status: status,
-        nota: parseFloat(nota),
-        resenha: resenha,
-        imagemUrl: imagemUrl,
-        minutosJogados: minutosJogados,
-        duracaoMinutos: duracaoMinutos,
-        temporadaAtual: temporadaAtual,
-        episodioAtual: episodioAtual,
-        duracaoTotalMinutos: duracaoTotalMinutos
-    };
+    const dados = montarDadosDoFormulario();
 
     // Trava o formulário até o servidor responder. Em caso de sucesso ele continua travado,
     // porque logo em seguida a página redireciona para a home.
@@ -410,7 +392,7 @@ async function salvarItem(event) {
             // Transforma o JSON {"titulo": "erro", "nota": "erro"} em texto HTML
             let mensagemErro = '<ul style="text-align: left;">';
             for (const campo in erros) {
-                mensagemErro += `<li><b>${campo}:</b> ${erros[campo]}</li>`;
+                mensagemErro += `<li><b>${escaparHtml(campo)}:</b> ${escaparHtml(String(erros[campo]))}</li>`;
             }
             mensagemErro += '</ul>';
 
@@ -1599,36 +1581,27 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- CAPTURADOR GLOBAL DE MODO LEITURA PARA O FETCH ---
 const originalFetch = window.fetch;
 window.fetch = async function(...args) {
-    try {
-        const response = await originalFetch(...args);
+    const response = await originalFetch(...args);
 
-        // Se o servidor responder com o status 423 (Locked) que configuramos no Java
-        if (response.status === 423) {
-            const data = await response.json();
+    // Se o servidor responder com o status 423 (Locked) que configuramos no Java
+    if (response.status === 423) {
+        const data = await response.json();
 
-            // Dispara o SweetAlert amigável na tela do usuário comum!
-            Swal.fire({
-                icon: 'info',
-                title: '📖 Modo Somente-Leitura',
-                text: data.erro || 'O sistema está temporariamente em manutenção. Criações e edições estão suspensas por alguns instantes.',
-                confirmButtonColor: '#7c3aed',
-                background: '#161620',
-                color: '#f1f1f5'
-            });
+        // Dispara o SweetAlert amigável na tela do usuário comum!
+        Swal.fire({
+            icon: 'info',
+            title: '📖 Modo Somente-Leitura',
+            text: data.erro || 'O sistema está temporariamente em manutenção. Criações e edições estão suspensas por alguns instantes.',
+            confirmButtonColor: '#7c3aed',
+            background: '#161620',
+            color: '#f1f1f5'
+        });
 
-            // Interrompe o fluxo lançando um erro controlado para não quebrar o resto do js
-            throw new Error("Sistema em Modo Somente-Leitura.");
-        }
-
-        return response;
-    } catch (error) {
-        // Se for o nosso erro do Modo Leitura, não exibe a mensagem de queda de servidor
-        if (error.message === "Sistema em Modo Somente-Leitura.") {
-            throw error;
-        }
-        // Repassa os outros erros normais para o catch original da função
-        throw error;
+        // Interrompe o fluxo lançando um erro controlado para não quebrar o resto do js
+        throw new Error("Sistema em Modo Somente-Leitura.");
     }
+
+    return response;
 };
 
 // --- LÓGICA DO ANÚNCIO DE SISTEMA (5s) ---

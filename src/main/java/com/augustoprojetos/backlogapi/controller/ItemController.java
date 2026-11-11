@@ -1,57 +1,39 @@
 package com.augustoprojetos.backlogapi.controller;
 
-import com.augustoprojetos.backlogapi.dto.ConquistaDesbloqueadaDTO;
-import com.augustoprojetos.backlogapi.service.AtividadeLogService;
-import com.augustoprojetos.backlogapi.service.ConquistaService;
-import com.augustoprojetos.backlogapi.service.IgdbService;
-import com.augustoprojetos.backlogapi.service.TmdbService;
-import org.springframework.ui.Model;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import com.augustoprojetos.backlogapi.entity.User;
+import com.augustoprojetos.backlogapi.dto.AtualizacaoDuracaoDTO;
+import com.augustoprojetos.backlogapi.dto.ItemRequest;
 import com.augustoprojetos.backlogapi.entity.Item;
-import com.augustoprojetos.backlogapi.repository.ItemRepository;
+import com.augustoprojetos.backlogapi.entity.User;
+import com.augustoprojetos.backlogapi.service.IgdbService;
+import com.augustoprojetos.backlogapi.service.ItemService;
+import com.augustoprojetos.backlogapi.service.ItemService.ResultadoItem;
+import com.augustoprojetos.backlogapi.service.ItemService.ResultadoLote;
+import com.augustoprojetos.backlogapi.service.TmdbService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Controller
 public class ItemController {
 
-    private static final Logger log = LoggerFactory.getLogger(ItemController.class);
+    private final ItemService itemService;
+    private final TmdbService tmdbService;
+    private final IgdbService igdbService;
 
-    // Formato aceito para a chave de idempotência (UUID ou similar): evita lixo/valores gigantes no banco
-    private static final Pattern CHAVE_IDEMPOTENCIA_VALIDA = Pattern.compile("^[A-Za-z0-9_-]{8,64}$");
-
-    @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
-    private TmdbService tmdbService;
-
-    @Autowired
-    private IgdbService igdbService;
-
-    @Autowired
-    private ConquistaService conquistaService;
-
-    @Autowired
-    private AtividadeLogService atividadeLogService;
+    public ItemController(ItemService itemService, TmdbService tmdbService, IgdbService igdbService) {
+        this.itemService = itemService;
+        this.tmdbService = tmdbService;
+        this.igdbService = igdbService;
+    }
 
     // --- ROTAS DE PÁGINAS (VIEW) ---
 
@@ -60,12 +42,7 @@ public class ItemController {
 
     @GetMapping("/home")
     public String home(Model model, @AuthenticationPrincipal User userLogado) {
-        if (userLogado != null) {
-            model.addAttribute("nomeUsuario", userLogado.getLogin());
-        } else {
-            model.addAttribute("nomeUsuario", "Visitante");
-        }
-
+        adicionarNomeUsuario(model, userLogado);
         return "home";
     }
 
@@ -74,13 +51,12 @@ public class ItemController {
 
     @GetMapping("/creditos")
     public String exibirCreditos(Model model, @AuthenticationPrincipal User userLogado) {
-        if (userLogado != null) {
-            model.addAttribute("nomeUsuario", userLogado.getLogin());
-        } else {
-            model.addAttribute("nomeUsuario", "Visitante");
-        }
-
+        adicionarNomeUsuario(model, userLogado);
         return "creditos";
+    }
+
+    private void adicionarNomeUsuario(Model model, User userLogado) {
+        model.addAttribute("nomeUsuario", userLogado != null ? userLogado.getLogin() : "Visitante");
     }
 
     // --- ROTAS DA API (JSON) COM SEGURANÇA ---
@@ -89,62 +65,19 @@ public class ItemController {
     @PostMapping("/itens")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cadastrar(
-            @RequestBody @Valid Item item,
+            @RequestBody @Valid ItemRequest requisicao,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @AuthenticationPrincipal User userLogado) {
 
-        // Idempotência: se essa mesma requisição já foi processada (duplo clique, retry de
-        // rede/proxy, aba duplicada), devolvemos o item que já existe.
-        String chave = normalizarChaveIdempotencia(idempotencyKey);
-        if (chave != null) {
-            Optional<Item> jaCadastrado = itemRepository.findByUserAndClientRequestId(userLogado, chave);
-            if (jaCadastrado.isPresent()) {
-                log.info("Cadastro repetido ignorado (usuário {}, chave {})", userLogado.getId(), chave);
-                return respostaCadastroRepetido(jaCadastrado.get());
-            }
-        }
-
-        item.setUser(userLogado);
-        item.setClientRequestId(chave);
-        limparProgressoSerieSeBacklog(item);
-
-        Item salvo;
-        try {
-            salvo = itemRepository.save(item);
-        } catch (DataIntegrityViolationException e) {
-            // Duas requisições com a mesma chave chegaram ao mesmo tempo: a outra gravou primeiro
-            // e o índice único barrou esta.
-            Optional<Item> venceuCorrida = chave != null
-                    ? itemRepository.findByUserAndClientRequestId(userLogado, chave)
-                    : Optional.empty();
-            if (venceuCorrida.isPresent()) {
-                log.info("Cadastro concorrente ignorado (usuário {}, chave {})", userLogado.getId(), chave);
-                return respostaCadastroRepetido(venceuCorrida.get());
-            }
-            throw e;
-        }
-
-        // Todo evento gerado por essa mesma requisição compartilha o grupoId.
-        String grupoId = atividadeLogService.novoGrupo();
-        atividadeLogService.registrarItemAdicionado(userLogado, salvo, grupoId);
-
-        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasSeguro(userLogado);
-
-        // Registra conquistas desbloqueadas na timeline
-        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
-                userLogado, c.nome(), c.icone(), grupoId));
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("item", salvo);
-        response.put("conquistasDesbloqueadas", novas);
-        return ResponseEntity.ok(response);
+        ResultadoItem resultado = itemService.cadastrar(requisicao, idempotencyKey, userLogado);
+        return ResponseEntity.ok(respostaItem(resultado));
     }
 
     // 2. LISTAR
     @GetMapping("/itens")
     @ResponseBody
     public List<Item> listar(@AuthenticationPrincipal User userLogado) {
-        return itemRepository.findByUser(userLogado);
+        return itemService.listar(userLogado);
     }
 
     // 3. EDITAR
@@ -152,136 +85,47 @@ public class ItemController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> atualizar(
             @PathVariable Long id,
-            @RequestBody @Valid Item itemAtualizado,
+            @RequestBody @Valid ItemRequest requisicao,
             @AuthenticationPrincipal User userLogado) {
 
-        // Carrega o item anterior para comparar campos
-        Item anterior = itemRepository.findById(id).orElse(null);
+        ResultadoItem resultado = itemService.atualizar(id, requisicao, userLogado);
 
-        // Item inexistente: evita criar um registro "fantasma" com ID manual.
-        if (anterior == null) {
+        if (resultado.status() == ItemService.Status.NAO_ENCONTRADO) {
             return ResponseEntity.notFound().build();
         }
-
-        // Verifica se o item pertence ao usuário logado
-        if (!anterior.getUser().getId().equals(userLogado.getId())) {
-            return ResponseEntity.status(403).body(Map.of("erro", "Acesso negado."));
+        if (!resultado.sucesso()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Acesso negado."));
         }
-
-        itemAtualizado.setId(id);
-        itemAtualizado.setUser(userLogado);
-        // O corpo da edição não carrega a chave de idempotência; preserva a do cadastro original.
-        itemAtualizado.setClientRequestId(anterior.getClientRequestId());
-        limparProgressoSerieSeBacklog(itemAtualizado);
-
-        Item salvo = itemRepository.save(itemAtualizado);
-
-        // Todo evento disparado por essa edição usa o mesmo grupoId.
-        String grupoId = atividadeLogService.novoGrupo();
-
-        // Detecta o que mudou e registra o evento mais específico de cada coisa
-        boolean statusMudou = !igual(anterior.getStatus(), salvo.getStatus());
-        boolean notaMudou   = !igual(anterior.getNota(), salvo.getNota());
-        boolean resenhaMudou = !igual(anterior.getResenha(), salvo.getResenha());
-        boolean duracaoMudou = !igual(anterior.getDuracaoMinutos(), salvo.getDuracaoMinutos())
-                || !igual(anterior.getMinutosJogados(), salvo.getMinutosJogados())
-                || !igual(anterior.getDuracaoTotalMinutos(), salvo.getDuracaoTotalMinutos());
-        boolean progressoMudou = (!igual(anterior.getTemporadaAtual(), salvo.getTemporadaAtual())
-                || !igual(anterior.getEpisodioAtual(), salvo.getEpisodioAtual()))
-                && !"Backlog".equalsIgnoreCase(salvo.getStatus());
-
-        if (statusMudou) {
-            atividadeLogService.registrarStatusAlterado(userLogado, salvo, anterior.getStatus(), grupoId);
-        }
-        if (notaMudou) {
-            atividadeLogService.registrarNotaAlterada(userLogado, salvo, anterior.getNota(), grupoId);
-        }
-        if (resenhaMudou) {
-            boolean resenhaEraVazia = anterior.getResenha() == null || anterior.getResenha().isBlank();
-            if (resenhaEraVazia && salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
-                atividadeLogService.registrarResenhaAdicionada(userLogado, salvo, grupoId);
-            } else if (salvo.getResenha() != null && !salvo.getResenha().isBlank()) {
-                atividadeLogService.registrarResenhaEditada(userLogado, salvo, grupoId);
-            }
-        }
-        if (duracaoMudou) {
-            atividadeLogService.registrarDuracaoAlterada(userLogado, salvo, formatarDetalheDuracao(anterior, salvo), grupoId);
-        }
-        if (progressoMudou) {
-            atividadeLogService.registrarProgressoSerieAtualizado(
-                    userLogado, salvo, anterior.getTemporadaAtual(), anterior.getEpisodioAtual(), grupoId);
-        }
-
-        // Campos "genéricos" que não têm um evento dedicado (título, capa, tipo)
-        List<String> camposAlterados = new ArrayList<>();
-        if (!igual(anterior.getTitulo(), salvo.getTitulo())) camposAlterados.add("Título");
-        if (!igual(anterior.getImagemUrl(), salvo.getImagemUrl())) camposAlterados.add("Capa");
-        if (!igual(anterior.getTipo(), salvo.getTipo())) camposAlterados.add("Tipo");
-
-        boolean algumEventoEspecificoRegistrado = statusMudou || notaMudou || resenhaMudou || duracaoMudou || progressoMudou;
-
-        if (!camposAlterados.isEmpty()) {
-            // Vai como mais um evento dentro do mesmo grupo.
-            atividadeLogService.registrarItemEditado(userLogado, salvo, camposAlterados, grupoId);
-        } else if (!algumEventoEspecificoRegistrado) {
-            // Nada que a gente rastreia mudou de fato, mantemos um rastro genérico.
-            atividadeLogService.registrarItemEditado(userLogado, salvo, grupoId);
-        }
-
-        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasSeguro(userLogado);
-
-        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
-                userLogado, c.nome(), c.icone(), grupoId));
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("item", salvo);
-        response.put("conquistasDesbloqueadas", novas);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(respostaItem(resultado));
     }
 
     // 4. DELETAR
     @DeleteMapping("/itens/{id}")
     @ResponseBody
-    public void deletar(@PathVariable Long id,
-                        @AuthenticationPrincipal User userLogado) {
-        Item item = itemRepository.findById(id).orElse(null);
-        if (item != null) {
-            // Verifica se o item pertence ao usuário logado
-            if (userLogado != null && !item.getUser().getId().equals(userLogado.getId())) {
-                return;
-            }
-            if (userLogado != null) {
-                atividadeLogService.registrarItemRemovido(userLogado, item);
-            }
-            itemRepository.deleteById(id);
-        }
+    public void deletar(@PathVariable Long id, @AuthenticationPrincipal User userLogado) {
+        itemService.deletar(id, userLogado);
     }
 
     // 5. BUSCAR UM
     @GetMapping("/itens/{id}")
     @ResponseBody
-    public ResponseEntity<?> buscarPorId(@PathVariable Long id,
-                                          @AuthenticationPrincipal User userLogado) {
-        Item item = itemRepository.findById(id).orElse(null);
-        if (item == null) {
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id, @AuthenticationPrincipal User userLogado) {
+        Optional<Item> item = itemService.buscarPorId(id);
+        if (item.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        // Verifica se o item pertence ao usuário logado
-        if (userLogado == null || !item.getUser().getId().equals(userLogado.getId())) {
-            return ResponseEntity.status(403).body(Map.of("erro", "Acesso negado."));
+        if (!itemService.pertenceA(item.get(), userLogado)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Acesso negado."));
         }
-        return ResponseEntity.ok(item);
+        return ResponseEntity.ok(item.get());
     }
 
     // 6. BUSCAR CAPA
     @GetMapping("/api/buscar-capa")
     @ResponseBody
-    public List<?> buscarCapa(
-        @RequestParam String query,
-        @RequestParam(required = false) String tipo) {
-
-        // Se for jogo, chama o serviço IGDB
-        if (tipo != null && "Jogo".equalsIgnoreCase(tipo)) {
+    public List<?> buscarCapa(@RequestParam String query, @RequestParam(required = false) String tipo) {
+        // Jogo → IGDB; Filme ou Série → TMDB
+        if ("Jogo".equalsIgnoreCase(tipo)) {
             return igdbService.buscarJogos(query);
         }
 
@@ -293,9 +137,7 @@ public class ItemController {
     @GetMapping("/itens/filmes-sem-duracao")
     @ResponseBody
     public List<Item> listarFilmesSemDuracao(@AuthenticationPrincipal User userLogado) {
-        return itemRepository.findByUser(userLogado).stream()
-                .filter(i -> "Filme".equalsIgnoreCase(i.getTipo()) && i.getDuracaoMinutos() == null)
-                .collect(Collectors.toList());
+        return itemService.listarFilmesSemDuracao(userLogado);
     }
 
     // 8. BUSCAR SUGESTÕES DE DURAÇÃO NO TMDB
@@ -304,88 +146,21 @@ public class ItemController {
     public List<Map<String, Object>> buscarSugestoesDuracao(
             @RequestBody List<Long> ids,
             @AuthenticationPrincipal User userLogado) {
-
-        List<Item> itens = itemRepository.findAllById(ids).stream()
-                .filter(i -> i.getUser().getId().equals(userLogado.getId()))
-                .filter(i -> "Filme".equalsIgnoreCase(i.getTipo()))
-                .collect(Collectors.toList());
-
-        // Busca cada filme em paralelo pra não demorar uma eternidade em acervos grandes
-        List<CompletableFuture<Map<String, Object>>> buscas = itens.stream()
-                .map(item -> CompletableFuture.supplyAsync(() -> {
-                    Integer minutosSugeridos = null;
-                    try {
-                        minutosSugeridos = tmdbService.buscarDuracaoFilme(item.getTitulo());
-                    } catch (Exception ignored) {
-                        // Falha silenciosa: item fica sem sugestão, usuário preenche na mão
-                    }
-                    Map<String, Object> resultado = new HashMap<>();
-                    resultado.put("id", item.getId());
-                    resultado.put("titulo", item.getTitulo());
-                    resultado.put("minutosSugeridos", minutosSugeridos);
-                    return resultado;
-                }))
-                .collect(Collectors.toList());
-
-        return java.util.stream.IntStream.range(0, buscas.size())
-                .mapToObj(i -> {
-                    try {
-                        return buscas.get(i).get(8, TimeUnit.SECONDS);
-                    } catch (Exception e) {
-                        // Mesmo em caso de timeout/erro, devolve "id" e "titulo"
-                        Item item = itens.get(i);
-                        Map<String, Object> semSugestao = new HashMap<>();
-                        semSugestao.put("id", item.getId());
-                        semSugestao.put("titulo", item.getTitulo());
-                        semSugestao.put("minutosSugeridos", null);
-                        return semSugestao;
-                    }
-                })
-                .collect(Collectors.toList());
+        return itemService.sugerirDuracoes(ids, userLogado);
     }
 
     // 9. SALVAR EM LOTE APENAS OS FILMES QUE O USUÁRIO SELECIONOU/CONFIRMOU
-    public static class AtualizacaoDuracaoDTO {
-        private Long id;
-        private Integer duracaoMinutos;
-
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-        public Integer getDuracaoMinutos() { return duracaoMinutos; }
-        public void setDuracaoMinutos(Integer duracaoMinutos) { this.duracaoMinutos = duracaoMinutos; }
-    }
-
     @PutMapping("/itens/duracao-lote")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> salvarDuracaoLote(
             @RequestBody List<AtualizacaoDuracaoDTO> atualizacoes,
             @AuthenticationPrincipal User userLogado) {
 
-        int atualizados = 0;
-        for (AtualizacaoDuracaoDTO dto : atualizacoes) {
-            Item item = itemRepository.findById(dto.getId()).orElse(null);
-            if (item != null
-                    && item.getUser().getId().equals(userLogado.getId())
-                    && "Filme".equalsIgnoreCase(item.getTipo())
-                    && dto.getDuracaoMinutos() != null
-                    && dto.getDuracaoMinutos() >= 0) {
-                item.setDuracaoMinutos(dto.getDuracaoMinutos());
-                itemRepository.save(item);
-                atualizados++;
-            }
-        }
+        ResultadoLote resultado = itemService.salvarDuracaoLote(atualizacoes, userLogado);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("atualizados", atualizados);
-
-        atividadeLogService.registrarDuracaoLoteAtualizada(userLogado, atualizados);
-
-        List<ConquistaDesbloqueadaDTO> novas = atualizados > 0
-                ? verificarConquistasSeguro(userLogado)
-                : List.of();
-        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(userLogado, c.nome(), c.icone()));
-        response.put("conquistasDesbloqueadas", novas);
-
+        response.put("atualizados", resultado.atualizados());
+        response.put("conquistasDesbloqueadas", resultado.conquistas());
         return ResponseEntity.ok(response);
     }
 
@@ -397,48 +172,21 @@ public class ItemController {
             @RequestBody Map<String, Object> body,
             @AuthenticationPrincipal User userLogado) {
 
+        Object minutosBruto = body.get("duracaoMinutos");
+        Integer minutos = (minutosBruto instanceof Number numero && numero.intValue() >= 0)
+                ? Integer.valueOf(numero.intValue())
+                : null;
+        Object grupoIdBruto = body.get("grupoId");
+        String grupoId = grupoIdBruto instanceof String s && !s.isBlank() ? s : null;
+
+        ResultadoItem resultado = itemService.salvarDuracaoUnica(id, minutos, grupoId, userLogado);
+
         Map<String, Object> response = new HashMap<>();
-        Item item = itemRepository.findById(id).orElse(null);
-
-        if (item == null || !item.getUser().getId().equals(userLogado.getId())) {
-            response.put("sucesso", false);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        response.put("sucesso", resultado.sucesso());
+        if (!resultado.sucesso()) {
+            return ResponseEntity.status(statusHttpDeFalha(resultado)).body(response);
         }
-
-        if (!"Filme".equalsIgnoreCase(item.getTipo())) {
-            response.put("sucesso", false);
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        Object minutosObj = body.get("duracaoMinutos");
-        if (!(minutosObj instanceof Number numero) || numero.intValue() < 0) {
-            response.put("sucesso", false);
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        Integer duracaoAnterior = item.getDuracaoMinutos();
-        item.setDuracaoMinutos(numero.intValue());
-        Item salvo = itemRepository.save(item);
-
-        List<ConquistaDesbloqueadaDTO> novas = List.of();
-        if (!igual(duracaoAnterior, salvo.getDuracaoMinutos())) {
-            // Agrupa todas as mudanças de durações quando for em lote
-            Object grupoIdRecebido = body.get("grupoId");
-            String grupoId = (grupoIdRecebido instanceof String s && !s.isBlank())
-                    ? s
-                    : atividadeLogService.novoGrupo();
-
-            String detalhe = (duracaoAnterior != null ? duracaoAnterior + " min" : "—")
-                    + " → " + salvo.getDuracaoMinutos() + " min";
-            atividadeLogService.registrarDuracaoAlterada(userLogado, salvo, detalhe, grupoId);
-
-            novas = verificarConquistasSeguro(userLogado);
-            novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
-                    userLogado, c.nome(), c.icone(), grupoId));
-        }
-
-        response.put("sucesso", true);
-        response.put("conquistasDesbloqueadas", novas);
+        response.put("conquistasDesbloqueadas", resultado.conquistas());
         return ResponseEntity.ok(response);
     }
 
@@ -449,123 +197,38 @@ public class ItemController {
             @PathVariable Long id,
             @AuthenticationPrincipal User userLogado) {
 
+        ResultadoItem resultado = itemService.avancarEpisodio(id, userLogado);
+
         Map<String, Object> response = new HashMap<>();
-        Item item = itemRepository.findById(id).orElse(null);
-
-        if (item == null || userLogado == null || !item.getUser().getId().equals(userLogado.getId())) {
-            response.put("sucesso", false);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        response.put("sucesso", resultado.sucesso());
+        if (!resultado.sucesso()) {
+            if (resultado.erro() != null) {
+                response.put("erro", resultado.erro());
+            }
+            return ResponseEntity.status(statusHttpDeFalha(resultado)).body(response);
         }
 
-        if (!"Série".equalsIgnoreCase(item.getTipo())) {
-            response.put("sucesso", false);
-            response.put("erro", "Este item não é uma série.");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        // Enquanto a série estiver no Backlog, o progresso continua travado
-        if (item.getStatus() != null && item.getStatus().equalsIgnoreCase("Backlog")) {
-            response.put("sucesso", false);
-            response.put("erro", "Tire a série do Backlog para começar a registrar episódios.");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        // Série já concluída não avança mais episódio
-        if (item.getStatus() != null && item.getStatus().equalsIgnoreCase("Assistido")) {
-            response.put("sucesso", false);
-            response.put("erro", "Esta série já foi marcada como Assistida.");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        int episodioAtual = item.getEpisodioAtual() != null ? item.getEpisodioAtual() : 0;
-        Integer temporadaAnterior = item.getTemporadaAtual();
-        Integer episodioAnterior = item.getEpisodioAtual();
-        item.setEpisodioAtual(episodioAtual + 1);
-
-        if (item.getTemporadaAtual() == null) {
-            item.setTemporadaAtual(1);
-        }
-
-        Item salvo = itemRepository.save(item);
-        String grupoId = atividadeLogService.novoGrupo();
-        atividadeLogService.registrarProgressoSerieAtualizado(userLogado, salvo, temporadaAnterior, episodioAnterior, grupoId);
-
-        List<ConquistaDesbloqueadaDTO> novas = verificarConquistasSeguro(userLogado);
-        novas.forEach(c -> atividadeLogService.registrarConquistaDesbloqueada(
-                userLogado, c.nome(), c.icone(), grupoId));
-
-        response.put("sucesso", true);
+        Item salvo = resultado.item();
         response.put("temporadaAtual", salvo.getTemporadaAtual());
         response.put("episodioAtual", salvo.getEpisodioAtual());
-        response.put("conquistasDesbloqueadas", novas);
+        response.put("conquistasDesbloqueadas", resultado.conquistas());
         return ResponseEntity.ok(response);
     }
 
     // --- Helpers ---
 
-    // Aceita só chaves no formato esperado; qualquer outra coisa é ignorada (cadastro segue sem idempotência)
-    private String normalizarChaveIdempotencia(String chave) {
-        if (chave == null) return null;
-        String limpa = chave.trim();
-        return CHAVE_IDEMPOTENCIA_VALIDA.matcher(limpa).matches() ? limpa : null;
-    }
-
-    // Mesmo formato de resposta do cadastro normal; sem conquistas novas, pois já foram dadas na 1ª vez
-    private ResponseEntity<Map<String, Object>> respostaCadastroRepetido(Item existente) {
+    // Mesmo formato de resposta de cadastrar/atualizar
+    private Map<String, Object> respostaItem(ResultadoItem resultado) {
         Map<String, Object> response = new HashMap<>();
-        response.put("item", existente);
-        response.put("conquistasDesbloqueadas", List.of());
-        return ResponseEntity.ok(response);
+        response.put("item", resultado.item());
+        response.put("conquistasDesbloqueadas", resultado.conquistas());
+        return response;
     }
 
-    private List<ConquistaDesbloqueadaDTO> verificarConquistasSeguro(User user) {
-        try {
-            return conquistaService.verificarConquistas(user);
-        } catch (Exception e) {
-            // Não deixamos um erro na verificação de conquistas quebrar a
-            // ação principal (cadastrar/editar item), mas logamos para não
-            // perder o rastro do problema
-            log.warn("Falha ao verificar conquistas para o usuário {}: {}", user.getId(), e.getMessage(), e);
-            return List.of();
-        }
-    }
-
-    // Enquanto a série está no Backlog, ela não tem progresso
-    private void limparProgressoSerieSeBacklog(Item item) {
-        boolean ehSerie = "Série".equalsIgnoreCase(item.getTipo());
-        boolean emBacklog = item.getStatus() != null && item.getStatus().equalsIgnoreCase("Backlog");
-
-        if (ehSerie && emBacklog) {
-            item.setTemporadaAtual(null);
-            item.setEpisodioAtual(null);
-        }
-    }
-
-    // Compara dois objetos com null-safety
-    private boolean igual(Object a, Object b) {
-        if (a == null && b == null) return true;
-        if (a == null || b == null) return false;
-        return a.equals(b);
-    }
-
-    // Monta o "antes → depois" da duração, olhando o campo certo conforme o tipo
-    private String formatarDetalheDuracao(Item anterior, Item salvo) {
-        Integer valorAnterior;
-        Integer valorNovo;
-
-        if ("Jogo".equalsIgnoreCase(salvo.getTipo())) {
-            valorAnterior = anterior.getMinutosJogados();
-            valorNovo = salvo.getMinutosJogados();
-        } else if ("Série".equalsIgnoreCase(salvo.getTipo())) {
-            valorAnterior = anterior.getDuracaoTotalMinutos();
-            valorNovo = salvo.getDuracaoTotalMinutos();
-        } else {
-            valorAnterior = anterior.getDuracaoMinutos();
-            valorNovo = salvo.getDuracaoMinutos();
-        }
-
-        String txtAnterior = valorAnterior != null ? valorAnterior + " min" : "—";
-        String txtNovo = valorNovo != null ? valorNovo + " min" : "—";
-        return txtAnterior + " → " + txtNovo;
+    // Item inexistente ou de outro usuário → 403 (como sempre); regra de negócio violada → 400
+    private HttpStatus statusHttpDeFalha(ResultadoItem resultado) {
+        return resultado.status() == ItemService.Status.REQUISICAO_INVALIDA
+                ? HttpStatus.BAD_REQUEST
+                : HttpStatus.FORBIDDEN;
     }
 }

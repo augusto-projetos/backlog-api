@@ -1,6 +1,8 @@
 package com.augustoprojetos.backlogapi.service;
 
 import com.augustoprojetos.backlogapi.dto.tmdb.TmdbResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +17,15 @@ import java.util.stream.Collectors;
 @Service
 public class TmdbService {
 
+    private static final Logger log = LoggerFactory.getLogger(TmdbService.class);
+
+    // RestTemplate compartilhado (com timeouts) definido em HttpClientConfig
+    private final RestTemplate restTemplate;
+
+    public TmdbService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
     @Value("${TMDB_API_KEY}")
     private String apiKey;
 
@@ -22,8 +33,6 @@ public class TmdbService {
     private String apiUrl;
 
     public List<SearchResult> buscarFilmes(String query) {
-        RestTemplate restTemplate = new RestTemplate();
-
         String urlTemplate = UriComponentsBuilder.fromUriString(apiUrl)
                 .path("/search/multi")
                 .queryParam("api_key", apiKey)
@@ -52,7 +61,7 @@ public class TmdbService {
                         .collect(Collectors.toList());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("[TMDB] Falha na busca por \"{}\": {}", query, e.getMessage());
         }
 
         return Collections.emptyList();
@@ -62,8 +71,6 @@ public class TmdbService {
     // gráfico de "Tempo Gasto" do dashboard. Faz uma busca simples pelo título
     public Integer buscarDuracaoFilme(String titulo) {
         if (titulo == null || titulo.isBlank()) return null;
-
-        RestTemplate restTemplate = new RestTemplate();
 
         try {
             // 1. Busca o filme pelo título para descobrir o ID dele no TMDB
@@ -109,7 +116,7 @@ public class TmdbService {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[TMDB] Não foi possível buscar a duração de \"" + titulo + "\": " + e.getMessage());
+            log.warn("[TMDB] Não foi possível buscar a duração de \"{}\": {}", titulo, e.getMessage());
         }
 
         return null;

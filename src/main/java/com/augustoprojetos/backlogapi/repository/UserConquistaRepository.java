@@ -11,7 +11,13 @@ import java.util.List;
 
 public interface UserConquistaRepository extends JpaRepository<UserConquista, Long> {
 
-    List<UserConquista> findByUser(User user);
+    // JOIN FETCH: traz a conquista junto.
+    @Query("SELECT uc FROM UserConquista uc JOIN FETCH uc.conquista WHERE uc.user = :user")
+    List<UserConquista> findByUser(@Param("user") User user);
+
+    // Chaves das conquistas que o usuário já tem, em 1 query
+    @Query("SELECT uc.conquista.chave FROM UserConquista uc WHERE uc.user.id = :userId")
+    List<String> findChavesDesbloqueadasByUserId(@Param("userId") Long userId);
 
     boolean existsByUserAndConquista_Chave(User user, String chave);
 
