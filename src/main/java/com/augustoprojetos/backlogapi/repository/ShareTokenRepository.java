@@ -14,6 +14,9 @@ public interface ShareTokenRepository extends JpaRepository<ShareToken, Long> {
     // Para mostrar no perfil do usuário: "Quais links eu criei?"
     List<ShareToken> findByUser(User user);
 
+    // Só a contagem (conquista de share link): não precisa carregar os tokens
+    long countByUser(User user);
+
     // Para limpar tokens expirados
     void deleteByToken(String token);
 }
